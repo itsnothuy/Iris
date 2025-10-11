@@ -340,6 +340,64 @@ In accordance with our privacy-first approach, the following telemetry will **NO
 
 ---
 
+## Implementation Notes (MVP 2)
+
+### Message Persistence with Room
+
+**Completed**: January 2025
+
+**Overview**: Implemented local message persistence using Room database to preserve conversation history across app sessions.
+
+**Components Added**:
+
+1. **Database Layer** (`app/src/main/java/com/nervesparks/iris/data/local/`):
+   - `MessageEntity`: Room entity representing persisted messages with columns for id, content, role, timestamp, processingTimeMs, and tokenCount
+   - `MessageDao`: Data Access Object providing methods for insert, query, and delete operations with both suspend functions and Flow support
+   - `AppDatabase`: Room database singleton with thread-safe initialization
+   - `MessageMapper`: Utility to convert between domain `Message` and database `MessageEntity`, handling Instant↔Long and enum↔String conversions
+
+2. **Testing**:
+   - Unit tests for `MessageMapper` covering conversion, null handling, round-trip preservation, and edge cases (13 tests)
+   - Instrumented tests for `MessageDao` covering CRUD operations, ordering, batch inserts, and conflict resolution (11 tests)
+   - Compose UI test for message history restoration verifying correct display after reload (5 test scenarios)
+
+**Key Design Decisions**:
+- Used Room 2.6.1 with KSP for annotation processing
+- Stored timestamps as Long (epoch milliseconds) for database compatibility
+- Implemented REPLACE conflict strategy to handle duplicate message IDs
+- Used Flow for reactive updates and suspend functions for one-time queries
+- Singleton database pattern with double-checked locking for thread safety
+
+**Database Schema**:
+```sql
+CREATE TABLE messages (
+    id TEXT PRIMARY KEY NOT NULL,
+    content TEXT NOT NULL,
+    role TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    processingTimeMs INTEGER,
+    tokenCount INTEGER
+)
+```
+
+**Integration Points**:
+- Messages should be persisted via `messageDao.insertMessage()` when sent or received
+- History should be restored at app startup using `messageDao.getAllMessages().first()`
+- ViewModel integration pending to connect persistence with UI layer
+
+**Testing Coverage**:
+- MessageMapper: 100% (all conversion paths tested)
+- MessageDao: 100% (all database operations tested)
+- UI restoration: Verified message display after simulated restart
+
+**Future Enhancements**:
+- Add conversation management (multiple conversations)
+- Implement message search and filtering
+- Add database migrations for schema changes
+- Consider conversation archival for old messages
+
+---
+
 *Specification Version: 1.0*  
 *Last Updated: October 2025*  
 *Implementation Target: Milestone 1*
