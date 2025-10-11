@@ -188,3 +188,93 @@ Due to network restrictions preventing Gradle builds, the implementation follows
 - Maintains backward compatibility with existing code
 - Privacy-first: All data stored locally, never transmitted
 - Thread-safe: Room handles concurrency, database singleton pattern used
+
+## Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        MainActivity                          │
+│                                                               │
+│  ┌────────────────────┐       ┌──────────────────────────┐  │
+│  │   AppDatabase      │──────▶│  MessageRepository       │  │
+│  │   (Singleton)      │       │  (Clean Abstraction)     │  │
+│  └────────────────────┘       └──────────────────────────┘  │
+│           │                              │                   │
+│           │ provides                     │ injected into     │
+│           ▼                              ▼                   │
+│  ┌────────────────────┐       ┌──────────────────────────┐  │
+│  │    MessageDao      │       │    MainViewModel         │  │
+│  │                    │       │                          │  │
+│  └────────────────────┘       └──────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+
+Data Flow:
+──────────
+
+1. User sends message
+   └─▶ MainViewModel.send()
+       └─▶ addMessage("user", content)
+           └─▶ messageRepository.saveMessage()
+               └─▶ MessageMapper.toEntity()
+                   └─▶ messageDao.insertMessage()
+
+2. AI responds (streaming)
+   └─▶ llamaAndroid.send().collect { chunk ->
+       └─▶ addMessage("assistant", chunk)  // Appends to last message
+   }
+   └─▶ finally {
+       └─▶ persistLastAssistantMessage()
+           └─▶ messageRepository.saveMessage()
+               └─▶ MessageMapper.toEntity()
+                   └─▶ messageDao.insertMessage()
+   }
+
+3. App restart
+   └─▶ MainViewModel.init()
+       └─▶ restoreMessagesFromDatabase()
+           └─▶ messageRepository.getAllMessagesList()
+               └─▶ messageDao.getAllMessagesList()
+                   └─▶ MessageMapper.toDomainList()
+                       └─▶ Convert to Map format for compatibility
+```
+
+## Message State Machine
+
+```
+┌─────────────┐
+│  App Start  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────────┐
+│ Load from Database  │
+└──────┬──────────────┘
+       │
+       ▼
+┌─────────────────────┐        ┌──────────────┐
+│  Messages Restored  │───────▶│ User Types   │
+└─────────────────────┘        └──────┬───────┘
+                                      │
+                                      ▼
+                            ┌──────────────────┐
+                            │  User Sends      │
+                            │  ↓ Save to DB    │
+                            └──────┬───────────┘
+                                   │
+                                   ▼
+                            ┌──────────────────┐
+                            │  AI Streaming    │
+                            │  (Chunks append) │
+                            └──────┬───────────┘
+                                   │
+                                   ▼
+                            ┌──────────────────┐
+                            │  Stream Complete │
+                            │  ↓ Save to DB    │
+                            └──────┬───────────┘
+                                   │
+                                   ▼
+                            ┌──────────────────┐
+                            │  Ready for Next  │
+                            └──────────────────┘
+```
