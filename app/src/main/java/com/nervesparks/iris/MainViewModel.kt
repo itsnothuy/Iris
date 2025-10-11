@@ -297,7 +297,9 @@ class MainViewModel(
             if(first){
                 addMessage("system", "This is a conversation between User and Iris, a friendly chatbot. Iris is helpful, kind, honest, good at writing, and never fails to answer any requests immediately and with precision.")
                 addMessage("user", "Hi")
+                persistInitialMessage("user", "Hi")
                 addMessage("assistant", "How may I help You?")
+                persistInitialMessage("assistant", "How may I help You?")
                 first = false
             }
 
@@ -325,6 +327,8 @@ class MainViewModel(
                     if (!getIsCompleteEOT()) {
                         trimEOT()
                     }
+                    // Persist the complete assistant message after streaming is done
+                    persistLastAssistantMessage()
                 }
 
 
@@ -451,8 +455,9 @@ class MainViewModel(
     }
     private fun addMessage(role: String, content: String) {
         val newMessage = mapOf("role" to role, "content" to content)
+        val isNewMessage = messages.isEmpty() || messages.last()["role"] != role
 
-        messages = if (messages.isNotEmpty() && messages.last()["role"] == role) {
+        messages = if (!isNewMessage) {
             val lastMessageContent = messages.last()["content"] ?: ""
             val updatedContent = "$lastMessageContent$content"
             val updatedLastMessage = messages.last() + ("content" to updatedContent)
@@ -463,24 +468,72 @@ class MainViewModel(
             messages + listOf(newMessage)
         }
         
-        // Persist message to database (skip system, error, codeBlock, and log messages)
-        if (role in listOf("user", "assistant") && messageRepository != null) {
+        // Persist complete messages to database (skip system, error, codeBlock, and log messages)
+        // For user messages, persist immediately. For assistant messages, we'll persist on completion
+        // via a dedicated method since they stream in chunks.
+        if (role == "user" && messageRepository != null) {
             viewModelScope.launch {
                 try {
-                    val messageRole = when (role) {
-                        "user" -> MessageRole.USER
-                        "assistant" -> MessageRole.ASSISTANT
-                        else -> return@launch
-                    }
                     val domainMessage = Message(
                         content = content,
-                        role = messageRole,
+                        role = MessageRole.USER,
                         timestamp = Instant.now()
                     )
                     messageRepository.saveMessage(domainMessage)
                 } catch (e: Exception) {
                     Log.e(tag, "Failed to persist message to database", e)
                 }
+            }
+        }
+    }
+    
+    /**
+     * Persist the last assistant message to database.
+     * Should be called after streaming is complete.
+     */
+    private fun persistLastAssistantMessage() {
+        if (messages.isEmpty() || messageRepository == null) return
+        
+        val lastMessage = messages.last()
+        if (lastMessage["role"] == "assistant") {
+            viewModelScope.launch {
+                try {
+                    val content = lastMessage["content"] ?: ""
+                    val domainMessage = Message(
+                        content = content,
+                        role = MessageRole.ASSISTANT,
+                        timestamp = Instant.now()
+                    )
+                    messageRepository.saveMessage(domainMessage)
+                    Log.i(tag, "Persisted assistant message to database")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to persist assistant message to database", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Persist initial conversation messages (for the auto-generated greeting).
+     */
+    private fun persistInitialMessage(role: String, content: String) {
+        if (messageRepository == null) return
+        
+        viewModelScope.launch {
+            try {
+                val messageRole = when (role) {
+                    "user" -> MessageRole.USER
+                    "assistant" -> MessageRole.ASSISTANT
+                    else -> return@launch
+                }
+                val domainMessage = Message(
+                    content = content,
+                    role = messageRole,
+                    timestamp = Instant.now()
+                )
+                messageRepository.saveMessage(domainMessage)
+            } catch (e: Exception) {
+                Log.e(tag, "Failed to persist initial message to database", e)
             }
         }
     }
