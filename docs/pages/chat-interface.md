@@ -396,6 +396,108 @@ CREATE TABLE messages (
 - Add database migrations for schema changes
 - Consider conversation archival for old messages
 
+## Implementation Notes (MVP 3)
+
+### Error States & Empty/Loading UX
+
+**Implementation Date**: October 2025
+
+**Components Added**:
+
+1. **EmptyState Component** (`EmptyState.kt`)
+   - Displays welcome message: "Hello, Ask me Anything"
+   - Shows 3 conversation starters as interactive cards
+   - Replaces inline empty state implementation in MainChatScreen
+   - Consistent styling with existing design system (dark theme, rounded corners)
+   - Supports optional click callbacks for conversation starters
+
+2. **LoadingSkeleton Component** (`LoadingSkeleton.kt`)
+   - Animated shimmer placeholder for messages being loaded
+   - Supports both user and assistant message alignment
+   - Uses infinite repeating animation with alpha transitions
+   - Matches message bubble styling for visual consistency
+   - Can be used during message fetch or processing states
+
+3. **ErrorBanner Component** (`ErrorBanner.kt`)
+   - Card-based error display with warning icon
+   - Shows error title and descriptive message
+   - Includes "Retry" button for failed operations
+   - Optional "Dismiss" button to hide errors
+   - Red color scheme (0xFF3D1F1F background) for visual distinction
+   - Elevated card with rounded corners for prominence
+
+**ViewModel Changes**:
+
+- Added `errorMessage: String?` state variable to track error state
+- Added `setError(error: String)` method to set error messages
+- Added `clearError()` method to dismiss errors
+- Updated `send()` method to:
+  - Clear errors when sending new messages
+  - Set errors when message processing fails
+  - Catch exceptions and display user-friendly error messages
+
+**MainChatScreen Integration**:
+
+- Replaced inline empty state LazyColumn with `EmptyState` component
+- Added `ProcessingIndicator` display inside message LazyColumn when `viewModel.getIsSending()` is true
+- Added `ErrorBanner` below message list when `viewModel.errorMessage` is not null
+- Error banner provides retry functionality by calling `viewModel.send()` again
+- Error can be dismissed, clearing the error state
+
+**State Machine Implementation**:
+
+The following state transitions are now fully supported:
+
+```
+Empty → (user types) → FirstMessage
+FirstMessage → (send pressed) → Processing (shows ProcessingIndicator)
+Processing → (response received) → WithHistory
+Processing → (error occurs) → Error (shows ErrorBanner)
+Error → (retry pressed) → Processing (re-attempts send)
+Error → (dismiss pressed) → WithHistory (error cleared)
+```
+
+**Testing Coverage**:
+
+- **EmptyStateTest**: 6 tests covering welcome message, starters display, click handling
+- **LoadingSkeletonTest**: 4 tests covering visibility, alignment, animation
+- **ErrorBannerTest**: 9 tests covering error display, retry/dismiss actions, icon display
+- **ChatStateTransitionTest**: 10 tests covering full state machine paths
+- **Total**: 29 new Compose UI tests
+
+**Design Decisions**:
+
+1. **EmptyState replaces inline implementation**: The existing empty state code in MainChatScreen was replaced with a reusable component to improve maintainability and testability.
+
+2. **Error banner positioned outside LazyColumn**: Errors are shown below the message list rather than inside it, ensuring they remain visible while scrolling.
+
+3. **ProcessingIndicator shown inside LazyColumn**: This allows the indicator to scroll with messages and appear in the natural message flow.
+
+4. **No destructive changes**: Existing message rendering logic remains unchanged; new components are additive.
+
+5. **Error handling is opt-in**: Errors are only displayed when explicitly set via `setError()`, maintaining backward compatibility.
+
+**Known Limitations**:
+
+- LoadingSkeleton is created but not yet integrated into MainChatScreen (planned for future message loading scenarios)
+- Error retry always calls `send()` with the last message; more sophisticated retry logic could be added
+- Conversation starters don't auto-populate the input field (currently just fire callbacks)
+
+**Accessibility Considerations**:
+
+- All components use Material3 theming for consistent color contrast
+- Error banner includes semantic warning icon with content description
+- Text sizes match existing typography scale
+- Touch targets meet 44dp minimum requirement
+
+**Future Enhancements**:
+
+- Add network error specific messaging (though currently on-device only)
+- Implement exponential backoff for retries
+- Add error categorization (transient vs permanent errors)
+- Show loading skeleton during message history restoration
+- Add haptic feedback for error states
+
 ---
 
 *Specification Version: 1.0*  

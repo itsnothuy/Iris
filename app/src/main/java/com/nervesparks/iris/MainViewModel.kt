@@ -272,6 +272,10 @@ class MainViewModel(
     var showAlert by mutableStateOf(false)
     var switchModal by mutableStateOf(false)
     var currentDownloadable: Downloadable? by mutableStateOf(null)
+    
+    // Error state for UI
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
 
     override fun onCleared() {
         textToSpeech?.shutdown()
@@ -291,6 +295,9 @@ class MainViewModel(
     fun send() {
         val userMessage = removeExtraWhiteSpaces(message)
         message = ""
+        
+        // Clear any previous errors when sending a new message
+        clearError()
 
         // Add to messages console.
         if (userMessage != "" && userMessage != " ") {
@@ -312,6 +319,7 @@ class MainViewModel(
                         .catch {
                             Log.e(tag, "send() failed", it)
                             addMessage("error", it.message ?: "")
+                            setError(it.message ?: "Failed to process message")
                         }
                         .collect { response ->
                             // Create a new assistant message with the response
@@ -322,6 +330,10 @@ class MainViewModel(
                                 addMessage("assistant", response)
                             }
                         }
+                }
+                catch (e: Exception) {
+                    Log.e(tag, "send() failed with exception", e)
+                    setError(e.message ?: "An unexpected error occurred")
                 }
                 finally {
                     if (!getIsCompleteEOT()) {
@@ -610,6 +622,20 @@ class MainViewModel(
 
     fun stop() {
         llamaAndroid.stopTextGeneration()
+    }
+    
+    /**
+     * Set an error message to be displayed in the UI.
+     */
+    fun setError(error: String) {
+        errorMessage = error
+    }
+    
+    /**
+     * Clear the current error message.
+     */
+    fun clearError() {
+        errorMessage = null
     }
 
 }
