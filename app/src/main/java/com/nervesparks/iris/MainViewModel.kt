@@ -14,16 +14,24 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.nervesparks.iris.data.Message
+import com.nervesparks.iris.data.MessageRole
 import com.nervesparks.iris.data.UserPreferencesRepository
+import com.nervesparks.iris.data.repository.MessageRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import java.io.File
+import java.time.Instant
 import java.util.Locale
 import java.util.UUID
 
-class MainViewModel(private val llamaAndroid: LLamaAndroid = LLamaAndroid.instance(), private val userPreferencesRepository: UserPreferencesRepository): ViewModel() {
+class MainViewModel(
+    private val llamaAndroid: LLamaAndroid = LLamaAndroid.instance(), 
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val messageRepository: MessageRepository? = null
+): ViewModel() {
     companion object {
 //        @JvmStatic
 //        private val NanosPerSecond = 1_000_000_000.0
@@ -35,9 +43,37 @@ class MainViewModel(private val llamaAndroid: LLamaAndroid = LLamaAndroid.instan
 
     init {
         loadDefaultModelName()
+        restoreMessagesFromDatabase()
     }
+    
     private fun loadDefaultModelName(){
         _defaultModelName.value = userPreferencesRepository.getDefaultModelName()
+    }
+    
+    /**
+     * Restore messages from database at startup.
+     */
+    private fun restoreMessagesFromDatabase() {
+        messageRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    val savedMessages = repo.getAllMessagesList()
+                    if (savedMessages.isNotEmpty()) {
+                        // Convert domain Messages back to Map format for compatibility
+                        messages = savedMessages.map { msg ->
+                            mapOf(
+                                "role" to msg.role.name.lowercase(),
+                                "content" to msg.content
+                            )
+                        }
+                        first = false // Already have conversation history
+                        Log.i(tag, "Restored ${savedMessages.size} messages from database")
+                    }
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to restore messages from database", e)
+                }
+            }
+        }
     }
 
     fun setDefaultModelName(modelName: String){
@@ -426,6 +462,27 @@ class MainViewModel(private val llamaAndroid: LLamaAndroid = LLamaAndroid.instan
         } else {
             messages + listOf(newMessage)
         }
+        
+        // Persist message to database (skip system, error, codeBlock, and log messages)
+        if (role in listOf("user", "assistant") && messageRepository != null) {
+            viewModelScope.launch {
+                try {
+                    val messageRole = when (role) {
+                        "user" -> MessageRole.USER
+                        "assistant" -> MessageRole.ASSISTANT
+                        else -> return@launch
+                    }
+                    val domainMessage = Message(
+                        content = content,
+                        role = messageRole,
+                        timestamp = Instant.now()
+                    )
+                    messageRepository.saveMessage(domainMessage)
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to persist message to database", e)
+                }
+            }
+        }
     }
 
     private fun trimEOT() {
@@ -468,6 +525,18 @@ class MainViewModel(private val llamaAndroid: LLamaAndroid = LLamaAndroid.instan
 
         )
         first = true
+        
+        // Clear database
+        messageRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    repo.deleteAllMessages()
+                    Log.i(tag, "Cleared all messages from database")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to clear messages from database", e)
+                }
+            }
+        }
     }
 
     fun log(message: String) {
