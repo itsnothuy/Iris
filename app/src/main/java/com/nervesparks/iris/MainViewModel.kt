@@ -14,16 +14,24 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.nervesparks.iris.data.Message
+import com.nervesparks.iris.data.MessageRole
 import com.nervesparks.iris.data.UserPreferencesRepository
+import com.nervesparks.iris.data.repository.MessageRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import java.io.File
+import java.time.Instant
 import java.util.Locale
 import java.util.UUID
 
-class MainViewModel(private val llamaAndroid: LLamaAndroid = LLamaAndroid.instance(), private val userPreferencesRepository: UserPreferencesRepository): ViewModel() {
+class MainViewModel(
+    private val llamaAndroid: LLamaAndroid = LLamaAndroid.instance(), 
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val messageRepository: MessageRepository? = null
+): ViewModel() {
     companion object {
 //        @JvmStatic
 //        private val NanosPerSecond = 1_000_000_000.0
@@ -35,9 +43,37 @@ class MainViewModel(private val llamaAndroid: LLamaAndroid = LLamaAndroid.instan
 
     init {
         loadDefaultModelName()
+        restoreMessagesFromDatabase()
     }
+    
     private fun loadDefaultModelName(){
         _defaultModelName.value = userPreferencesRepository.getDefaultModelName()
+    }
+    
+    /**
+     * Restore messages from database at startup.
+     */
+    private fun restoreMessagesFromDatabase() {
+        messageRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    val savedMessages = repo.getAllMessagesList()
+                    if (savedMessages.isNotEmpty()) {
+                        // Convert domain Messages back to Map format for compatibility
+                        messages = savedMessages.map { msg ->
+                            mapOf(
+                                "role" to msg.role.name.lowercase(),
+                                "content" to msg.content
+                            )
+                        }
+                        first = false // Already have conversation history
+                        Log.i(tag, "Restored ${savedMessages.size} messages from database")
+                    }
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to restore messages from database", e)
+                }
+            }
+        }
     }
 
     fun setDefaultModelName(modelName: String){
@@ -261,7 +297,9 @@ class MainViewModel(private val llamaAndroid: LLamaAndroid = LLamaAndroid.instan
             if(first){
                 addMessage("system", "This is a conversation between User and Iris, a friendly chatbot. Iris is helpful, kind, honest, good at writing, and never fails to answer any requests immediately and with precision.")
                 addMessage("user", "Hi")
+                persistInitialMessage("user", "Hi")
                 addMessage("assistant", "How may I help You?")
+                persistInitialMessage("assistant", "How may I help You?")
                 first = false
             }
 
@@ -289,6 +327,8 @@ class MainViewModel(private val llamaAndroid: LLamaAndroid = LLamaAndroid.instan
                     if (!getIsCompleteEOT()) {
                         trimEOT()
                     }
+                    // Persist the complete assistant message after streaming is done
+                    persistLastAssistantMessage()
                 }
 
 
@@ -415,8 +455,9 @@ class MainViewModel(private val llamaAndroid: LLamaAndroid = LLamaAndroid.instan
     }
     private fun addMessage(role: String, content: String) {
         val newMessage = mapOf("role" to role, "content" to content)
+        val isNewMessage = messages.isEmpty() || messages.last()["role"] != role
 
-        messages = if (messages.isNotEmpty() && messages.last()["role"] == role) {
+        messages = if (!isNewMessage) {
             val lastMessageContent = messages.last()["content"] ?: ""
             val updatedContent = "$lastMessageContent$content"
             val updatedLastMessage = messages.last() + ("content" to updatedContent)
@@ -425,6 +466,75 @@ class MainViewModel(private val llamaAndroid: LLamaAndroid = LLamaAndroid.instan
             }
         } else {
             messages + listOf(newMessage)
+        }
+        
+        // Persist complete messages to database (skip system, error, codeBlock, and log messages)
+        // For user messages, persist immediately. For assistant messages, we'll persist on completion
+        // via a dedicated method since they stream in chunks.
+        if (role == "user" && messageRepository != null) {
+            viewModelScope.launch {
+                try {
+                    val domainMessage = Message(
+                        content = content,
+                        role = MessageRole.USER,
+                        timestamp = Instant.now()
+                    )
+                    messageRepository.saveMessage(domainMessage)
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to persist message to database", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Persist the last assistant message to database.
+     * Should be called after streaming is complete.
+     */
+    private fun persistLastAssistantMessage() {
+        if (messages.isEmpty() || messageRepository == null) return
+        
+        val lastMessage = messages.last()
+        if (lastMessage["role"] == "assistant") {
+            viewModelScope.launch {
+                try {
+                    val content = lastMessage["content"] ?: ""
+                    val domainMessage = Message(
+                        content = content,
+                        role = MessageRole.ASSISTANT,
+                        timestamp = Instant.now()
+                    )
+                    messageRepository.saveMessage(domainMessage)
+                    Log.i(tag, "Persisted assistant message to database")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to persist assistant message to database", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Persist initial conversation messages (for the auto-generated greeting).
+     */
+    private fun persistInitialMessage(role: String, content: String) {
+        if (messageRepository == null) return
+        
+        viewModelScope.launch {
+            try {
+                val messageRole = when (role) {
+                    "user" -> MessageRole.USER
+                    "assistant" -> MessageRole.ASSISTANT
+                    else -> return@launch
+                }
+                val domainMessage = Message(
+                    content = content,
+                    role = messageRole,
+                    timestamp = Instant.now()
+                )
+                messageRepository.saveMessage(domainMessage)
+            } catch (e: Exception) {
+                Log.e(tag, "Failed to persist initial message to database", e)
+            }
         }
     }
 
@@ -468,6 +578,18 @@ class MainViewModel(private val llamaAndroid: LLamaAndroid = LLamaAndroid.instan
 
         )
         first = true
+        
+        // Clear database
+        messageRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    repo.deleteAllMessages()
+                    Log.i(tag, "Cleared all messages from database")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to clear messages from database", e)
+                }
+            }
+        }
     }
 
     fun log(message: String) {
