@@ -603,6 +603,53 @@ class MainViewModel(
             }
         }
     }
+    
+    /**
+     * Get the last user message from the conversation.
+     */
+    private fun getLastUserMessage(): String? {
+        return messages.lastOrNull { it["role"] == "user" }?.get("content")
+    }
+    
+    /**
+     * Retry the last user message by resending it verbatim.
+     * Removes the last assistant response if it exists before retrying.
+     */
+    fun retryLastMessage() {
+        val lastUserMessage = getLastUserMessage() ?: return
+        
+        // Remove the last assistant response if it exists
+        if (messages.isNotEmpty() && messages.last()["role"] == "assistant") {
+            messages = messages.dropLast(1)
+        }
+        
+        // Resend the last user message
+        message = lastUserMessage
+        send()
+    }
+    
+    /**
+     * Edit and resend a user message.
+     * Removes the last user message and its corresponding assistant response (if any),
+     * then sends the edited message.
+     */
+    fun editAndResend(editedMessage: String) {
+        if (editedMessage.isBlank()) return
+        
+        // Remove the last assistant response if it exists
+        if (messages.isNotEmpty() && messages.last()["role"] == "assistant") {
+            messages = messages.dropLast(1)
+        }
+        
+        // Remove the last user message
+        if (messages.isNotEmpty() && messages.last()["role"] == "user") {
+            messages = messages.dropLast(1)
+        }
+        
+        // Send the edited message
+        message = editedMessage
+        send()
+    }
 
     fun log(message: String) {
 //        addMessage("log", message)

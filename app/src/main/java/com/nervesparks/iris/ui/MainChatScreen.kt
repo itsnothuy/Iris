@@ -247,6 +247,12 @@ fun MainChatScreen (
                                     } else {
                                         content
                                     }
+                                    
+                                    // Check if this is the last user message in the entire conversation
+                                    val allMessages = viewModel.messages
+                                    val lastUserMessageIndex = allMessages.indexOfLast { it["role"] == "user" }
+                                    val currentMessageIndex = index + 3 // Account for skipped first 3 messages
+                                    val isLastUserMessage = role == "user" && currentMessageIndex == lastUserMessageIndex
 
                                     // Skip rendering first user and first assistant messages
 
@@ -269,7 +275,8 @@ fun MainChatScreen (
                                                             isSheetOpen = false
                                                             viewModel.toggler = false
                                                         },
-                                                        sheetState = sheetState
+                                                        sheetState = sheetState,
+                                                        isLastUserMessage = isLastUserMessage
                                                     )
                                                 }
                                                 Row(
@@ -381,7 +388,8 @@ fun MainChatScreen (
                                                             isSheetOpen = false
                                                             viewModel.toggler = false
                                                         },
-                                                        sheetState = sheetState
+                                                        sheetState = sheetState,
+                                                        isLastUserMessage = isLastUserMessage
                                                     )
                                                 }
                                                 Column(modifier = Modifier.combinedClickable(
@@ -989,7 +997,8 @@ fun MessageBottomSheet(
     context: Context,
     viewModel: MainViewModel,
     onDismiss: () -> Unit,
-    sheetState: SheetState
+    sheetState: SheetState,
+    isLastUserMessage: Boolean = false
 ) {
 
 
@@ -1005,6 +1014,7 @@ fun MessageBottomSheet(
                 .background(color = Color(0xFF01081a))
         ) {
             var sheetScrollState = rememberLazyListState()
+            var showEditDialog by remember { mutableStateOf(false) }
 
             Column(
                 modifier = Modifier
@@ -1013,6 +1023,37 @@ fun MessageBottomSheet(
                     .padding(vertical = 5.dp)
 
             ) {
+                // Edit & Resend Button (only for last user message)
+                if (isLastUserMessage) {
+                    TextButton(
+                        colors = ButtonDefaults.buttonColors(Color(0xFF171E2C)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        enabled = !viewModel.getIsSending(),
+                        onClick = {
+                            showEditDialog = true
+                        }
+                    ) {
+                        Text(text = "Edit & Resend", color = Color(0xFFA0A0A5))
+                    }
+                    
+                    // Retry Button (only for last user message)
+                    TextButton(
+                        colors = ButtonDefaults.buttonColors(Color(0xFF171E2C)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        enabled = !viewModel.getIsSending(),
+                        onClick = {
+                            viewModel.retryLastMessage()
+                            onDismiss()
+                        }
+                    ) {
+                        Text(text = "Retry", color = Color(0xFFA0A0A5))
+                    }
+                }
+                
                 // Copy Text Button
                 TextButton(
                     colors = ButtonDefaults.buttonColors(Color(0xFF171E2C)),
@@ -1081,6 +1122,78 @@ fun MessageBottomSheet(
                                         text = AnnotatedString(message),
                                         color = Color.White
                                     )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Edit Dialog
+            if (showEditDialog) {
+                Dialog(onDismissRequest = { showEditDialog = false }) {
+                    var editedText by remember { mutableStateOf(message) }
+                    
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFF01081a),
+                        border = BorderStroke(1.dp, Color(0xFF171E2C))
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(24.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Edit Message",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = Color.White,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            
+                            OutlinedTextField(
+                                value = editedText,
+                                onValueChange = { editedText = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(150.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color(0xFFBECBD1),
+                                    unfocusedTextColor = Color(0xFFBECBD1),
+                                    focusedBorderColor = Color(0xFF626568),
+                                    unfocusedBorderColor = Color(0xFF626568),
+                                    cursorColor = Color(0xFF626568),
+                                    unfocusedContainerColor = Color(0xFF171E2C),
+                                    focusedContainerColor = Color(0xFF22314A)
+                                ),
+                                maxLines = 6
+                            )
+                            
+                            Row(
+                                horizontalArrangement = Arrangement.End,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp)
+                            ) {
+                                TextButton(
+                                    onClick = { showEditDialog = false }
+                                ) {
+                                    Text("Cancel", color = Color(0xFFA0A0A5))
+                                }
+                                
+                                Spacer(modifier = Modifier.width(8.dp))
+                                
+                                Button(
+                                    onClick = {
+                                        viewModel.editAndResend(editedText)
+                                        showEditDialog = false
+                                        onDismiss()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF171E2C)
+                                    )
+                                ) {
+                                    Text("Send", color = Color(0xFFA0A0A5))
                                 }
                             }
                         }
