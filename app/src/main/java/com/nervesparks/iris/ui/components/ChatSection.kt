@@ -30,6 +30,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nervesparks.iris.MainViewModel
 import com.nervesparks.iris.R
+import com.nervesparks.iris.data.Message
+import com.nervesparks.iris.data.MessageRole
+import java.time.Instant
 
 
 @Composable
@@ -127,4 +130,41 @@ private fun MessageIcon(iconRes: Int, description: String) {
         modifier = Modifier.size(20.dp)
     )
 }
+
+/**
+ * Helper function to convert legacy Map-based message format to Message data class.
+ * This enables gradual migration to the new Message model.
+ * 
+ * Example usage in ChatMessageList:
+ * ```
+ * itemsIndexed(messages.drop(3)) { index, messageMap ->
+ *     val message = messageMap.toMessage()
+ *     if (message != null && message.role != MessageRole.SYSTEM) {
+ *         MessageBubble(
+ *             message = message,
+ *             showTimestamp = true,
+ *             onLongClick = { /* handle long click */ }
+ *         )
+ *     }
+ * }
+ * ```
+ */
+private fun Map<String, String>.toMessage(): Message? {
+    val role = this["role"] ?: return null
+    val content = this["content"] ?: return null
+    
+    val messageRole = when (role) {
+        "user" -> MessageRole.USER
+        "assistant" -> MessageRole.ASSISTANT
+        "system" -> MessageRole.SYSTEM
+        else -> return null // Skip codeBlock and other types for now
+    }
+    
+    return Message(
+        content = content.trimEnd(),
+        role = messageRole,
+        timestamp = Instant.now()
+    )
+}
+
 
