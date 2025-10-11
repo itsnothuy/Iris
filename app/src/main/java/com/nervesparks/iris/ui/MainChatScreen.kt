@@ -116,6 +116,10 @@ import com.nervesparks.iris.R
 import com.nervesparks.iris.ui.components.ChatMessageList
 import com.nervesparks.iris.ui.components.DownloadModal
 import com.nervesparks.iris.ui.components.LoadingModal
+import com.nervesparks.iris.ui.components.EmptyState
+import com.nervesparks.iris.ui.components.ErrorBanner
+import com.nervesparks.iris.ui.components.LoadingSkeleton
+import com.nervesparks.iris.ui.components.ProcessingIndicator
 
 import kotlinx.coroutines.launch
 import java.io.File
@@ -222,88 +226,11 @@ fun MainChatScreen (
                         }) {
 
                         if (viewModel.messages.isEmpty() && !viewModel.showModal && !viewModel.showAlert) {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxSize() // Take up the whole screen
-                                    .wrapContentHeight(Alignment.CenterVertically),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 2.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-//                                item { Spacer(Modifier.height(55.dp).fillMaxWidth()) }
-                                // Header Text
-                                item {
-                                    Text(
-                                        text = "Hello, Ask me " + "Anything",
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            color = Color.White,
-                                            fontWeight = FontWeight.W300,
-                                            letterSpacing = 1.sp,
-                                            fontSize = 50.sp,
-                                            lineHeight = 60.sp
-                                        ),
-                                        fontFamily = FontFamily.SansSerif,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp)
-                                            .wrapContentHeight()
-                                    )
+                            EmptyState(
+                                onStarterClick = { starter ->
+                                    // Optional: could populate input field or send directly
                                 }
-
-                                // Items for Prompts_Home
-                                items(Prompts_Home.size) { index ->
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(60.dp)
-                                            .padding(8.dp)
-                                            .background(
-                                                Color(0xFF010825),
-                                                shape = RoundedCornerShape(20.dp)
-                                            )
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 8.dp)
-                                        ) {
-                                            // Circle Icon
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(20.dp) // Icon size
-                                                    .background(Color.White, shape = CircleShape)
-                                                    .padding(4.dp),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(id = R.drawable.info_svgrepo_com),
-                                                    contentDescription = null,
-                                                    tint = Color.Black
-                                                )
-                                            }
-
-                                            Spacer(modifier = Modifier.width(12.dp))
-
-                                            // Text
-                                            Text(
-                                                text = Prompts_Home.getOrNull(index) ?: "",
-                                                style = MaterialTheme.typography.bodySmall.copy(color = Color.White),
-                                                textAlign = TextAlign.Start, // Left align the text
-                                                fontSize = 12.sp,
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .padding(horizontal = 8.dp)
-                                            )
-                                        }
-                                    }
-                                }
-
-                                item{
-
-                                }
-                            }
+                            )
                         }
                         else {
 
@@ -506,11 +433,33 @@ fun MainChatScreen (
                                         }
                                     }
                                 }
+                                
+                                // Show processing indicator when AI is generating response
+                                if (viewModel.getIsSending()) {
+                                    item {
+                                        ProcessingIndicator(showMetrics = true)
+                                    }
+                                }
+                                
                                 item {
                                     Spacer(modifier = Modifier
                                         .height(1.dp)
                                         .fillMaxWidth())
                                 }
+                            }
+                            
+                            // Show error banner if there's an error
+                            viewModel.errorMessage?.let { error ->
+                                ErrorBanner(
+                                    errorMessage = error,
+                                    onRetry = {
+                                        viewModel.clearError()
+                                        viewModel.send()
+                                    },
+                                    onDismiss = {
+                                        viewModel.clearError()
+                                    }
+                                )
                             }
 
                             ScrollToBottomButton(
