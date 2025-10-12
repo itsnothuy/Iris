@@ -276,6 +276,12 @@ class MainViewModel(
     // Error state for UI
     var errorMessage by mutableStateOf<String?>(null)
         private set
+    
+    // Queue state for UI
+    var isMessageQueued by mutableStateOf(false)
+        private set
+    var queueSize by mutableStateOf(0)
+        private set
 
     override fun onCleared() {
         textToSpeech?.shutdown()
@@ -315,7 +321,27 @@ class MainViewModel(
 
             viewModelScope.launch {
                 try {
-                    llamaAndroid.send(llamaAndroid.getTemplate(messages))
+                    val messageToSend = llamaAndroid.getTemplate(messages)
+                    
+                    // Try to enqueue the message
+                    val canSend = llamaAndroid.tryEnqueue(messageToSend)
+                    
+                    if (!canSend) {
+                        // Queue is full, reject the message
+                        setError("Too many requests in queue. Please wait and try again.")
+                        Log.w(tag, "Message rejected: queue is full")
+                        // Remove the user message we just added since it wasn't queued
+                        if (messages.isNotEmpty() && messages.last()["role"] == "user") {
+                            messages = messages.dropLast(1)
+                        }
+                        return@launch
+                    }
+                    
+                    // Update queue state for UI
+                    updateQueueState()
+                    
+                    // Process the message
+                    llamaAndroid.send(messageToSend)
                         .catch {
                             Log.e(tag, "send() failed", it)
                             addMessage("error", it.message ?: "")
@@ -341,6 +367,9 @@ class MainViewModel(
                     }
                     // Persist the complete assistant message after streaming is done
                     persistLastAssistantMessage()
+                    
+                    // Update queue state after completion
+                    updateQueueState()
                     
                     // Check if there's a pending model switch to execute
                     checkAndExecutePendingModelSwitch()
@@ -742,6 +771,14 @@ class MainViewModel(
      */
     fun clearError() {
         errorMessage = null
+    }
+    
+    /**
+     * Update the queue state from LLamaAndroid.
+     */
+    private fun updateQueueState() {
+        isMessageQueued = llamaAndroid.isQueued()
+        queueSize = llamaAndroid.getQueueSize()
     }
 
 }

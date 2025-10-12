@@ -17,6 +17,9 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class LLamaAndroid {
     private val tag: String? = this::class.simpleName
@@ -33,6 +36,13 @@ class LLamaAndroid {
 
     private val _isCompleteEOT = mutableStateOf(true)
     private val isCompleteEOT: Boolean by _isCompleteEOT
+    
+    // Queue management
+    private val maxQueueSize: Int = 3
+    private val requestQueue = Channel<String>(capacity = maxQueueSize)
+    private val queueMutex = Mutex()
+    private val _queueSize = mutableStateOf(0)
+    private val _isQueued = mutableStateOf(false)
 
     fun getIsSending(): Boolean {
         return isSending
@@ -45,6 +55,14 @@ class LLamaAndroid {
 
     fun getIsCompleteEOT(): Boolean {
         return isCompleteEOT
+    }
+    
+    fun getQueueSize(): Int {
+        return _queueSize.value
+    }
+    
+    fun isQueued(): Boolean {
+        return _isQueued.value
     }
 
     fun stopTextGeneration() {
@@ -188,6 +206,54 @@ class LLamaAndroid {
         }
 
         return data
+    }
+    
+    /**
+     * Try to enqueue a message for processing.
+     * Returns true if successfully queued or sent immediately, false if queue is full.
+     */
+    suspend fun tryEnqueue(message: String): Boolean {
+        return queueMutex.withLock {
+            if (_isSending.value) {
+                // A message is currently being processed
+                if (_queueSize.value >= maxQueueSize) {
+                    Log.w(tag, "Queue is full (size: ${_queueSize.value}), rejecting message")
+                    false
+                } else {
+                    val queued = requestQueue.trySend(message).isSuccess
+                    if (queued) {
+                        _queueSize.value += 1
+                        _isQueued.value = true
+                        Log.i(tag, "Message queued (queue size: ${_queueSize.value})")
+                    }
+                    queued
+                }
+            } else {
+                // No message being processed, can send immediately
+                true
+            }
+        }
+    }
+    
+    /**
+     * Get the next queued message, if any.
+     */
+    private suspend fun dequeue(): String? {
+        return queueMutex.withLock {
+            if (_queueSize.value > 0) {
+                val message = requestQueue.tryReceive().getOrNull()
+                if (message != null) {
+                    _queueSize.value -= 1
+                    if (_queueSize.value == 0) {
+                        _isQueued.value = false
+                    }
+                    Log.i(tag, "Message dequeued (queue size: ${_queueSize.value})")
+                }
+                message
+            } else {
+                null
+            }
+        }
     }
 
     suspend fun send(message: String): Flow<String> = flow {
