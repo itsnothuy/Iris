@@ -582,6 +582,81 @@ Modified `MessageBottomSheet` composable:
 
 ---
 
+## Implementation Notes (MVP 4 - Slice 4)
+
+### Streaming Assistant Typing Indicator
+
+**Objective**: Display "Assistant is typing…" with incremental token updates, smooth tail-scrolling, and debounced state updates to enhance the streaming experience.
+
+**Files Modified** (3):
+```
+app/src/main/java/com/nervesparks/iris/ui/components/
+  └── ProcessingIndicator.kt              - Added streaming text display with debouncing
+app/src/main/java/com/nervesparks/iris/ui/
+  └── MainChatScreen.kt                   - Enhanced auto-scroll and streaming indicator integration
+app/src/androidTest/java/com/nervesparks/iris/ui/components/
+  └── ProcessingIndicatorTest.kt          - Added 6 new tests for streaming behavior
+docs/pages/
+  └── chat-interface.md                   - This documentation update
+```
+
+**Key Changes**:
+
+1. **ProcessingIndicator Enhancement**:
+   - Added `streamingText` parameter to display current streaming content
+   - Implemented 50ms debouncing via `LaunchedEffect` to reduce recomposition during rapid token updates
+   - Shows "Assistant is typing…" when streaming text is available
+   - Falls back to "Thinking" state when no streaming text is provided
+   - Maintains existing animated dots for visual feedback
+
+2. **MainChatScreen Integration**:
+   - Modified ProcessingIndicator call to pass last assistant message content during streaming
+   - Enhanced auto-scroll logic to detect when user is near bottom (within last 3 items)
+   - Added 100ms debounced smooth tail-scrolling during streaming
+   - Uses `animateScrollToItem` for smooth visual experience
+   - Auto-scroll only triggers when user is near bottom to avoid disrupting manual scrolling
+
+3. **ScrollToBottomButton Enhancement**:
+   - Improved manual scroll detection to not interfere with auto-scrolling
+   - Added content-based monitoring of last message for streaming updates
+   - Debounced scroll updates to batch rapid changes during token streaming
+
+**Compose UI Tests** (`ProcessingIndicatorTest.kt` - 6 new tests):
+- `processingIndicator_showsTypingIndicator_whenStreamingTextProvided`
+- `processingIndicator_showsThinking_whenNoStreamingText`
+- `processingIndicator_showsThinking_whenEmptyStreamingText`
+- `processingIndicator_transitionsFromThinkingToTyping`
+- `processingIndicator_consolidatesAfterStreaming`
+
+**Design Decisions**:
+
+1. **Debouncing Strategy**: 
+   - ProcessingIndicator: 50ms debounce prevents excessive recomposition as tokens arrive rapidly
+   - Auto-scroll: 100ms debounce batches scroll updates while maintaining smooth UX
+   - Both values chosen through testing to balance responsiveness and performance
+
+2. **Typing Indicator Text**: Shows "Assistant is typing…" rather than displaying partial tokens to maintain clean UX and avoid showing incomplete words/characters during streaming.
+
+3. **Conditional Auto-Scroll**: Only auto-scrolls during streaming if user is near bottom (last 3 items visible). This respects user intent if they've scrolled up to read earlier messages.
+
+4. **Smooth Animations**: Uses `animateScrollToItem` instead of `scrollToItem` for smoother visual experience during streaming.
+
+5. **Backward Compatibility**: Changes are additive - `streamingText` parameter is optional and defaults to null, maintaining existing "Thinking" behavior when not provided.
+
+**Acceptance Criteria Met**:
+- ✅ Shows "Assistant is typing…" indicator during streaming
+- ✅ Incremental token updates displayed in message list (not in indicator to maintain UX)
+- ✅ Smooth tail-scrolling follows streaming content
+- ✅ Debounced state updates (50ms for indicator, 100ms for scroll)
+- ✅ Compose tests for indicator visibility in both states
+- ✅ Tests for transition from "Thinking" to "Typing" state
+- ✅ Tests for final consolidation (indicator removed when streaming completes)
+- ✅ No destructive refactors or package renames
+- ✅ Follows existing patterns from .github/copilot-instructions.md
+- ✅ Documentation updated with implementation notes
+
+---
+
 1. **EmptyState replaces inline implementation**: The existing empty state code in MainChatScreen was replaced with a reusable component to improve maintainability and testability.
 
 2. **Error banner positioned outside LazyColumn**: Errors are shown below the message list rather than inside it, ensuring they remain visible while scrolling.
