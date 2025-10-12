@@ -500,6 +500,206 @@ Comprehensive list of data explicitly **NOT** collected:
 
 ---
 
+## Implementation Notes (MVP 7)
+
+### Privacy Guards - PII Redaction Pre-Send
+
+**Objective**: Implement local PII redaction to protect user privacy before sending messages to AI models.
+
+**Date**: October 2025  
+**Implementation**: MVP Slice 7
+
+### Overview
+
+Added an opt-in privacy feature that automatically redacts personally identifiable information (PII) from user messages before sending them to the AI model. This feature operates entirely locally and provides transparent notification when redaction occurs.
+
+### Key Features
+
+1. **Local PII Detection & Redaction**
+   - Regex-based pattern matching for common PII types
+   - Operates entirely on-device (no external API calls)
+   - Zero-latency processing (synchronous operation)
+
+2. **Supported PII Types**
+   - Email addresses (standard format)
+   - Phone numbers (US and international formats)
+   - Social Security Numbers (SSN)
+   - Credit card numbers (16-digit sequences)
+   - Generic IDs (8+ consecutive digits)
+
+3. **User Control**
+   - Settings toggle to enable/disable redaction
+   - Defaults to OFF (opt-in approach)
+   - Persisted preference across app sessions
+
+4. **Transparent Operation**
+   - RedactionBanner displays when PII is redacted
+   - Shows count of redacted items
+   - User can dismiss notification
+   - Clear explanation of what was redacted
+
+### Implementation Details
+
+**PrivacyGuard Utility** (`util/PrivacyGuard.kt`):
+- Singleton object with static redaction methods
+- Regex patterns for each PII type
+- Returns `RedactionResult` with sanitized text and metadata
+- Preserves context around redacted items
+
+**Redaction Patterns**:
+```kotlin
+Emails:    [a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}
+Phones:    Multiple patterns for US/international formats
+IDs:       SSN (NNN-NN-NNNN), Credit cards (16 digits), Generic (8+ digits)
+```
+
+**Placeholder Format**:
+- `[EMAIL_REDACTED]` - Email addresses
+- `[PHONE_REDACTED]` - Phone numbers
+- `[ID_REDACTED]` - SSN, credit cards, account numbers
+
+### User Flow
+
+1. User enables "Redact PII" toggle in Settings → Privacy
+2. User types message with PII: "Email me at alice@company.com"
+3. User sends message
+4. PrivacyGuard detects and redacts PII
+5. Redacted message sent to AI: "Email me at [EMAIL_REDACTED]"
+6. RedactionBanner appears: "Privacy Protected - Redacted 1 item"
+7. User can dismiss banner or it clears on next message
+
+### Privacy & Security Analysis
+
+**Strengths**:
+- ✅ All processing happens locally on device
+- ✅ No network calls for PII detection
+- ✅ Transparent operation (user is notified)
+- ✅ User maintains control (can disable)
+- ✅ Redacted text never leaves device in original form
+- ✅ Opt-in default respects user agency
+
+**Limitations**:
+- ⚠️ Regex-based detection has false negatives (missed PII)
+- ⚠️ Cannot detect context-based PII (addresses, names in context)
+- ⚠️ User can disable protection
+- ⚠️ Redaction is irreversible once message is sent
+- ⚠️ Patterns may have false positives (e.g., "ISBN 1234567890")
+
+**Threat Model Coverage**:
+
+| Threat | Mitigation | Status |
+|--------|-----------|--------|
+| Accidental PII disclosure to AI model | Automatic redaction | ✅ Mitigated |
+| PII in conversation history | Redacted text stored | ✅ Mitigated |
+| PII in exported conversations | Redacted text exported | ✅ Mitigated |
+| PII inference from context | Not addressed | ⚠️ Future work |
+| User bypass of protection | Settings toggle | ⚠️ Accepted risk |
+
+### Testing Coverage
+
+**Unit Tests** (18 test cases):
+- Email redaction (single, multiple, various domains)
+- Phone number redaction (US, international, various formats)
+- ID redaction (SSN, credit cards, generic sequences)
+- Mixed PII scenarios
+- No-PII handling (returns original text)
+- Edge cases (empty strings, short numbers)
+- Context preservation
+
+**Compose UI Tests** (10 test cases):
+- Banner display (title, message, icon)
+- Dismiss functionality
+- Singular/plural message formatting
+- Multiple clicks handling
+- Edge cases (zero count, large counts)
+
+**Integration Testing**:
+- Settings toggle persistence
+- Message flow with redaction enabled/disabled
+- Banner appearance and dismissal
+- State management across message sends
+
+### Privacy by Design Principles Applied
+
+1. **Proactive not Reactive**
+   - Redaction happens before sending, preventing PII disclosure
+   - No remediation needed after the fact
+
+2. **Privacy as Default Setting** (Future Enhancement)
+   - Currently defaults to OFF (opt-in)
+   - Consider enabling by default in future versions after user testing
+
+3. **Privacy Embedded into Design**
+   - Redaction integrated into message send flow
+   - No separate privacy "layer" to forget
+
+4. **Full Functionality** (Positive-Sum)
+   - Redaction doesn't reduce AI capability
+   - Models work fine with redacted placeholders
+
+5. **End-to-End Security**
+   - Redaction covers message, history, and export
+   - Comprehensive protection across data lifecycle
+
+6. **Visibility and Transparency**
+   - RedactionBanner notifies user of redaction
+   - Settings clearly explain feature
+   - No hidden privacy processing
+
+7. **Respect for User Privacy**
+   - User controls feature via settings
+   - Clear communication about what/when/why
+   - No collection of PII detection metadata
+
+### Future Enhancements
+
+**Short-term**:
+- Add more PII patterns (postal codes, dates of birth)
+- Improve phone number pattern accuracy
+- Add unit tests for edge cases in various locales
+
+**Medium-term**:
+- Warning dialog when PII detected but redaction disabled
+- Configurable redaction patterns (advanced settings)
+- Redaction strength levels (strict, balanced, permissive)
+
+**Long-term**:
+- ML-based PII detection for better accuracy
+- Context-aware PII detection (addresses, names)
+- Integration with system privacy indicators
+- Privacy audit log showing redaction statistics
+
+### Compliance Considerations
+
+**GDPR (EU)**:
+- Redaction helps comply with data minimization principle
+- Users maintain control over PII processing
+- Transparent operation supports consent requirements
+
+**CCPA (California)**:
+- Redaction limits PII "sale" (N/A as no transmission occurs)
+- User control over PII processing
+- Disclosure of redaction practices in privacy policy
+
+**HIPAA (Healthcare)** - Not currently applicable but:
+- Redaction patterns can be extended for PHI
+- SSN redaction is a HIPAA requirement
+- Future: Add date of birth, medical record numbers
+
+### Documentation Updates
+
+**User-Facing**:
+- Privacy policy updated to mention redaction feature
+- Settings description explains what is redacted
+- RedactionBanner provides in-app education
+
+**Technical**:
+- Inline code documentation (KDoc)
+- Architecture decision recorded in settings-config.md
+- Test coverage documented
+
+---
+
 *Specification Version: 1.0*  
 *Last Updated: October 2025*  
 *Implementation Target: Milestone 1*  

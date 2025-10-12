@@ -494,6 +494,197 @@ Created comprehensive test suite covering:
 - ✅ In-flight request handling
 - ✅ Default preference persistence
 
+---
+
+## Implementation Notes (MVP 7)
+
+### Privacy Guards (Redaction Pre-Send)
+
+**Objective**: Add local PII redaction capability with a settings toggle to protect user privacy before sending messages to the AI model.
+
+**Date**: October 2025  
+**Scope**: Privacy protection, PII redaction, user notification
+
+### Changes Made
+
+#### 1. PrivacyGuard Utility (`util/PrivacyGuard.kt`)
+
+Created a utility class for detecting and redacting personally identifiable information:
+
+**Redaction Patterns**:
+- **Emails**: Matches standard email format (user@domain.com)
+- **Phone Numbers**: Supports multiple formats
+  - US format: 555-123-4567, (555) 123-4567
+  - International: +1-555-123-4567, +44 20 1234 5678
+- **IDs**: Detects ID-like patterns
+  - SSN: 123-45-6789
+  - Credit cards: 1234-5678-9012-3456
+  - Generic IDs: 8+ digit sequences
+
+**API**:
+```kotlin
+// Redact PII and get results
+val result = PrivacyGuard.redactPII(text)
+// result.redactedText contains sanitized text
+// result.wasRedacted indicates if any redaction occurred
+// result.redactionCount shows number of items redacted
+
+// Check for PII without redacting
+val hasPII = PrivacyGuard.containsPII(text)
+```
+
+#### 2. User Preferences (`data/UserPreferencesRepository.kt`)
+
+Added methods to persist privacy redaction setting:
+- `getPrivacyRedactionEnabled(): Boolean` - Defaults to `false` (opt-in)
+- `setPrivacyRedactionEnabled(enabled: Boolean)` - Saves setting
+
+#### 3. ViewModel Integration (`MainViewModel.kt`)
+
+**State Management**:
+- `wasLastMessageRedacted: Boolean` - Tracks if last message was redacted
+- `lastRedactionCount: Int` - Number of items redacted in last message
+- `getPrivacyRedactionEnabled()` - Gets current setting
+- `setPrivacyRedactionEnabled(enabled)` - Updates setting
+- `clearRedactionBanner()` - Dismisses redaction notification
+
+**Message Processing**:
+The `send()` method now checks if redaction is enabled and applies it before sending:
+```kotlin
+val finalMessage = if (userPreferencesRepository.getPrivacyRedactionEnabled()) {
+    val redactionResult = PrivacyGuard.redactPII(userMessage)
+    if (redactionResult.wasRedacted) {
+        wasLastMessageRedacted = true
+        lastRedactionCount = redactionResult.redactionCount
+    }
+    redactionResult.redactedText
+} else {
+    userMessage
+}
+```
+
+#### 4. RedactionBanner Component (`ui/components/RedactionBanner.kt`)
+
+A Compose component that displays when PII has been redacted:
+
+**Design**:
+- Blue info icon and color scheme (distinguishes from error banner)
+- Shows "Privacy Protected" title
+- Displays count of redacted items with proper pluralization
+- Dismiss button to clear the notification
+- Clear explanation: "Redacted N item(s) (emails, phones, or IDs)"
+
+**Usage**:
+```kotlin
+RedactionBanner(
+    redactionCount = viewModel.lastRedactionCount,
+    onDismiss = { viewModel.clearRedactionBanner() }
+)
+```
+
+#### 5. MainChatScreen Integration (`ui/MainChatScreen.kt`)
+
+Added RedactionBanner display logic after the ErrorBanner:
+```kotlin
+if (viewModel.wasLastMessageRedacted) {
+    RedactionBanner(
+        redactionCount = viewModel.lastRedactionCount,
+        onDismiss = { viewModel.clearRedactionBanner() }
+    )
+}
+```
+
+#### 6. Settings Screen (`ui/SettingsScreen.kt`)
+
+Added a new "Privacy" section with a toggle control:
+
+**UI Components**:
+- `PrivacyToggleRow` - Custom composable for toggle with description
+- Toggle defaults to OFF (opt-in approach)
+- Description: "Automatically redact emails, phone numbers, and IDs before sending"
+- State is persisted immediately on toggle change
+
+### Behavior Details
+
+**Redaction Flow**:
+1. User types a message containing PII (e.g., "Email me at john@example.com")
+2. User sends the message
+3. If redaction is enabled, `PrivacyGuard.redactPII()` processes the text
+4. PII is replaced with placeholders: "Email me at [EMAIL_REDACTED]"
+5. Redacted message is sent to the AI model
+6. RedactionBanner appears showing "Redacted 1 item (emails, phones, or IDs)"
+7. User can dismiss the banner by clicking "Dismiss"
+
+**UI Feedback**:
+- RedactionBanner uses blue color scheme (vs. error banner's red)
+- Banner persists until dismissed or new message is sent
+- Settings toggle provides immediate visual feedback
+- Clear description in settings explains what will be redacted
+
+**Edge Cases**:
+- If message has no PII, redaction is a no-op (original text sent)
+- Multiple PII items are all redacted and counted
+- Redaction works on retry/edit operations
+- Banner clears when starting a new message
+
+### Testing Coverage
+
+**Unit Tests** (`util/PrivacyGuardTest.kt` - 18 tests):
+- ✅ Email redaction (single and multiple)
+- ✅ Phone number redaction (US, international, various formats)
+- ✅ SSN redaction
+- ✅ Credit card redaction
+- ✅ Generic ID redaction (8+ digits)
+- ✅ Mixed PII redaction
+- ✅ No PII detection (returns original text)
+- ✅ Empty string handling
+- ✅ PII detection without redaction
+- ✅ Context preservation around redactions
+
+**Compose UI Tests** (`ui/components/RedactionBannerTest.kt` - 10 tests):
+- ✅ Title display ("Privacy Protected")
+- ✅ Singular message format (1 item)
+- ✅ Plural message format (N items)
+- ✅ Dismiss button display and functionality
+- ✅ Info icon display
+- ✅ Multiple clicks handling
+- ✅ Edge cases (zero count, large counts)
+
+### Design Decisions
+
+1. **Opt-in Default**: Redaction defaults to OFF to avoid surprising users. Users must explicitly enable it in settings.
+
+2. **Placeholder Style**: Using `[EMAIL_REDACTED]`, `[PHONE_REDACTED]`, `[ID_REDACTED]` for clarity. Square brackets indicate system modification.
+
+3. **Notification Banner**: Informing users when redaction occurs maintains transparency and trust.
+
+4. **Regex Patterns**: Balanced between catching common PII formats and avoiding false positives. Patterns may need tuning based on user feedback.
+
+5. **Local Processing**: All redaction happens locally before sending. No PII ever leaves the device in original form.
+
+6. **No Persistent Redacted History**: The original message is not stored; only the redacted version exists in the conversation.
+
+### Security & Privacy Implications
+
+**Benefits**:
+- Prevents accidental PII leakage to AI models
+- Works entirely locally (no external API calls)
+- User maintains control via settings toggle
+- Transparent operation (banner notification)
+
+**Limitations**:
+- Regex-based detection may miss creative PII formats
+- Cannot detect context-based PII (e.g., "my address is 123 Main St")
+- Users can disable redaction, removing protection
+- Redaction is irreversible once sent
+
+**Future Enhancements**:
+- Add more PII patterns (addresses, dates of birth, etc.)
+- ML-based PII detection for better accuracy
+- Warning dialog before sending detected PII when redaction is off
+- Configurable redaction patterns in advanced settings
+
+
 ### Design Decisions
 
 1. **Deferred switching**: Ensures conversation context and current response integrity by completing in-flight requests before switching
