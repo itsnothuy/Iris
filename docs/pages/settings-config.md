@@ -429,3 +429,80 @@ Consistent with privacy-first approach:
 *Specification Version: 1.0*  
 *Last Updated: October 2025*  
 *Implementation Target: Milestone 1*
+
+## Implementation Notes (MVP 5)
+
+**Model Switch Handoff Implementation** - *Completed: October 2025*
+
+### Overview
+Implemented model switching functionality with UI state management to allow users to switch between downloaded AI models while ensuring in-flight requests complete on the old model before switching.
+
+### Changes Made
+
+#### 1. ViewModel State Management (`MainViewModel.kt`)
+- Added `isSwitchingModel` state to track model switching in progress
+- Added `_pendingModelSwitch` to defer model switches when a request is in-flight
+- Implemented `switchModel()` method that:
+  - Checks if a request is currently being processed (`getIsSending()`)
+  - If sending, defers the switch until the request completes
+  - If not sending, switches immediately
+- Implemented `performModelSwitch()` to execute the actual model switch operation
+- Added `checkAndExecutePendingModelSwitch()` called after send operations complete
+- Updates default model preference after successful switch
+
+#### 2. Settings UI (`MainChatScreen.kt`)
+Added model selection section to `SettingsBottomSheet`:
+- **Model dropdown**: Shows all downloaded models with current model highlighted
+- **Active indicator**: Displays currently active model with checkmark
+- **Switching feedback**: Shows "Switching model..." message during switch
+- **Filtering**: Only shows models that exist in the device storage
+- **Color coding**: Current model highlighted in purple, others in white
+
+#### 3. Chat Header Chip (`MainChatScreen.kt`)
+Added active model indicator at top of chat screen:
+- **Model name display**: Shows truncated model name (30 chars + "...")
+- **Status indicator**: Color-coded dot (purple=active, orange=switching)
+- **Responsive design**: Chip adapts to model name length
+- **Minimal visual footprint**: Small, unobtrusive design
+
+#### 4. Unit Tests (`MainViewModelModelSwitchTest.kt`)
+Created comprehensive test suite covering:
+- Immediate switching when no request in-flight
+- Deferred switching when request is in-flight
+- Default model preference updates
+- Multiple sequential model switches
+- Initial state validation
+- Thread count application
+
+### Behavior Details
+
+**In-Flight Request Handling**:
+1. User initiates model switch while AI is generating a response
+2. Switch is deferred and `isSwitchingModel` state set to `true`
+3. Current request completes on the old model
+4. After completion, `checkAndExecutePendingModelSwitch()` executes the pending switch
+5. New model is loaded and subsequent requests use the new model
+
+**UI Feedback**:
+- Settings dropdown shows current model with checkmark and highlight
+- Chat header chip shows orange dot during switch, purple when active
+- "Switching model..." text appears in settings during switch operation
+
+### Testing Coverage
+- ✅ Unit tests for model switching logic (8 test cases)
+- ✅ State management validation
+- ✅ In-flight request handling
+- ✅ Default preference persistence
+
+### Design Decisions
+
+1. **Deferred switching**: Ensures conversation context and current response integrity by completing in-flight requests before switching
+2. **Visual feedback**: Clear indicators in both settings and chat header to show active model and switching state
+3. **Minimal UI changes**: Chip design is small and non-intrusive, following existing app design patterns
+4. **Filter downloaded only**: Only shows models that exist on device to prevent user confusion
+
+### Future Enhancements
+- Add model switching progress bar with percentage
+- Show model metadata (size, parameters) in dropdown
+- Add model performance metrics in settings
+- Implement model preloading for faster switches
