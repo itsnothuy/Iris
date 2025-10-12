@@ -467,6 +467,121 @@ Error → (dismiss pressed) → WithHistory (error cleared)
 
 **Design Decisions**:
 
+1. **Empty State**: Chose card-based design over simple centered text for better visual hierarchy and to accommodate conversation starters without cluttering the UI.
+
+2. **Loading Skeleton**: Implemented shimmer animation rather than spinner for better indication of message shape/structure and reduced perceived wait time.
+
+3. **Error Banner**: Used banner style instead of dialog to allow users to continue reading messages while error is displayed. Positioned below messages for visibility without blocking content.
+
+4. **Error Handling Strategy**: Clear errors automatically on new message send to prevent stale error state. Provide both retry and dismiss options for user control.
+
+5. **State Transitions**: Designed to be deterministic and testable, with clear entry/exit conditions for each state.
+
+---
+
+## Implementation Notes (MVP 4 - Slice 3)
+
+### Edit & Resend / Retry Last Message
+
+**Feature**: Users can now edit and resend their last message or retry it verbatim via a long-press menu.
+
+**ViewModel Changes**:
+
+Added three new methods to `MainViewModel`:
+
+1. `getLastUserMessage(): String?` (private)
+   - Helper to find the last user message in the conversation
+   - Returns `null` if no user messages exist
+
+2. `retryLastMessage()`
+   - Reuses the last user message verbatim
+   - Removes the last assistant response if present (to retry after a failed response)
+   - Calls `send()` to resend the message
+
+3. `editAndResend(editedMessage: String)`
+   - Accepts an edited version of the last user message
+   - Removes the last assistant response and last user message
+   - Validates that `editedMessage` is not blank
+   - Calls `send()` with the edited message
+
+**UI Changes**:
+
+Modified `MessageBottomSheet` composable:
+
+- Added `isLastUserMessage: Boolean = false` parameter to identify the last user message
+- Added "Edit & Resend" button (only visible for last user message)
+  - Opens a dialog with text field pre-populated with the current message
+  - Dialog includes Cancel and Send buttons
+  - Send button calls `viewModel.editAndResend(editedText)`
+- Added "Retry" button (only visible for last user message)
+  - Immediately calls `viewModel.retryLastMessage()` without confirmation
+- Both buttons are disabled when AI is generating (`viewModel.getIsSending()`)
+- Updated call sites in `MainChatScreen` to pass `isLastUserMessage` parameter
+  - Calculates last user message by finding `indexOfLast { it["role"] == "user" }`
+  - Compares with current message index (accounting for sliced messages)
+
+**Edit Dialog**:
+
+- Material 3 Dialog with dark theme matching app colors
+- OutlinedTextField with 150dp height and 6 maxLines
+- Cancel button dismisses dialog without changes
+- Send button validates, calls editAndResend, dismisses dialog and bottom sheet
+
+**Testing Coverage**:
+
+**Unit Tests** (`MainViewModelEditRetryTest.kt` - 9 tests):
+- `retryLastMessage_withNoMessages_doesNothing`
+- `retryLastMessage_withUserMessage_resendsSameMessage`
+- `retryLastMessage_removesLastAssistantResponse`
+- `editAndResend_withBlankMessage_doesNothing`
+- `editAndResend_withValidMessage_removesLastUserAndAssistantMessages`
+- `editAndResend_withOnlyUserMessage_removesLastUserMessage`
+- `editAndResend_preservesEarlierMessages`
+- `retryLastMessage_findsCorrectLastUserMessage`
+- `editAndResend_withWhitespaceOnly_doesNothing`
+
+**Compose UI Tests** (`MessageBottomSheetEditRetryTest.kt` - 9 tests):
+- `messageBottomSheet_showsEditAndRetryButtons_forLastUserMessage`
+- `messageBottomSheet_hidesEditAndRetryButtons_forNonLastUserMessage`
+- `messageBottomSheet_retryButton_callsRetryLastMessage`
+- `messageBottomSheet_editButton_showsEditDialog`
+- `editDialog_cancelButton_closesDialog`
+- `editDialog_sendButton_callsEditAndResend`
+- `messageBottomSheet_alwaysShowsCopyButton`
+- `messageBottomSheet_buttonsDisabled_whenAIGenerating`
+
+**Total**: 18 new tests (9 unit + 9 UI)
+
+**Design Decisions**:
+
+1. **Last User Message Only**: Edit/Retry actions only appear for the last user message to keep UX simple and avoid complex conversation history manipulation. Editing earlier messages would require re-generating all subsequent responses.
+
+2. **Retry vs Edit**: Separate actions for different use cases:
+   - Retry: Quick one-click action for regenerating a response (e.g., after error or unsatisfactory answer)
+   - Edit: Allows refinement of the original prompt before resending
+
+3. **Remove Assistant Response**: Both actions remove the last assistant response if present, ensuring a clean conversation state before resending. This prevents duplicate or conflicting responses.
+
+4. **Dialog for Edit**: Used a dialog (rather than inline editing) to provide a focused editing experience with clear commit/cancel actions, preventing accidental edits.
+
+5. **No Confirmation for Retry**: Retry doesn't require confirmation since it's a non-destructive action that can be easily reversed with stop button or new message.
+
+6. **Disabled During Generation**: Both actions disabled while AI is generating to prevent race conditions and ensure consistent conversation state.
+
+**Acceptance Criteria Met**:
+- ✅ Long-press menu on last user message shows "Edit & Resend" option
+- ✅ "Edit & Resend" opens dialog allowing message editing
+- ✅ Edited message replaces original and triggers new generation
+- ✅ "Retry" reuses previous prompt verbatim
+- ✅ Both actions disabled when AI is generating
+- ✅ ViewModel unit tests added and passing
+- ✅ Compose UI tests added for menu actions
+- ✅ No destructive refactors or package renames
+- ✅ Follows existing patterns from .github/copilot-instructions.md
+- ✅ Documentation updated with implementation notes
+
+---
+
 1. **EmptyState replaces inline implementation**: The existing empty state code in MainChatScreen was replaced with a reusable component to improve maintainability and testability.
 
 2. **Error banner positioned outside LazyColumn**: Errors are shown below the message list rather than inside it, ensuring they remain visible while scrolling.
