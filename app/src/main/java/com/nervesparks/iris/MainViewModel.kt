@@ -282,6 +282,12 @@ class MainViewModel(
         private set
     var queueSize by mutableStateOf(0)
         private set
+    
+    // Redaction state for UI
+    var wasLastMessageRedacted by mutableStateOf(false)
+        private set
+    var lastRedactionCount by mutableIntStateOf(0)
+        private set
 
     override fun onCleared() {
         textToSpeech?.shutdown()
@@ -304,6 +310,10 @@ class MainViewModel(
         
         // Clear any previous errors when sending a new message
         clearError()
+        
+        // Reset redaction state
+        wasLastMessageRedacted = false
+        lastRedactionCount = 0
 
         // Add to messages console.
         if (userMessage != "" && userMessage != " ") {
@@ -316,7 +326,20 @@ class MainViewModel(
                 first = false
             }
 
-            addMessage("user", userMessage)
+            // Apply privacy redaction if enabled
+            val finalMessage = if (userPreferencesRepository.getPrivacyRedactionEnabled()) {
+                val redactionResult = com.nervesparks.iris.util.PrivacyGuard.redactPII(userMessage)
+                if (redactionResult.wasRedacted) {
+                    wasLastMessageRedacted = true
+                    lastRedactionCount = redactionResult.redactionCount
+                    Log.i(tag, "Redacted ${redactionResult.redactionCount} PII item(s) from user message")
+                }
+                redactionResult.redactedText
+            } else {
+                userMessage
+            }
+
+            addMessage("user", finalMessage)
 
 
             viewModelScope.launch {
@@ -779,6 +802,28 @@ class MainViewModel(
     private fun updateQueueState() {
         isMessageQueued = llamaAndroid.isQueued()
         queueSize = llamaAndroid.getQueueSize()
+    }
+    
+    /**
+     * Get the privacy redaction enabled status.
+     */
+    fun getPrivacyRedactionEnabled(): Boolean {
+        return userPreferencesRepository.getPrivacyRedactionEnabled()
+    }
+    
+    /**
+     * Set the privacy redaction enabled status.
+     */
+    fun setPrivacyRedactionEnabled(enabled: Boolean) {
+        userPreferencesRepository.setPrivacyRedactionEnabled(enabled)
+    }
+    
+    /**
+     * Clear the redaction banner state.
+     */
+    fun clearRedactionBanner() {
+        wasLastMessageRedacted = false
+        lastRedactionCount = 0
     }
 
 }

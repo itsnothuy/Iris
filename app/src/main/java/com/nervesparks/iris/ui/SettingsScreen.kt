@@ -7,8 +7,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +29,7 @@ fun SettingsScreen(
     onModelsScreenButtonClicked: () -> Unit,
     onAboutScreenButtonClicked: () -> Unit,
     onBenchMarkScreenButtonClicked: () -> Unit,
+    viewModel: com.nervesparks.iris.MainViewModel,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -67,6 +74,41 @@ fun SettingsScreen(
                         text = "About",
                         iconRes = R.drawable.information_outline_svgrepo_com,
                         onClick = onAboutScreenButtonClicked
+                    )
+                }
+            }
+            
+            // Privacy section
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = Color(0xff0f172a),
+                            shape = RoundedCornerShape(12.dp),
+                        )
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Privacy",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    
+                    var isRedactionEnabled by remember { 
+                        mutableStateOf(viewModel.getPrivacyRedactionEnabled()) 
+                    }
+                    
+                    PrivacyToggleRow(
+                        text = "Redact PII",
+                        description = "Automatically redact emails, phone numbers, and IDs before sending",
+                        checked = isRedactionEnabled,
+                        onCheckedChange = { enabled ->
+                            isRedactionEnabled = enabled
+                            viewModel.setPrivacyRedactionEnabled(enabled)
+                        }
                     )
                 }
             }
@@ -115,4 +157,45 @@ fun SettingsDivider() {
         color = Color.DarkGray,
         thickness = 1.dp
     )
+}
+
+@Composable
+fun PrivacyToggleRow(
+    text: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = text,
+                color = Color.White,
+                fontSize = 16.sp
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = description,
+                color = Color(0xFFB0B0B0),
+                fontSize = 12.sp
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color(0xFF64B5F6),
+                checkedTrackColor = Color(0xFF1E88E5),
+                uncheckedThumbColor = Color.Gray,
+                uncheckedTrackColor = Color.DarkGray
+            )
+        )
+    }
 }

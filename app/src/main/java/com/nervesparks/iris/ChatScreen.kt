@@ -290,7 +290,8 @@ fun ChatScreen(
                         },
                         onBenchMarkScreenButtonClicked = {
                             navController.navigate((ChatScreen.BenchMarkScreen.name))
-                        }
+                        },
+                        viewModel = viewModel
 
                     )
                 }
