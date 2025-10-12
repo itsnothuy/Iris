@@ -341,6 +341,9 @@ class MainViewModel(
                     }
                     // Persist the complete assistant message after streaming is done
                     persistLastAssistantMessage()
+                    
+                    // Check if there's a pending model switch to execute
+                    checkAndExecutePendingModelSwitch()
                 }
 
 
@@ -439,6 +442,12 @@ class MainViewModel(
 
 
     var loadedModelName = mutableStateOf("");
+    
+    // State for model switching
+    private var _isSwitchingModel = mutableStateOf(false)
+    val isSwitchingModel: State<Boolean> = _isSwitchingModel
+    
+    private var _pendingModelSwitch: Pair<String, Int>? = null
 
     fun load(pathToModel: String, userThreads: Int)  {
         viewModelScope.launch {
@@ -463,6 +472,56 @@ class MainViewModel(
             showModal = false
             showAlert = false
             eot_str = llamaAndroid.send_eot_str()
+        }
+    }
+    
+    /**
+     * Request a model switch. If a request is in-flight, the switch will be deferred
+     * until the current request completes.
+     */
+    fun switchModel(pathToModel: String, userThreads: Int) {
+        if (getIsSending()) {
+            // Defer the switch until the current request completes
+            _pendingModelSwitch = Pair(pathToModel, userThreads)
+            _isSwitchingModel.value = true
+            Log.i(tag, "Model switch deferred until current request completes")
+        } else {
+            // No request in-flight, switch immediately
+            _isSwitchingModel.value = true
+            performModelSwitch(pathToModel, userThreads)
+        }
+    }
+    
+    /**
+     * Perform the actual model switch operation.
+     */
+    private fun performModelSwitch(pathToModel: String, userThreads: Int) {
+        viewModelScope.launch {
+            try {
+                Log.i(tag, "Starting model switch to: $pathToModel")
+                load(pathToModel, userThreads)
+                // Update default model preference
+                val modelName = pathToModel.split("/").last()
+                setDefaultModelName(modelName)
+                Log.i(tag, "Model switch completed successfully")
+            } catch (e: Exception) {
+                Log.e(tag, "Model switch failed", e)
+                setError("Failed to switch model: ${e.message}")
+            } finally {
+                _isSwitchingModel.value = false
+                _pendingModelSwitch = null
+            }
+        }
+    }
+    
+    /**
+     * Check if there's a pending model switch and execute it.
+     * Should be called after completing a send operation.
+     */
+    private fun checkAndExecutePendingModelSwitch() {
+        _pendingModelSwitch?.let { (path, threads) ->
+            Log.i(tag, "Executing pending model switch")
+            performModelSwitch(path, threads)
         }
     }
     private fun addMessage(role: String, content: String) {

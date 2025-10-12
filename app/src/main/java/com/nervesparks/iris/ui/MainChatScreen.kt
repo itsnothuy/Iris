@@ -207,6 +207,47 @@ fun MainChatScreen (
 
                 Column {
 
+                    // Active model chip at top
+                    if (viewModel.loadedModelName.value.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF050B16))
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color(0xFF1a1f2e),
+                                modifier = Modifier.align(Alignment.CenterStart)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    // Model icon indicator
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .background(
+                                                color = if (viewModel.isSwitchingModel.value) 
+                                                    Color(0xFFFFA500) // Orange when switching
+                                                else 
+                                                    Color(0xFF6200EE), // Purple when active
+                                                shape = CircleShape
+                                            )
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = viewModel.loadedModelName.value.take(30) + 
+                                               if (viewModel.loadedModelName.value.length > 30) "..." else "",
+                                        color = Color.White,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     val scrollState = rememberLazyListState()
 
@@ -694,6 +735,8 @@ fun SettingsBottomSheet(
     onDismiss: () -> Unit) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val sheetScrollState = rememberLazyListState()
+    val context = LocalContext.current
+    
     ModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = onDismiss,
@@ -713,6 +756,164 @@ fun SettingsBottomSheet(
                 textAlign = TextAlign.Center
             )
             LazyColumn(state = sheetScrollState) {
+                // Model Selection Section
+                item {
+                    var mExpanded by remember { mutableStateOf(false) }
+                    
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .background(
+                                color = Color(0xFF14161f),
+                                shape = RoundedCornerShape(8.dp),
+                            )
+                            .border(
+                                border = BorderStroke(
+                                    width = 1.dp,
+                                    color = Color.LightGray.copy(alpha = 0.5f)
+                                ),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(16.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = "Model Selection",
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            
+                            Text(
+                                text = "Select which AI model to use",
+                                color = Color.Gray,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+                            
+                            // Current active model
+                            Text(
+                                text = "Active: ${viewModel.loadedModelName.value}",
+                                color = Color(0xFF6200EE),
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            
+                            // Model dropdown
+                            Box {
+                                OutlinedTextField(
+                                    value = viewModel.loadedModelName.value,
+                                    onValueChange = { },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { mExpanded = !mExpanded },
+                                    label = { Text("Select Model") },
+                                    trailingIcon = {
+                                        Icon(
+                                            if (mExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                            contentDescription = "Toggle dropdown",
+                                            Modifier.clickable { mExpanded = !mExpanded },
+                                            tint = Color(0xFFcfcfd1)
+                                        )
+                                    },
+                                    readOnly = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        unfocusedBorderColor = Color(0xFF666666),
+                                        focusedBorderColor = Color(0xFFcfcfd1),
+                                        unfocusedLabelColor = Color(0xFF666666),
+                                        focusedLabelColor = Color(0xFFcfcfd1),
+                                        unfocusedTextColor = Color(0xFFf5f5f5),
+                                        focusedTextColor = Color(0xFFf5f5f5)
+                                    )
+                                )
+                                
+                                DropdownMenu(
+                                    expanded = mExpanded,
+                                    onDismissRequest = { mExpanded = false },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color(0xFF14161f))
+                                ) {
+                                    // Filter to only show downloaded models
+                                    val extFilesDir = context.getExternalFilesDir(null)
+                                    val downloadedModels = viewModel.allModels.filter { model ->
+                                        val destFile = extFilesDir?.let { File(it, model["destination"].toString()) }
+                                        destFile?.exists() == true
+                                    }
+                                    
+                                    if (downloadedModels.isEmpty()) {
+                                        DropdownMenuItem(
+                                            onClick = { },
+                                            modifier = Modifier.background(Color(0xFF14161f))
+                                        ) {
+                                            Text(
+                                                "No models downloaded",
+                                                color = Color.Gray
+                                            )
+                                        }
+                                    } else {
+                                        downloadedModels.forEach { model ->
+                                            val modelName = model["name"].toString()
+                                            val isCurrentModel = modelName == viewModel.loadedModelName.value
+                                            
+                                            DropdownMenuItem(
+                                                onClick = {
+                                                    if (!isCurrentModel && !viewModel.isSwitchingModel.value) {
+                                                        val destFile = File(extFilesDir, model["destination"].toString())
+                                                        viewModel.switchModel(
+                                                            destFile.path,
+                                                            viewModel.user_thread.toInt()
+                                                        )
+                                                    }
+                                                    mExpanded = false
+                                                },
+                                                modifier = Modifier.background(
+                                                    if (isCurrentModel) Color(0xFF6200EE).copy(alpha = 0.2f)
+                                                    else Color(0xFF14161f)
+                                                )
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(
+                                                        modelName,
+                                                        color = if (isCurrentModel) Color(0xFF6200EE) else Color.White,
+                                                        modifier = Modifier.weight(1f)
+                                                    )
+                                                    if (isCurrentModel) {
+                                                        Text(
+                                                            "✓",
+                                                            color = Color(0xFF6200EE),
+                                                            fontSize = 18.sp
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Show switching indicator
+                            if (viewModel.isSwitchingModel.value) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Switching model...",
+                                        color = Color(0xFF6200EE),
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 item{
                     Box(
                         modifier = Modifier
