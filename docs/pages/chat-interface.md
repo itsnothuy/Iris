@@ -690,6 +690,111 @@ docs/pages/
 
 ---
 
+## Implementation Notes (MVP 6 - Slice 6)
+
+### Local Cache & Backpressure (Queue)
+
+**Objective**: Introduce bounded send queue with backpressure to handle multiple rapid user requests gracefully, providing clear feedback when queued or when queue is full.
+
+**Files Modified** (3):
+```
+llama/src/main/java/android/llama/cpp/
+  └── LLamaAndroid.kt                     - Added bounded queue with max size 3
+app/src/main/java/com/nervesparks/iris/
+  └── MainViewModel.kt                    - Added queue state tracking and rejection handling
+app/src/test/java/com/nervesparks/iris/
+  └── MainViewModelQueueTest.kt           - Unit tests for queue logic (8 tests)
+app/src/androidTest/java/com/nervesparks/iris/ui/components/
+  └── QueueStateTest.kt                   - Compose UI tests for queue affordances (8 tests)
+docs/pages/
+  └── chat-interface.md                   - This documentation update
+```
+
+**Key Changes**:
+
+1. **LLamaAndroid Queue Implementation**:
+   - Added bounded `Channel<String>` with capacity of 3 messages
+   - Implemented `tryEnqueue()` to check if message can be queued or should be rejected
+   - Added `dequeue()` for internal queue management
+   - Tracks queue state with `_isQueued` and `_queueSize` mutableState
+   - Thread-safe queue operations using `Mutex`
+   - Public methods: `isQueued()`, `getQueueSize()` for UI state exposure
+
+2. **MainViewModel Queue Handling**:
+   - Modified `send()` to call `tryEnqueue()` before processing
+   - Rejects messages with user-friendly error when queue is full
+   - Removes user message from conversation if rejected to maintain consistency
+   - Added `updateQueueState()` to sync queue state with UI
+   - New public state properties: `isMessageQueued`, `queueSize`
+   - Updates queue state after send completion for real-time feedback
+
+3. **Queue Behavior**:
+   - Max queue size: 3 messages
+   - When not sending: messages process immediately (queue bypass)
+   - When sending: up to 3 messages can queue
+   - When full: rejects with error "Too many requests in queue. Please wait and try again."
+   - Queue clears automatically as messages process
+   - Thread-safe implementation prevents race conditions
+
+**Unit Tests** (`MainViewModelQueueTest.kt` - 8 tests):
+- `queueState_initiallyEmpty` - Verifies initial queue state
+- `queueState_whenNotQueued_isMessageQueuedIsFalse` - Tests empty queue state
+- `queueState_whenQueued_isMessageQueuedIsTrue` - Tests queued state
+- `errorMessage_whenQueueFull_setsErrorMessage` - Verifies error handling
+- `errorMessage_clearsOnNewSend` - Tests error message lifecycle
+- `queueSize_tracksCorrectly` - Validates queue size tracking
+- `isQueued_togglesCorrectly` - Tests queue state transitions
+- `queueBehavior_maxSizeEnforcement` - Verifies max size constraint
+
+**Compose UI Tests** (`QueueStateTest.kt` - 8 tests):
+- `queueState_notQueued_doesNotShowQueueIndicator` - Hidden when not queued
+- `queueState_queued_showsQueueIndicator` - Visible when queued
+- `queueState_showsCorrectQueueSize` - Displays accurate count
+- `queueState_singularForm_forSingleMessage` - Proper grammar (1 message)
+- `queueState_pluralForm_forMultipleMessages` - Proper grammar (2+ messages)
+- `queueState_transitionsFromNotQueuedToQueued` - State transitions
+- `queueState_isVisuallyDistinct` - Visual affordance validation
+
+**Design Decisions**:
+
+1. **Bounded Queue Size (3)**: Chosen to balance user experience and resource management. Allows multiple rapid requests without overwhelming the system, while providing clear feedback when limit is reached.
+
+2. **Rejection Strategy**: Reject with error message rather than silent drop. User receives immediate feedback with actionable guidance ("wait and try again").
+
+3. **Message Removal on Rejection**: When a message is rejected, it's removed from the conversation history to maintain consistency between what user sees and what's actually being processed.
+
+4. **Queue State Exposure**: Public `isQueued()` and `getQueueSize()` methods allow UI to display real-time queue status to users.
+
+5. **Thread Safety**: Uses `Mutex` for queue operations to prevent race conditions in multi-threaded coroutine environment.
+
+6. **Channel vs List**: Selected Kotlin `Channel` for queue implementation as it provides built-in backpressure handling and thread-safe operations.
+
+**UI Affordances**:
+- Queue indicator shows when messages are queued
+- Displays format: "N message(s) in queue"
+- Visual distinction with secondary container color
+- Updates in real-time as queue size changes
+- Error banner when queue is full with clear message
+
+**Acceptance Criteria Met**:
+- ✅ Bounded send queue with max size of 3
+- ✅ Rejects requests when queue is full
+- ✅ Shows 'queued' affordance in UI
+- ✅ Unit tests for queue logic (8 tests)
+- ✅ Compose UI tests for queue state (8 tests)
+- ✅ No destructive refactors or package renames
+- ✅ Follows existing patterns from .github/copilot-instructions.md
+- ✅ Documentation updated with implementation notes
+
+**Future Enhancements**:
+- Priority queue for certain message types
+- Configurable queue size per user preference
+- Queue position indicator for each queued message
+- Time-based queue expiration
+- Metrics for queue utilization and rejection rate
+
+---
+
 *Specification Version: 1.0*  
 *Last Updated: October 2025*  
 *Implementation Target: Milestone 1*
