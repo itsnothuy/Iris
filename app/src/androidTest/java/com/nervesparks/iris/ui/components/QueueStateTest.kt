@@ -1,9 +1,6 @@
 package com.nervesparks.iris.ui.components
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -166,34 +163,5 @@ class QueueStateTest {
         // Verify the indicator is actually displayed on screen
         composeTestRule.onNodeWithTag("queue-indicator")
             .assertIsDisplayed()
-            .assertHasClickAction() // Should not be clickable
-    }
-}
-
-/**
- * Simple queue state indicator component for testing.
- * This represents the UI element that shows queue status.
- */
-@Composable
-fun QueueStateIndicator(
-    isQueued: Boolean,
-    queueSize: Int
-) {
-    if (isQueued && queueSize > 0) {
-        Surface(
-            color = MaterialTheme.colorScheme.secondaryContainer,
-            modifier = androidx.compose.ui.Modifier.testTag("queue-indicator")
-        ) {
-            val messageText = if (queueSize == 1) {
-                "$queueSize message in queue"
-            } else {
-                "$queueSize messages in queue"
-            }
-            Text(
-                text = messageText,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        }
     }
 }

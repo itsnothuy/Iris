@@ -120,6 +120,7 @@ import com.nervesparks.iris.ui.components.EmptyState
 import com.nervesparks.iris.ui.components.ErrorBanner
 import com.nervesparks.iris.ui.components.LoadingSkeleton
 import com.nervesparks.iris.ui.components.ProcessingIndicator
+import com.nervesparks.iris.ui.components.QueueStateIndicator
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
@@ -521,6 +522,12 @@ fun MainChatScreen (
                                     }
                                 )
                             }
+                            
+                            // Show queue state indicator if messages are queued
+                            QueueStateIndicator(
+                                isQueued = viewModel.isMessageQueued,
+                                queueSize = viewModel.queueSize
+                            )
 
                             ScrollToBottomButton(
                                 scrollState = scrollState,
