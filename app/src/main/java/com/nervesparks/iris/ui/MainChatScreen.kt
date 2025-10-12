@@ -523,6 +523,16 @@ fun MainChatScreen (
                                 )
                             }
                             
+                            // Show redaction banner if PII was redacted
+                            if (viewModel.wasLastMessageRedacted) {
+                                com.nervesparks.iris.ui.components.RedactionBanner(
+                                    redactionCount = viewModel.lastRedactionCount,
+                                    onDismiss = {
+                                        viewModel.clearRedactionBanner()
+                                    }
+                                )
+                            }
+                            
                             // Show queue state indicator if messages are queued
                             QueueStateIndicator(
                                 isQueued = viewModel.isMessageQueued,

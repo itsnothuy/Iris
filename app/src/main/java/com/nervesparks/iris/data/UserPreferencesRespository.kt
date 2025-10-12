@@ -4,6 +4,7 @@ import android.content.Context
 
 private const val USER_PREFERENCES_NAME = "user_preferences"
 private const val KEY_DEFAULT_MODEL_NAME = "default_model_name"
+private const val KEY_PRIVACY_REDACTION_ENABLED = "privacy_redaction_enabled"
 
 class UserPreferencesRepository private constructor(context: Context) {
 
@@ -18,6 +19,16 @@ class UserPreferencesRepository private constructor(context: Context) {
     // Set the default model name
     fun setDefaultModelName(modelName: String) {
         sharedPreferences.edit().putString(KEY_DEFAULT_MODEL_NAME, modelName).apply()
+    }
+
+    // Get privacy redaction enabled status, defaults to false (opt-in)
+    fun getPrivacyRedactionEnabled(): Boolean {
+        return sharedPreferences.getBoolean(KEY_PRIVACY_REDACTION_ENABLED, false)
+    }
+
+    // Set privacy redaction enabled status
+    fun setPrivacyRedactionEnabled(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_PRIVACY_REDACTION_ENABLED, enabled).apply()
     }
 
     companion object {
