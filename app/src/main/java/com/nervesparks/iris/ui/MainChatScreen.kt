@@ -122,6 +122,7 @@ import com.nervesparks.iris.ui.components.LoadingSkeleton
 import com.nervesparks.iris.ui.components.ProcessingIndicator
 
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import java.io.File
 
 
@@ -445,7 +446,17 @@ fun MainChatScreen (
                                 // Show processing indicator when AI is generating response
                                 if (viewModel.getIsSending()) {
                                     item {
-                                        ProcessingIndicator(showMetrics = true)
+                                        // Get the last assistant message content if currently streaming
+                                        val streamingText = if (viewModel.messages.isNotEmpty() && 
+                                                                viewModel.messages.last()["role"] == "assistant") {
+                                            viewModel.messages.last()["content"]
+                                        } else {
+                                            null
+                                        }
+                                        ProcessingIndicator(
+                                            showMetrics = true,
+                                            streamingText = streamingText
+                                        )
                                     }
                                 }
                                 
@@ -809,19 +820,32 @@ fun ScrollToBottomButton(
         }
     }
 
-    // Stop auto-scrolling when the user scrolls manually
+    // Stop auto-scrolling when the user scrolls manually (but not programmatically)
     LaunchedEffect(scrollState.isScrollInProgress) {
-        if (scrollState.isScrollInProgress) {
-            isAutoScrolling = false
+        if (scrollState.isScrollInProgress && !isAutoScrolling) {
             isButtonVisible = true // Show the button again if the user scrolls manually
         }
     }
 
-    // Continuously monitor changes in the last item's content
-    LaunchedEffect(messages.lastOrNull()) {
-        if (isAutoScrolling && messages.isNotEmpty()) {
-            coroutineScope.launch {
-                scrollState.scrollToItem(viewModel.messages.size + 1)
+    // Smooth tail-scrolling during streaming with debouncing
+    // Monitor the content of the last message for streaming updates
+    val lastMessageContent = remember(messages.lastOrNull()) {
+        (messages.lastOrNull() as? Map<*, *>)?.get("content")?.toString() ?: ""
+    }
+    
+    LaunchedEffect(lastMessageContent, viewModel.getIsSending()) {
+        // Auto-scroll during streaming if we're already at/near the bottom
+        if (viewModel.getIsSending() && messages.isNotEmpty()) {
+            // Only auto-scroll if we're near the bottom (within last few items)
+            val isNearBottom = scrollState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 >= 
+                              scrollState.layoutInfo.totalItemsCount - 3
+            
+            if (isNearBottom || isAutoScrolling) {
+                // Debounce: delay slightly to batch rapid updates
+                delay(100)
+                coroutineScope.launch {
+                    scrollState.animateScrollToItem(viewModel.messages.size + 1)
+                }
             }
         }
     }
