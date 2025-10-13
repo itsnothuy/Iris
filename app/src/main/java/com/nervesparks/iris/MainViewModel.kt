@@ -874,6 +874,34 @@ class MainViewModel(
     }
     
     /**
+     * Get the theme preference.
+     */
+    fun getThemePreference(): com.nervesparks.iris.data.ThemePreference {
+        return userPreferencesRepository.getThemePreference()
+    }
+    
+    /**
+     * Set the theme preference.
+     */
+    fun setThemePreference(theme: com.nervesparks.iris.data.ThemePreference) {
+        userPreferencesRepository.setThemePreference(theme)
+    }
+    
+    /**
+     * Get the language preference.
+     */
+    fun getLanguagePreference(): com.nervesparks.iris.data.LanguagePreference {
+        return userPreferencesRepository.getLanguagePreference()
+    }
+    
+    /**
+     * Set the language preference.
+     */
+    fun setLanguagePreference(language: com.nervesparks.iris.data.LanguagePreference) {
+        userPreferencesRepository.setLanguagePreference(language)
+    }
+    
+    /**
      * Clear the redaction banner state.
      */
     fun clearRedactionBanner() {
