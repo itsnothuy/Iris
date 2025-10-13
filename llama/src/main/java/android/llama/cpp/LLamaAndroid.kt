@@ -43,6 +43,14 @@ class LLamaAndroid {
     private val queueMutex = Mutex()
     private val _queueSize = mutableStateOf(0)
     private val _isQueued = mutableStateOf(false)
+    
+    // Rate-limit and thermal state
+    private val _isRateLimited = mutableStateOf(false)
+    private val _isThermalThrottled = mutableStateOf(false)
+    private var requestCount = 0
+    private var lastResetTime = System.currentTimeMillis()
+    private val rateLimitWindow = 60_000L // 1 minute window
+    private val maxRequestsPerWindow = 10 // Max 10 requests per minute
 
     fun getIsSending(): Boolean {
         return isSending
@@ -63,6 +71,21 @@ class LLamaAndroid {
     
     fun isQueued(): Boolean {
         return _isQueued.value
+    }
+    
+    fun isRateLimited(): Boolean {
+        return _isRateLimited.value
+    }
+    
+    fun isThermalThrottled(): Boolean {
+        return _isThermalThrottled.value
+    }
+    
+    fun setThermalState(isThrottled: Boolean) {
+        _isThermalThrottled.value = isThrottled
+        if (isThrottled) {
+            Log.w(tag, "Thermal throttling activated")
+        }
     }
 
     fun stopTextGeneration() {
@@ -214,6 +237,9 @@ class LLamaAndroid {
      */
     suspend fun tryEnqueue(message: String): Boolean {
         return queueMutex.withLock {
+            // Check rate limit
+            checkRateLimit()
+            
             if (_isSending.value) {
                 // A message is currently being processed
                 if (_queueSize.value >= maxQueueSize) {
@@ -232,6 +258,30 @@ class LLamaAndroid {
                 // No message being processed, can send immediately
                 true
             }
+        }
+    }
+    
+    /**
+     * Check if we've exceeded the rate limit and update state accordingly.
+     */
+    private fun checkRateLimit() {
+        val currentTime = System.currentTimeMillis()
+        
+        // Reset counter if window has passed
+        if (currentTime - lastResetTime > rateLimitWindow) {
+            requestCount = 0
+            lastResetTime = currentTime
+            _isRateLimited.value = false
+        }
+        
+        requestCount++
+        
+        // Check if rate limit exceeded
+        if (requestCount > maxRequestsPerWindow) {
+            _isRateLimited.value = true
+            Log.w(tag, "Rate limit exceeded: $requestCount requests in ${currentTime - lastResetTime}ms")
+        } else {
+            _isRateLimited.value = false
         }
     }
     
@@ -259,6 +309,13 @@ class LLamaAndroid {
     suspend fun send(message: String): Flow<String> = flow {
         stopGeneration = false
         _isSending.value = true
+        
+        // Calculate streaming delay based on rate-limit and thermal state
+        val streamDelay = calculateStreamDelay()
+        if (streamDelay > 0) {
+            Log.i(tag, "Applying streaming delay of ${streamDelay}ms due to rate-limit or thermal throttle")
+        }
+        
         when (val state = threadLocalState.get()) {
             is State.Loaded -> {
                 val ncur = IntVar(completion_init(state.context, state.batch, message, nlen))
@@ -298,6 +355,12 @@ class LLamaAndroid {
                     if (stopGeneration) {
                         break
                     }
+                    
+                    // Apply degradation delay if needed
+                    if (streamDelay > 0) {
+                        delay(streamDelay)
+                    }
+                    
                     emit(str)
                 }
                 kv_cache_clear(state.context)
@@ -308,6 +371,19 @@ class LLamaAndroid {
         }
         _isSending.value = false
     }.flowOn(runLoop)
+    
+    /**
+     * Calculate streaming delay in milliseconds based on rate-limit and thermal state.
+     * Returns higher delay when rate-limited or thermally throttled.
+     */
+    private fun calculateStreamDelay(): Long {
+        return when {
+            _isThermalThrottled.value && _isRateLimited.value -> 150L // Both conditions: 150ms
+            _isThermalThrottled.value -> 100L // Thermal only: 100ms
+            _isRateLimited.value -> 75L // Rate-limit only: 75ms
+            else -> 0L // Normal: no delay
+        }
+    }
 
 
 
