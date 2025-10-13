@@ -1,6 +1,7 @@
 package com.nervesparks.iris.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,9 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nervesparks.iris.R
+import com.nervesparks.iris.data.LanguagePreference
+import com.nervesparks.iris.data.ThemePreference
 
 @Composable
 fun SettingsScreen(
@@ -78,6 +82,64 @@ fun SettingsScreen(
                 }
             }
             
+            // Appearance section
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = Color(0xff0f172a),
+                            shape = RoundedCornerShape(12.dp),
+                        )
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_appearance),
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    
+                    var currentTheme by remember { 
+                        mutableStateOf(viewModel.getThemePreference()) 
+                    }
+                    
+                    SettingsSelector(
+                        label = stringResource(R.string.settings_theme),
+                        options = listOf(
+                            ThemePreference.LIGHT to stringResource(R.string.settings_theme_light),
+                            ThemePreference.DARK to stringResource(R.string.settings_theme_dark),
+                            ThemePreference.SYSTEM to stringResource(R.string.settings_theme_system)
+                        ),
+                        selectedOption = currentTheme,
+                        onOptionSelected = { theme ->
+                            currentTheme = theme
+                            viewModel.setThemePreference(theme)
+                        }
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    var currentLanguage by remember { 
+                        mutableStateOf(viewModel.getLanguagePreference()) 
+                    }
+                    
+                    SettingsSelector(
+                        label = stringResource(R.string.settings_language),
+                        options = listOf(
+                            LanguagePreference.ENGLISH to stringResource(R.string.settings_language_english),
+                            LanguagePreference.SPANISH to stringResource(R.string.settings_language_spanish)
+                        ),
+                        selectedOption = currentLanguage,
+                        onOptionSelected = { language ->
+                            currentLanguage = language
+                            viewModel.setLanguagePreference(language)
+                        }
+                    )
+                }
+            }
+            
             // Privacy section
             item {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -91,7 +153,7 @@ fun SettingsScreen(
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "Privacy",
+                        text = stringResource(R.string.settings_privacy),
                         color = Color.White,
                         fontSize = 20.sp,
                         modifier = Modifier.padding(bottom = 12.dp)
@@ -102,13 +164,63 @@ fun SettingsScreen(
                     }
                     
                     PrivacyToggleRow(
-                        text = "Redact PII",
-                        description = "Automatically redact emails, phone numbers, and IDs before sending",
+                        text = stringResource(R.string.settings_privacy_redact_pii),
+                        description = stringResource(R.string.settings_privacy_redact_pii_description),
                         checked = isRedactionEnabled,
                         onCheckedChange = { enabled ->
                             isRedactionEnabled = enabled
                             viewModel.setPrivacyRedactionEnabled(enabled)
                         }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun <T> SettingsSelector(
+    label: String,
+    options: List<Pair<T, String>>,
+    selectedOption: T,
+    onOptionSelected: (T) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = label,
+            color = Color.White,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            options.forEach { (option, displayName) ->
+                val isSelected = option == selectedOption
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            color = if (isSelected) Color(0xFF1E88E5) else Color(0xFF1a1f2e),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = if (isSelected) Color(0xFF64B5F6) else Color(0xFF404654),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clickable { onOptionSelected(option) }
+                        .padding(vertical = 12.dp, horizontal = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = displayName,
+                        color = if (isSelected) Color.White else Color(0xFFB0B0B0),
+                        fontSize = 14.sp
                     )
                 }
             }

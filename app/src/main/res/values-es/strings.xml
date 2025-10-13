@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Iris</string>
+    <string name="settings_screen_title">Configuración</string>
+    <string name="search_results_screen_title">Buscar</string>
+    <string name="parameters_screen_title">Parámetros</string>
+    <string name="models_screen_title">Modelos</string>
+    <string name="back_button">Botón Atrás</string>
+    <string name="setting">Configuración</string>
+    <string name="about_screen_title">Acerca de</string>
+    <string name="benchmark_screen_title">Evaluación</string>
+    <string name="refresh_button">Actualizar</string>
+    
+    <!-- Settings - Theme -->
+    <string name="settings_appearance">Apariencia</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_theme_system">Sistema</string>
+    
+    <!-- Settings - Language -->
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_spanish">Español</string>
+    
+    <!-- Settings - Privacy -->
+    <string name="settings_privacy">Privacidad</string>
+    <string name="settings_privacy_redact_pii">Redactar PII</string>
+    <string name="settings_privacy_redact_pii_description">Redactar automáticamente correos electrónicos, números de teléfono e identificaciones antes de enviar</string>
+</resources>

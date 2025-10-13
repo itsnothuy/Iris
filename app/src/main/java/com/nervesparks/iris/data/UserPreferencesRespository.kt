@@ -5,6 +5,16 @@ import android.content.Context
 private const val USER_PREFERENCES_NAME = "user_preferences"
 private const val KEY_DEFAULT_MODEL_NAME = "default_model_name"
 private const val KEY_PRIVACY_REDACTION_ENABLED = "privacy_redaction_enabled"
+private const val KEY_THEME_PREFERENCE = "theme_preference"
+private const val KEY_LANGUAGE_PREFERENCE = "language_preference"
+
+enum class ThemePreference {
+    LIGHT, DARK, SYSTEM
+}
+
+enum class LanguagePreference {
+    ENGLISH, SPANISH
+}
 
 class UserPreferencesRepository private constructor(context: Context) {
 
@@ -29,6 +39,36 @@ class UserPreferencesRepository private constructor(context: Context) {
     // Set privacy redaction enabled status
     fun setPrivacyRedactionEnabled(enabled: Boolean) {
         sharedPreferences.edit().putBoolean(KEY_PRIVACY_REDACTION_ENABLED, enabled).apply()
+    }
+
+    // Get theme preference, defaults to SYSTEM
+    fun getThemePreference(): ThemePreference {
+        val themeName = sharedPreferences.getString(KEY_THEME_PREFERENCE, ThemePreference.SYSTEM.name) ?: ThemePreference.SYSTEM.name
+        return try {
+            ThemePreference.valueOf(themeName)
+        } catch (e: IllegalArgumentException) {
+            ThemePreference.SYSTEM
+        }
+    }
+
+    // Set theme preference
+    fun setThemePreference(theme: ThemePreference) {
+        sharedPreferences.edit().putString(KEY_THEME_PREFERENCE, theme.name).apply()
+    }
+
+    // Get language preference, defaults to ENGLISH
+    fun getLanguagePreference(): LanguagePreference {
+        val langName = sharedPreferences.getString(KEY_LANGUAGE_PREFERENCE, LanguagePreference.ENGLISH.name) ?: LanguagePreference.ENGLISH.name
+        return try {
+            LanguagePreference.valueOf(langName)
+        } catch (e: IllegalArgumentException) {
+            LanguagePreference.ENGLISH
+        }
+    }
+
+    // Set language preference
+    fun setLanguagePreference(language: LanguagePreference) {
+        sharedPreferences.edit().putString(KEY_LANGUAGE_PREFERENCE, language.name).apply()
     }
 
     companion object {
