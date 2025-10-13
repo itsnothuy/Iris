@@ -121,6 +121,7 @@ import com.nervesparks.iris.ui.components.ErrorBanner
 import com.nervesparks.iris.ui.components.LoadingSkeleton
 import com.nervesparks.iris.ui.components.ProcessingIndicator
 import com.nervesparks.iris.ui.components.QueueStateIndicator
+import com.nervesparks.iris.ui.components.ThermalHint
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
@@ -537,6 +538,12 @@ fun MainChatScreen (
                             QueueStateIndicator(
                                 isQueued = viewModel.isMessageQueued,
                                 queueSize = viewModel.queueSize
+                            )
+                            
+                            // Show thermal/rate-limit hint if throttled
+                            ThermalHint(
+                                isRateLimited = viewModel.isRateLimited,
+                                isThermalThrottled = viewModel.isThermalThrottled
                             )
 
                             ScrollToBottomButton(

@@ -443,5 +443,134 @@ Maintaining privacy-first principles:
 ---
 
 *Specification Version: 1.0*  
-*Last Updated: October 2025*  
+*Last Updated: October 2025*
+
+## Implementation Notes (MVP 8 - Slice 8)
+
+### Rate-Limit & Thermal Hint
+
+**Objective**: Implement rate-limiting and thermal monitoring to prevent device overheating and maintain system stability. Surface non-blocking hints to users when inference is degraded, and apply adaptive streaming delays to reduce resource consumption.
+
+**Files Modified/Created** (5):
+```
+llama/src/main/java/android/llama/cpp/
+  └── LLamaAndroid.kt                              - Added rate-limit & thermal state tracking
+llama/src/test/java/android/llama/cpp/
+  └── LLamaAndroidRateLimitThermalTest.kt         - Unit tests for policy (10 tests)
+app/src/main/java/com/nervesparks/iris/
+  └── MainViewModel.kt                             - Exposed rate-limit & thermal state to UI
+app/src/main/java/com/nervesparks/iris/ui/
+  └── MainChatScreen.kt                            - Integrated ThermalHint component
+app/src/main/java/com/nervesparks/iris/ui/components/
+  └── ThermalHint.kt                               - New UI component for hints
+app/src/androidTest/java/com/nervesparks/iris/ui/components/
+  └── ThermalHintTest.kt                           - Compose UI tests (8 tests)
+docs/pages/
+  └── inference-engine.md                          - This documentation update
+```
+
+**Key Changes**:
+
+1. **Rate-Limit Policy (LLamaAndroid)**:
+   - Tracks request count within a 60-second rolling window
+   - Maximum of 10 requests per minute before rate-limiting activates
+   - State exposed via `isRateLimited()` method
+   - Automatically resets counter when window expires
+   - Thread-safe implementation using existing `queueMutex`
+
+2. **Thermal State Tracking (LLamaAndroid)**:
+   - New `setThermalState(Boolean)` method for external thermal monitoring
+   - State exposed via `isThermalThrottled()` method
+   - Independent from rate-limit state for flexible policy application
+   - Logs thermal activation/deactivation for debugging
+
+3. **Degradation Policy (Streaming Delay)**:
+   - Calculates adaptive delay based on current state:
+     - **Normal**: 0ms (no delay)
+     - **Rate-limited only**: 75ms between tokens
+     - **Thermal throttle only**: 100ms between tokens
+     - **Both conditions**: 150ms between tokens
+   - Delay applied in `send()` flow between token emissions
+   - Reduces CPU/GPU load while maintaining user experience
+   - Logged for observability
+
+4. **ThermalHint UI Component**:
+   - Non-blocking animated hint displayed above input area
+   - Shows different messages for each state:
+     - Rate-limited: "High activity detected • Streaming slowed to maintain stability"
+     - Thermal throttle: "Device warming up • Streaming slowed to cool down device"
+     - Both: "Device warming up • Slowing down • Reducing speed to prevent overheating"
+   - Color-coded visual feedback (amber → orange → orange-red)
+   - Uses Material Icons warning icon
+   - Fade in/out animations for smooth transitions
+
+5. **MainViewModel Integration**:
+   - New state properties: `isRateLimited`, `isThermalThrottled`
+   - Updated `updateQueueState()` to sync thermal and rate-limit state
+   - State automatically updated after each send operation
+   - Exposed to UI for reactive hint display
+
+**Design Decisions**:
+
+1. **Rate-Limit Threshold (10 req/min)**: Chosen to allow natural conversation flow while preventing abuse. Most conversations have 3-5 exchanges per minute, so 10 provides headroom for rapid interactions without overwhelming the system.
+
+2. **Streaming Delays (75/100/150ms)**: Selected based on typical token generation rates (2-10 tokens/sec). These delays noticeably reduce resource consumption while maintaining acceptable UX. Users perceive streaming as "thoughtful" rather than "broken".
+
+3. **External Thermal Control**: Thermal state set via `setThermalState()` rather than internal monitoring because:
+   - Android's `PowerManager.getThermalStatus()` requires API 29+
+   - Allows app-level policy flexibility (can integrate battery level, user preferences, etc.)
+   - Simpler testing without device-specific thermal APIs
+   - MVP approach: manual thermal monitoring can be added in future slices
+
+4. **Additive Delays**: When both rate-limit and thermal throttle are active, delays stack (75+100=150ms total). This aggressive throttling is intentional—it's a critical state requiring maximum cooling/stability.
+
+5. **Non-Blocking Hints**: Uses `AnimatedVisibility` with fade transitions to avoid jarring UI changes. Hints are informational, not errors, so users can continue interacting without dismissing modals.
+
+6. **State Independence**: Rate-limit and thermal states are tracked independently but displayed together. This allows fine-grained policy control and clear testing boundaries.
+
+**Testing Coverage**:
+
+1. **Unit Tests (LLamaAndroidRateLimitThermalTest.kt)** - 10 tests:
+   - Initial state verification (false for both)
+   - Thermal state set/reset behavior
+   - Rate-limit activation below/above threshold
+   - Independent state management (rate-limit vs thermal)
+   - Combined state scenarios
+
+2. **Compose UI Tests (ThermalHintTest.kt)** - 8 tests:
+   - Visibility based on state combinations
+   - Message content verification for each state
+   - State transition animations
+   - Icon display verification
+   - Hide behavior when states reset
+
+**Performance Impact**:
+- Rate-limit tracking: O(1) per request, negligible overhead
+- Thermal state: Simple boolean check, no performance impact
+- Streaming delays: Intentional performance degradation (75-150ms per token)
+- UI hint: Compose's `AnimatedVisibility` is efficient, no measurable frame drops
+
+**Limitations & Future Work**:
+- Thermal monitoring requires manual external calls (future: integrate Android PowerManager)
+- Rate-limit window is fixed (future: make configurable in settings)
+- No automatic recovery notification (future: show "Performance restored" hint)
+- Delays are global across all models (future: model-specific throttle policies)
+
+**Acceptance Criteria Met**:
+- ✅ Rate-limit policy implemented and tested
+- ✅ Thermal state tracking implemented and tested
+- ✅ Degradation UX (slower streaming) applied
+- ✅ Non-blocking hint surfaces condition to user
+- ✅ Unit tests for policy (10 tests)
+- ✅ Compose tests for hint (8 tests)
+- ✅ No destructive refactors or package renames
+- ✅ Follows existing patterns (similar to queue state tracking)
+- ✅ Documentation updated with implementation notes
+
+**Integration Points**:
+- Works alongside existing queue management (Slice 6)
+- Compatible with message streaming (Slice 7)
+- Thermal state can be set by future battery monitor (Slice 9+)
+- Rate-limit state can inform usage analytics (future)
+  
 *Implementation Target: Milestone 1*
