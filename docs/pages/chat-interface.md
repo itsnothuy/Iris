@@ -795,6 +795,117 @@ docs/pages/
 
 ---
 
+## Implementation Notes (MVP 4 - Slice 9)
+
+### Message Actions (Copy, Share, Delete)
+
+**Implementation Date**: October 2025
+
+**Objective**: Add per-message overflow menu with copy, share, and delete actions plus confirmation dialog for destructive operations.
+
+**Files Modified** (3):
+```
+app/src/main/java/com/nervesparks/iris/
+  └── MainViewModel.kt                    - Added deleteMessage method
+app/src/main/java/com/nervesparks/iris/ui/
+  └── MainChatScreen.kt                   - Added share and delete actions to MessageBottomSheet
+app/src/androidTest/java/com/nervesparks/iris/ui/components/
+  └── MessageActionsTest.kt               - Compose UI tests for message actions (9 tests)
+docs/pages/
+  └── chat-interface.md                   - This documentation update
+```
+
+**Key Changes**:
+
+1. **MessageBottomSheet Enhancements**:
+   - Added `messageIndex` parameter to identify which message to delete
+   - Added "Share" button that creates Android share intent with message text
+   - Added "Delete" button (visible only when messageIndex >= 0)
+   - Delete button shows confirmation dialog before deletion
+   - Delete button disabled when AI is generating
+   - Share uses `Intent.ACTION_SEND` with text/plain MIME type
+   - Delete button styled in red (#b91c1c) to indicate destructive action
+
+2. **MainViewModel Delete Functionality**:
+   - Added `deleteMessage(messageIndex: Int)` public method
+   - Validates message index before deletion
+   - Removes message from in-memory list
+   - Syncs deletion with database by clearing and re-saving all messages
+   - Logs deletion success/failure for debugging
+   - Gracefully handles cases where messageRepository is null
+
+3. **Delete Confirmation Dialog**:
+   - Material 3 Dialog with dark theme matching app colors
+   - Clear title: "Delete Message"
+   - Warning text: "Are you sure you want to delete this message? This action cannot be undone."
+   - Two buttons: Cancel (dismisses) and Delete (confirms)
+   - Delete button styled in red to reinforce destructive nature
+   - Dialog dismisses on both Cancel and Delete actions
+
+4. **Message Index Tracking**:
+   - Updated both MessageBottomSheet call sites in MainChatScreen
+   - Pass `currentMessageIndex` which accounts for sliced messages (index + 3)
+   - Enables accurate message identification for deletion
+
+**Compose UI Tests** (`MessageActionsTest.kt` - 9 tests):
+- `messageBottomSheet_showsCopyButton` - Verifies copy button always visible
+- `messageBottomSheet_showsShareButton` - Verifies share button always visible
+- `messageBottomSheet_showsDeleteButton_whenMessageIndexProvided` - Delete visible with valid index
+- `messageBottomSheet_hidesDeleteButton_whenMessageIndexNotProvided` - Delete hidden with index -1
+- `messageBottomSheet_deleteButton_showsConfirmationDialog` - Confirmation dialog appears on delete click
+- `messageBottomSheet_deleteConfirmation_cancelButton_closesDialog` - Cancel dismisses confirmation
+- `messageBottomSheet_deleteConfirmation_deleteButton_deletesMessage` - Confirm actually deletes message
+- `messageBottomSheet_deleteButton_disabledWhenAIGenerating` - Delete disabled during AI generation
+- `messageBottomSheet_copyAndShareAndDeleteButtons_allDisplayed` - All actions coexist
+
+**Design Decisions**:
+
+1. **Share via System Chooser**: Uses `Intent.createChooser()` to let users pick their preferred sharing method (messaging apps, email, social media, etc.). This provides maximum flexibility without adding app-specific share integrations.
+
+2. **Delete Requires Confirmation**: Destructive action requires explicit confirmation to prevent accidental deletions. Dialog clearly states action is irreversible.
+
+3. **Delete Syncs with Database**: Since messages in ViewModel use Map<String, String> without unique IDs tracked in-memory, delete operation clears and re-saves all messages to maintain database consistency. This trade-off prioritizes correctness over performance for infrequent delete operations.
+
+4. **Message Index Approach**: Rather than adding IDs to the Map-based message structure (which would require broader refactoring), we use positional index for deletion. This minimal change approach maintains compatibility with existing code.
+
+5. **Conditional Delete Button**: Delete only appears when messageIndex is valid (>= 0), allowing call sites to control when deletion is appropriate. This prevents deleting system messages or messages not yet persisted.
+
+6. **Visual Distinction**: Delete button uses red color (#b91c1c) matching existing delete patterns in the app (see ModelCard.kt), creating consistent UX for destructive actions.
+
+**UI Interactions**:
+- **Copy**: Copies message to clipboard, shows toast "Text copied!", dismisses bottom sheet
+- **Share**: Opens Android share chooser with message text, dismisses bottom sheet
+- **Delete**: Shows confirmation dialog → User confirms → Deletes message → Shows toast "Message deleted" → Dismisses dialog and bottom sheet
+- **Delete Cancel**: Shows confirmation dialog → User cancels → Dismisses dialog, returns to bottom sheet
+
+**Acceptance Criteria Met**:
+- ✅ Per-message overflow menu with copy, share, delete actions
+- ✅ Share intent opens system chooser with message text
+- ✅ Delete shows confirmation dialog before removing message
+- ✅ Delete removes message from conversation and database
+- ✅ Compose UI tests for menu actions (9 tests)
+- ✅ Tests verify dialog display and button interactions
+- ✅ Tests confirm delete action removes message
+- ✅ No destructive refactors or package renames
+- ✅ Follows existing patterns from .github/copilot-instructions.md
+- ✅ Documentation updated with implementation notes
+
+**Known Limitations**:
+- Delete operation re-writes entire database rather than deleting single message ID, due to Map-based message structure without tracked IDs
+- Cannot undo delete operation (by design - confirmation dialog warns user)
+- Share intent does not include metadata like timestamps or sender role
+- Message index becomes invalid if messages are deleted before the current message in the list
+
+**Future Enhancements**:
+- Add message ID tracking to enable efficient single-message deletions
+- Implement undo functionality for delete (with time-limited reversal)
+- Add export functionality to save conversations
+- Support batch delete for multiple messages
+- Add pin/favorite functionality for important messages
+- Include message metadata in share (timestamp, role) as optional
+
+---
+
 *Specification Version: 1.0*  
 *Last Updated: October 2025*  
 *Implementation Target: Milestone 1*
