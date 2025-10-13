@@ -320,7 +320,8 @@ fun MainChatScreen (
                                                             viewModel.toggler = false
                                                         },
                                                         sheetState = sheetState,
-                                                        isLastUserMessage = isLastUserMessage
+                                                        isLastUserMessage = isLastUserMessage,
+                                                        messageIndex = currentMessageIndex
                                                     )
                                                 }
                                                 Row(
@@ -433,7 +434,8 @@ fun MainChatScreen (
                                                             viewModel.toggler = false
                                                         },
                                                         sheetState = sheetState,
-                                                        isLastUserMessage = isLastUserMessage
+                                                        isLastUserMessage = isLastUserMessage,
+                                                        messageIndex = currentMessageIndex
                                                     )
                                                 }
                                                 Column(modifier = Modifier.combinedClickable(
@@ -1247,7 +1249,8 @@ fun MessageBottomSheet(
     viewModel: MainViewModel,
     onDismiss: () -> Unit,
     sheetState: SheetState,
-    isLastUserMessage: Boolean = false
+    isLastUserMessage: Boolean = false,
+    messageIndex: Int = -1
 ) {
 
 
@@ -1264,6 +1267,7 @@ fun MessageBottomSheet(
         ) {
             var sheetScrollState = rememberLazyListState()
             var showEditDialog by remember { mutableStateOf(false) }
+            var showDeleteDialog by remember { mutableStateOf(false) }
 
             Column(
                 modifier = Modifier
@@ -1316,6 +1320,41 @@ fun MessageBottomSheet(
                     }
                 ) {
                     Text(text = "Copy Text", color = Color(0xFFA0A0A5))
+                }
+                
+                // Share Button
+                TextButton(
+                    colors = ButtonDefaults.buttonColors(Color(0xFF171E2C)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    onClick = {
+                        val shareIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, message)
+                            type = "text/plain"
+                        }
+                        context.startActivity(Intent.createChooser(shareIntent, "Share message"))
+                        onDismiss()
+                    }
+                ) {
+                    Text(text = "Share", color = Color(0xFFA0A0A5))
+                }
+                
+                // Delete Button
+                if (messageIndex >= 0) {
+                    TextButton(
+                        colors = ButtonDefaults.buttonColors(Color(0xFFb91c1c)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        enabled = !viewModel.getIsSending(),
+                        onClick = {
+                            showDeleteDialog = true
+                        }
+                    ) {
+                        Text(text = "Delete", color = Color.White)
+                    }
                 }
 
                 // Select Text Button
@@ -1443,6 +1482,64 @@ fun MessageBottomSheet(
                                     )
                                 ) {
                                     Text("Send", color = Color(0xFFA0A0A5))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Delete Confirmation Dialog
+            if (showDeleteDialog) {
+                Dialog(onDismissRequest = { showDeleteDialog = false }) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFF233340)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(24.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Delete Message",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = Color.White,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            
+                            Text(
+                                text = "Are you sure you want to delete this message? This action cannot be undone.",
+                                color = Color.LightGray,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            
+                            Row(
+                                horizontalArrangement = Arrangement.End,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                TextButton(
+                                    onClick = { showDeleteDialog = false }
+                                ) {
+                                    Text("Cancel", color = Color(0xFFA0A0A5))
+                                }
+                                
+                                Spacer(modifier = Modifier.width(8.dp))
+                                
+                                Button(
+                                    onClick = {
+                                        if (messageIndex >= 0) {
+                                            viewModel.deleteMessage(messageIndex)
+                                            Toast.makeText(context, "Message deleted", Toast.LENGTH_SHORT).show()
+                                        }
+                                        showDeleteDialog = false
+                                        onDismiss()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFb91c1c)
+                                    )
+                                ) {
+                                    Text("Delete", color = Color.White)
                                 }
                             }
                         }

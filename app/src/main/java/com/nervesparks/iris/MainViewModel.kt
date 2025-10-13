@@ -666,6 +666,53 @@ class MainViewModel(
             }
         }
     }
+    
+    /**
+     * Delete a message at the specified index.
+     * @param messageIndex The index of the message in the messages list (0-based)
+     */
+    fun deleteMessage(messageIndex: Int) {
+        if (messageIndex < 0 || messageIndex >= messages.size) {
+            Log.e(tag, "Invalid message index: $messageIndex")
+            return
+        }
+        
+        val messageToDelete = messages[messageIndex]
+        
+        // Remove from in-memory list
+        messages = messages.toMutableList().apply {
+            removeAt(messageIndex)
+        }
+        
+        // Remove from database if messageRepository is available
+        // Note: Since messages in ViewModel are Map<String,String> without IDs,
+        // we'll need to delete by content matching or regenerate all messages in DB
+        // For now, we'll delete all and re-save to maintain consistency
+        messageRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    // Clear and re-save all messages to maintain consistency
+                    repo.deleteAllMessages()
+                    messages.forEach { msg ->
+                        val role = msg["role"] ?: return@forEach
+                        val content = msg["content"] ?: return@forEach
+                        if (role in listOf("user", "assistant")) {
+                            val messageRole = if (role == "user") MessageRole.USER else MessageRole.ASSISTANT
+                            val domainMessage = Message(
+                                content = content,
+                                role = messageRole,
+                                timestamp = Instant.now()
+                            )
+                            repo.saveMessage(domainMessage)
+                        }
+                    }
+                    Log.i(tag, "Deleted message at index $messageIndex")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to delete message from database", e)
+                }
+            }
+        }
+    }
 
     private fun trimEOT() {
         if (messages.isEmpty()) return
