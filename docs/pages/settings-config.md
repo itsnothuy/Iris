@@ -697,3 +697,146 @@ Added a new "Privacy" section with a toggle control:
 - Show model metadata (size, parameters) in dropdown
 - Add model performance metrics in settings
 - Implement model preloading for faster switches
+
+---
+
+## Implementation Notes (MVP 11)
+
+### Theme & Language Preferences
+
+**Objective**: Add theme selector (Light/Dark/System) and language selector (English/Spanish) to Settings screen with persistence via SharedPreferences.
+
+### Changes Made
+
+#### 1. UserPreferencesRepository (`data/UserPreferencesRepository.kt`)
+
+**Enums Added**:
+- `ThemePreference` - LIGHT, DARK, SYSTEM
+- `LanguagePreference` - ENGLISH, SPANISH
+
+**New Methods**:
+- `getThemePreference(): ThemePreference` - Returns saved theme, defaults to SYSTEM
+- `setThemePreference(theme: ThemePreference)` - Persists theme choice
+- `getLanguagePreference(): LanguagePreference` - Returns saved language, defaults to ENGLISH
+- `setLanguagePreference(language: LanguagePreference)` - Persists language choice
+
+**Storage**:
+- Uses SharedPreferences with keys `theme_preference` and `language_preference`
+- Enum values stored as strings (e.g., "LIGHT", "DARK", "SYSTEM")
+- Graceful fallback to defaults if invalid values are found
+
+#### 2. String Resources (`res/values/strings.xml`, `res/values-es/strings.xml`)
+
+**English (`values/strings.xml`)**:
+- Added settings_appearance, settings_theme, settings_theme_light/dark/system
+- Added settings_language, settings_language_english/spanish
+- Updated settings_privacy strings to use string resources
+
+**Spanish (`values-es/strings.xml`)**:
+- Complete Spanish translations for all settings strings
+- Example localization: "Tema" (Theme), "Claro" (Light), "Oscuro" (Dark)
+
+#### 3. SettingsScreen (`ui/SettingsScreen.kt`)
+
+**New Component**: `SettingsSelector<T>`
+- Generic selector component for any enum or type
+- Displays label and horizontally arranged option buttons
+- Visual feedback: selected option has blue background and border
+- Reusable for theme, language, or other multi-option settings
+
+**New Section**: Appearance
+- Theme selector with Light/Dark/System options
+- Language selector with English/Spanish options
+- Grouped in single card with section title "Appearance"
+- Positioned between navigation items and Privacy section
+
+**Integration**:
+- Reads initial values from ViewModel using `remember { mutableStateOf() }`
+- Updates immediately when user clicks an option
+- Persists changes via ViewModel -> UserPreferencesRepository
+
+#### 4. MainViewModel (`MainViewModel.kt`)
+
+**New Methods**:
+- `getThemePreference(): ThemePreference` - Delegates to repository
+- `setThemePreference(theme: ThemePreference)` - Delegates to repository
+- `getLanguagePreference(): LanguagePreference` - Delegates to repository
+- `setLanguagePreference(language: LanguagePreference)` - Delegates to repository
+
+### Testing Coverage
+
+**Unit Tests** (`data/UserPreferencesRepositoryTest.kt` - 14 tests):
+- ✅ Theme preference defaults to SYSTEM
+- ✅ Theme preference saves and retrieves LIGHT, DARK, SYSTEM
+- ✅ Theme preference persists across repository instances
+- ✅ Language preference defaults to ENGLISH
+- ✅ Language preference saves and retrieves ENGLISH, SPANISH
+- ✅ Language preference persists across repository instances
+- ✅ Theme and language can both be saved
+- ✅ Preferences are independent of each other
+- ✅ Privacy redaction default value (false) still works
+- ✅ All preferences can be set and retrieved together
+
+**Compose UI Tests** (`ui/SettingsSelectorTest.kt` - 11 tests):
+- ✅ Theme selector displays all options (Light/Dark/System)
+- ✅ Selected option is highlighted (visual state)
+- ✅ Click option calls callback with correct value
+- ✅ Multiple clicks call callback multiple times
+- ✅ Language selector displays all options (English/Spanish)
+- ✅ Language selector click calls callback
+- ✅ Selector works with 2 options
+- ✅ Selector works with 3 options
+- ✅ Clicking selected option still calls callback
+- ✅ Label and options are displayed correctly
+
+### Design Decisions
+
+1. **SharedPreferences over DataStore**: Used existing SharedPreferences pattern for consistency with other preferences (model name, privacy redaction). Future migration to DataStore can be done together for all preferences.
+
+2. **Enum-based preferences**: Using enums (ThemePreference, LanguagePreference) provides type safety and prevents invalid values. Stored as strings for SharedPreferences compatibility.
+
+3. **Generic SettingsSelector component**: Created a reusable generic component that works with any type (Theme, Language, or custom types). This reduces code duplication and ensures consistent UI/UX.
+
+4. **Immediate visual feedback**: Changes are applied immediately when user clicks an option. No "Save" button needed since SharedPreferences writes are fast and synchronous.
+
+5. **Default to system preferences**: Theme defaults to SYSTEM (respects OS dark mode setting), Language defaults to ENGLISH (matches primary development language).
+
+6. **i18n example with Spanish**: Added Spanish as a demonstration of i18n support. Resource-based strings allow easy addition of more languages in the future.
+
+### Behavior Details
+
+**Theme Selector**:
+- Light: Forces light mode (white background, dark text)
+- Dark: Forces dark mode (dark background, light text)  
+- System: Follows Android system theme setting (default)
+
+**Language Selector**:
+- English: All UI text in English
+- Spanish: All UI text in Spanish (where translations exist)
+- NOTE: Language change requires app restart to take effect fully (limitation of current implementation)
+
+### Security & Privacy Implications
+
+- **Local storage only**: Theme and language preferences stored in SharedPreferences, never transmitted
+- **No PII**: User preferences do not contain personal information
+- **App-private storage**: SharedPreferences are in app-private directory, not accessible to other apps
+
+### Future Enhancements
+
+**Theme**:
+- Apply theme dynamically without app restart
+- Add custom theme colors (accent, primary, etc.)
+- Add OLED black theme option for battery saving
+- Per-conversation theme override
+
+**Language**:
+- Apply language change without app restart using Configuration change
+- Add more languages (French, German, Chinese, etc.)
+- Detect system language and offer to switch
+- In-app language tutorial/onboarding
+
+**Settings UI**:
+- Add search/filter for settings
+- Add "Reset all to defaults" button
+- Settings import/export for backup
+- Settings presets (e.g., "Privacy-focused", "Performance")
