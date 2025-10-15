@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.annotation.VisibleForTesting
 import com.nervesparks.iris.data.Message
 import com.nervesparks.iris.data.MessageRole
 import com.nervesparks.iris.data.UserPreferencesRepository
@@ -84,6 +85,7 @@ class MainViewModel(
     lateinit var selectedModel: String
     private val tag: String? = this::class.simpleName
 
+    @set:VisibleForTesting
     var messages by mutableStateOf(
 
             listOf<Map<String, String>>(),
