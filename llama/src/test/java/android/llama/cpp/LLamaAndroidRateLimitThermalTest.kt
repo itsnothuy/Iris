@@ -6,12 +6,14 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Unit tests for rate-limit and thermal throttle policy in LLamaAndroid.
  * Tests the degradation behavior when inference is rate-limited or device is hot.
  */
 @RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE)
 class LLamaAndroidRateLimitThermalTest {
     
     private lateinit var llamaAndroid: LLamaAndroid
@@ -42,7 +44,7 @@ class LLamaAndroidRateLimitThermalTest {
     }
     
     @Test
-    fun thermalState_canBeSetToTrue() {
+    public fun thermalState_canBeSetToTrue() {
         // Given: Fresh instance
         // When: Set thermal state to true
         llamaAndroid.setThermalState(true)
@@ -52,7 +54,7 @@ class LLamaAndroidRateLimitThermalTest {
     }
     
     @Test
-    fun thermalState_canBeSetToFalse() {
+    public fun thermalState_canBeSetToFalse() {
         // Given: Thermal state is true
         llamaAndroid.setThermalState(true)
         
@@ -64,7 +66,7 @@ class LLamaAndroidRateLimitThermalTest {
     }
     
     @Test
-    fun rateLimitState_remainsFalse_whenBelowThreshold() = runBlocking {
+    public fun rateLimitState_remainsFalse_whenBelowThreshold() = runBlocking {
         // Given: Fresh instance
         // When: Enqueue a few messages (below threshold of 10)
         repeat(3) {
@@ -76,7 +78,7 @@ class LLamaAndroidRateLimitThermalTest {
     }
     
     @Test
-    fun rateLimitState_becomesTrue_whenExceedsThreshold() = runBlocking {
+    public fun rateLimitState_becomesTrue_whenExceedsThreshold() = runBlocking {
         // Given: Fresh instance
         // When: Enqueue many messages (exceeds threshold of 10)
         repeat(12) {
@@ -88,7 +90,7 @@ class LLamaAndroidRateLimitThermalTest {
     }
     
     @Test
-    fun rateLimitAndThermal_canBothBeTrue() {
+    public fun rateLimitAndThermal_canBothBeTrue() {
         // Given: Rate limit exceeded and thermal throttle set
         runBlocking {
             repeat(12) {
@@ -103,7 +105,7 @@ class LLamaAndroidRateLimitThermalTest {
     }
     
     @Test
-    fun thermalState_independentOfRateLimit() {
+    public fun thermalState_independentOfRateLimit() {
         // Given: Rate limit not exceeded
         // When: Set thermal state to true
         llamaAndroid.setThermalState(true)
@@ -114,7 +116,7 @@ class LLamaAndroidRateLimitThermalTest {
     }
     
     @Test
-    fun rateLimitState_independentOfThermal() = runBlocking {
+    public fun rateLimitState_independentOfThermal() = runBlocking {
         // Given: Thermal state is false
         llamaAndroid.setThermalState(false)
         
