@@ -4,11 +4,14 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests for rate-limit and thermal throttle policy in LLamaAndroid.
  * Tests the degradation behavior when inference is rate-limited or device is hot.
  */
+@RunWith(RobolectricTestRunner::class)
 class LLamaAndroidRateLimitThermalTest {
     
     private lateinit var llamaAndroid: LLamaAndroid

@@ -1,0 +1,2 @@
+# This file exists to ensure the testDebug/resources directory is recognized by the build system
+# and to prevent "directory not found" errors in CI/CD pipelines.
