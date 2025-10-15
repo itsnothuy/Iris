@@ -17,6 +17,6 @@ jobs:
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3
       - name: Build
-        run: ./gradlew --no-daemon assembleDebug --info
+        run: ./gradlew --no-daemon assembleDebug --debug
       - name: Unit tests
-        run: ./gradlew --no-daemon test --info
+        run: ./gradlew --no-daemon test --debug

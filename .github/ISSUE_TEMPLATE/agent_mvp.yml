@@ -1,0 +1,27 @@
+name: "MVP Build Task (Coding Agent)"
+description: "Let Copilot implement the planned MVP and open a PR"
+labels: ["agent", "mvp"]
+assignees: ["copilot"]  # you can also assign manually in the UI
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This task delegates the MVP build to the GitHub Copilot coding agent.
+        It will run in a VM, clone the repo, follow `.github/copilot-instructions.md`,
+        run builds/tests, and open a PR for review.
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope / page(s)
+      description: Which page(s) or modules from docs/pages should be implemented first?
+      placeholder: e.g., docs/pages/home.md
+  - type: checkboxes
+    id: done
+    attributes:
+      label: Definition of done
+      options:
+        - label: Code implements the page(s) end-to-end
+        - label: Unit tests + Compose UI tests added
+        - label: CI green (assemble + unit)
+        - label: No telemetry added; privacy posture honored
+        - label: PR summary includes follow-up checklist

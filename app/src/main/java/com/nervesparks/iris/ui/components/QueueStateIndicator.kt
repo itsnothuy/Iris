@@ -2,7 +2,7 @@ package com.nervesparks.iris.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,7 +39,7 @@ fun QueueStateIndicator(
                 horizontalArrangement = Arrangement.Start
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Schedule,
+                    imageVector = Icons.Outlined.Info,
                     contentDescription = "Queue indicator",
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.size(16.dp)
