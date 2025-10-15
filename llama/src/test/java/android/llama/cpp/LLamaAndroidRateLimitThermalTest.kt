@@ -17,12 +17,12 @@ class LLamaAndroidRateLimitThermalTest {
     private lateinit var llamaAndroid: LLamaAndroid
     
     @Before
-    fun setup() {
+    public fun setup() {
         llamaAndroid = LLamaAndroid.instance()
     }
     
     @Test
-    fun rateLimitState_initiallyFalse() {
+    public fun rateLimitState_initiallyFalse() {
         // Given: Fresh instance
         // When: Check rate limit state
         val isRateLimited = llamaAndroid.isRateLimited()
@@ -32,7 +32,7 @@ class LLamaAndroidRateLimitThermalTest {
     }
     
     @Test
-    fun thermalState_initiallyFalse() {
+    public fun thermalState_initiallyFalse() {
         // Given: Fresh instance
         // When: Check thermal state
         val isThermalThrottled = llamaAndroid.isThermalThrottled()
