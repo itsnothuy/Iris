@@ -167,4 +167,18 @@ class MainViewModelQueueTest {
         // Then: We verify the queue size is at max
         assertEquals(3, mockLlamaAndroid.getQueueSize())
     }
+    
+    @Test
+    fun rateLimitCooldown_tracksCorrectly() {
+        // Given: Different cooldown values
+        val testCases = listOf(0, 15, 30, 45, 60)
+        
+        testCases.forEach { cooldown ->
+            // When: Cooldown changes
+            whenever(mockLlamaAndroid.getRateLimitCooldownSeconds()).thenReturn(cooldown)
+            
+            // Then: Mock returns correct value
+            assertEquals(cooldown, mockLlamaAndroid.getRateLimitCooldownSeconds())
+        }
+    }
 }

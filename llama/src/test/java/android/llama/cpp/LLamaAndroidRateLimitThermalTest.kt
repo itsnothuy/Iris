@@ -124,4 +124,49 @@ class LLamaAndroidRateLimitThermalTest {
         assertTrue("Rate limit should be true", llamaAndroid.isRateLimited())
         assertFalse("Thermal throttle should remain false", llamaAndroid.isThermalThrottled())
     }
+    
+    @Test
+    public fun rateLimitCooldown_returnsZero_whenNotRateLimited() {
+        // Given: Fresh instance (not rate limited)
+        // When: Check cooldown
+        val cooldown = llamaAndroid.getRateLimitCooldownSeconds()
+        
+        // Then: Should return 0
+        assertEquals("Cooldown should be 0 when not rate limited", 0, cooldown)
+    }
+    
+    @Test
+    public fun rateLimitCooldown_returnsPositiveValue_whenRateLimited() = runBlocking {
+        // Given: Exceed rate limit
+        repeat(12) {
+            llamaAndroid.tryEnqueue("test message $it")
+        }
+        
+        // When: Check cooldown
+        val cooldown = llamaAndroid.getRateLimitCooldownSeconds()
+        
+        // Then: Should return a positive value (close to 60 seconds)
+        assertTrue("Cooldown should be positive when rate limited", cooldown > 0)
+        assertTrue("Cooldown should be at most 60 seconds", cooldown <= 60)
+    }
+    
+    @Test
+    public fun rateLimitCooldown_decreasesOverTime() = runBlocking {
+        // Given: Exceed rate limit
+        repeat(12) {
+            llamaAndroid.tryEnqueue("test message $it")
+        }
+        
+        // When: Get initial cooldown
+        val initialCooldown = llamaAndroid.getRateLimitCooldownSeconds()
+        
+        // Wait a bit
+        Thread.sleep(2000)
+        
+        // Get cooldown again
+        val laterCooldown = llamaAndroid.getRateLimitCooldownSeconds()
+        
+        // Then: Cooldown should have decreased
+        assertTrue("Cooldown should decrease over time", laterCooldown < initialCooldown)
+    }
 }
