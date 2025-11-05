@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -293,7 +294,7 @@ private fun ConversationItem(
                         },
                         leadingIcon = {
                             Icon(
-                                imageVector = if (conversation.isPinned) Icons.Default.Star else Icons.Default.Star,
+                                imageVector = if (conversation.isPinned) Icons.Default.Star else Icons.Default.StarBorder,
                                 contentDescription = null
                             )
                         }
