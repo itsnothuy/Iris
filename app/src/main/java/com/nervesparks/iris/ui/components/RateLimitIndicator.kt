@@ -35,20 +35,17 @@ fun RateLimitIndicator(
     initialCooldownSeconds: Int,
     modifier: Modifier = Modifier
 ) {
-    // Track cooldown countdown locally
+    // Track cooldown countdown locally, synced with backend value
     var remainingSeconds by remember { mutableStateOf(initialCooldownSeconds) }
     
-    // Update when initial value changes - always sync with backend
-    LaunchedEffect(initialCooldownSeconds, isRateLimited) {
+    // Single LaunchedEffect to handle both sync and countdown
+    LaunchedEffect(isRateLimited, initialCooldownSeconds) {
         if (isRateLimited) {
+            // Sync with backend value whenever it changes
             remainingSeconds = initialCooldownSeconds
-        }
-    }
-    
-    // Countdown timer - only count down when rate limited
-    LaunchedEffect(isRateLimited) {
-        if (isRateLimited) {
-            while (remainingSeconds > 0) {
+            
+            // Count down while rate limited and time remaining
+            while (remainingSeconds > 0 && isRateLimited) {
                 delay(1000L)
                 remainingSeconds = maxOf(0, remainingSeconds - 1)
             }
