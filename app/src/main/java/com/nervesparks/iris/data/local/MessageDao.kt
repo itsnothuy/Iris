@@ -41,6 +41,30 @@ interface MessageDao {
     suspend fun getAllMessagesList(): List<MessageEntity>
     
     /**
+     * Get messages for a specific conversation.
+     */
+    @Query("SELECT * FROM messages WHERE conversationId = :conversationId ORDER BY timestamp ASC")
+    fun getMessagesForConversation(conversationId: String): Flow<List<MessageEntity>>
+    
+    /**
+     * Get messages for a specific conversation as a list.
+     */
+    @Query("SELECT * FROM messages WHERE conversationId = :conversationId ORDER BY timestamp ASC")
+    suspend fun getMessagesForConversationList(conversationId: String): List<MessageEntity>
+    
+    /**
+     * Delete all messages for a specific conversation.
+     */
+    @Query("DELETE FROM messages WHERE conversationId = :conversationId")
+    suspend fun deleteMessagesForConversation(conversationId: String)
+    
+    /**
+     * Get the count of messages in a specific conversation.
+     */
+    @Query("SELECT COUNT(*) FROM messages WHERE conversationId = :conversationId")
+    suspend fun getMessageCountForConversation(conversationId: String): Int
+    
+    /**
      * Delete all messages from the database.
      */
     @Query("DELETE FROM messages")

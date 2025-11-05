@@ -13,15 +13,17 @@ object MessageMapper {
     
     /**
      * Convert a domain Message to a database MessageEntity.
+     * @param conversationId The conversation this message belongs to
      */
-    fun toEntity(message: Message): MessageEntity {
+    fun toEntity(message: Message, conversationId: String = "default"): MessageEntity {
         return MessageEntity(
             id = message.id,
             content = message.content,
             role = message.role.name,
             timestamp = message.timestamp.toEpochMilli(),
             processingTimeMs = message.processingTimeMs,
-            tokenCount = message.tokenCount
+            tokenCount = message.tokenCount,
+            conversationId = conversationId
         )
     }
     
@@ -48,8 +50,9 @@ object MessageMapper {
     
     /**
      * Convert a list of domain Messages to a list of MessageEntity.
+     * @param conversationId The conversation these messages belong to
      */
-    fun toEntityList(messages: List<Message>): List<MessageEntity> {
-        return messages.map { toEntity(it) }
+    fun toEntityList(messages: List<Message>, conversationId: String = "default"): List<MessageEntity> {
+        return messages.map { toEntity(it, conversationId) }
     }
 }
