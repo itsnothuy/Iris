@@ -134,6 +134,92 @@ class MainViewModel(
             }
         }
     }
+    
+    /**
+     * Create a new conversation and switch to it.
+     */
+    fun createNewConversation() {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    val newConversation = com.nervesparks.iris.data.Conversation(
+                        title = "New Conversation",
+                        createdAt = Instant.now(),
+                        lastModified = Instant.now()
+                    )
+                    repo.createConversation(newConversation)
+                    switchConversation(newConversation.id)
+                    Log.i(tag, "Created new conversation ${newConversation.id}")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to create new conversation", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Delete a conversation by ID.
+     * If deleting the current conversation, switches to default.
+     */
+    fun deleteConversation(conversationId: String) {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    repo.deleteConversation(conversationId)
+                    Log.i(tag, "Deleted conversation $conversationId")
+                    
+                    // If we deleted the current conversation, switch to default
+                    if (conversationId == currentConversationId) {
+                        switchConversation("default")
+                    }
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to delete conversation", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Toggle pin status for a conversation.
+     */
+    fun toggleConversationPin(conversationId: String, isPinned: Boolean) {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    repo.togglePin(conversationId, isPinned)
+                    Log.i(tag, "Toggled pin for conversation $conversationId to $isPinned")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to toggle pin", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Toggle archive status for a conversation.
+     */
+    fun toggleConversationArchive(conversationId: String, isArchived: Boolean) {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    repo.toggleArchive(conversationId, isArchived)
+                    Log.i(tag, "Toggled archive for conversation $conversationId to $isArchived")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to toggle archive", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Get all conversations as a Flow.
+     */
+    fun getAllConversations() = conversationRepository?.getAllConversations()
+    
+    /**
+     * Search conversations by query.
+     */
+    fun searchConversations(query: String) = conversationRepository?.searchConversations(query)
 
     fun setDefaultModelName(modelName: String){
         userPreferencesRepository.setDefaultModelName(modelName)

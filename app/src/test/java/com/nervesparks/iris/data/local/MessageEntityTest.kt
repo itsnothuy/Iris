@@ -18,6 +18,7 @@ class MessageEntityTest {
         val timestamp = Instant.now().toEpochMilli()
         val processingTimeMs = 1500L
         val tokenCount = 100
+        val conversationId = "test-conversation"
         
         val entity = MessageEntity(
             id = id,
@@ -25,7 +26,8 @@ class MessageEntityTest {
             role = role,
             timestamp = timestamp,
             processingTimeMs = processingTimeMs,
-            tokenCount = tokenCount
+            tokenCount = tokenCount,
+            conversationId = conversationId
         )
         
         assertEquals(id, entity.id)
@@ -34,6 +36,26 @@ class MessageEntityTest {
         assertEquals(timestamp, entity.timestamp)
         assertEquals(processingTimeMs, entity.processingTimeMs)
         assertEquals(tokenCount, entity.tokenCount)
+        assertEquals(conversationId, entity.conversationId)
+    }
+    
+    @Test
+    fun messageEntity_creation_withDefaultConversationId() {
+        val id = "test-id"
+        val content = "Message"
+        val role = "ASSISTANT"
+        val timestamp = Instant.now().toEpochMilli()
+        
+        val entity = MessageEntity(
+            id = id,
+            content = content,
+            role = role,
+            timestamp = timestamp,
+            processingTimeMs = null,
+            tokenCount = null
+        )
+        
+        assertEquals("default", entity.conversationId)
     }
 
     @Test

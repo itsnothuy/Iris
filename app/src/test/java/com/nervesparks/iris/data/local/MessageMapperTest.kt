@@ -31,6 +31,20 @@ class MessageMapperTest {
         assertEquals(message.timestamp.toEpochMilli(), entity.timestamp)
         assertEquals(message.processingTimeMs, entity.processingTimeMs)
         assertEquals(message.tokenCount, entity.tokenCount)
+        assertEquals("default", entity.conversationId) // Default conversationId
+    }
+    
+    @Test
+    fun toEntity_withCustomConversationId_usesProvidedId() {
+        val message = Message(
+            id = "test-id",
+            content = "Test content",
+            role = MessageRole.USER
+        )
+        
+        val entity = MessageMapper.toEntity(message, "custom-conversation-id")
+        
+        assertEquals("custom-conversation-id", entity.conversationId)
     }
     
     @Test
