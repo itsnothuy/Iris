@@ -222,4 +222,122 @@ class UserPreferencesRepositoryTest {
         verify(mockEditor).putString("default_model_name", modelName)
         verify(mockEditor).apply()
     }
+
+    @Test
+    fun getTemperature_returnsDefault_whenNotSet() {
+        whenever(mockSharedPreferences.getFloat("model_temperature", 1.0f)).thenReturn(1.0f)
+        
+        val result = repository.getTemperature()
+        
+        assertEquals(1.0f, result, 0.001f)
+    }
+
+    @Test
+    fun getTemperature_returnsStoredValue() {
+        whenever(mockSharedPreferences.getFloat("model_temperature", 1.0f)).thenReturn(1.5f)
+        
+        val result = repository.getTemperature()
+        
+        assertEquals(1.5f, result, 0.001f)
+    }
+
+    @Test
+    fun setTemperature_storesValue() {
+        repository.setTemperature(0.8f)
+        
+        verify(mockEditor).putFloat("model_temperature", 0.8f)
+        verify(mockEditor).apply()
+    }
+
+    @Test
+    fun getTopP_returnsDefault_whenNotSet() {
+        whenever(mockSharedPreferences.getFloat("model_top_p", 0.9f)).thenReturn(0.9f)
+        
+        val result = repository.getTopP()
+        
+        assertEquals(0.9f, result, 0.001f)
+    }
+
+    @Test
+    fun getTopP_returnsStoredValue() {
+        whenever(mockSharedPreferences.getFloat("model_top_p", 0.9f)).thenReturn(0.7f)
+        
+        val result = repository.getTopP()
+        
+        assertEquals(0.7f, result, 0.001f)
+    }
+
+    @Test
+    fun setTopP_storesValue() {
+        repository.setTopP(0.85f)
+        
+        verify(mockEditor).putFloat("model_top_p", 0.85f)
+        verify(mockEditor).apply()
+    }
+
+    @Test
+    fun getTopK_returnsDefault_whenNotSet() {
+        whenever(mockSharedPreferences.getInt("model_top_k", 40)).thenReturn(40)
+        
+        val result = repository.getTopK()
+        
+        assertEquals(40, result)
+    }
+
+    @Test
+    fun getTopK_returnsStoredValue() {
+        whenever(mockSharedPreferences.getInt("model_top_k", 40)).thenReturn(50)
+        
+        val result = repository.getTopK()
+        
+        assertEquals(50, result)
+    }
+
+    @Test
+    fun setTopK_storesValue() {
+        repository.setTopK(60)
+        
+        verify(mockEditor).putInt("model_top_k", 60)
+        verify(mockEditor).apply()
+    }
+
+    @Test
+    fun getContextLength_returnsDefault_whenNotSet() {
+        whenever(mockSharedPreferences.getInt("model_context_length", 2048)).thenReturn(2048)
+        
+        val result = repository.getContextLength()
+        
+        assertEquals(2048, result)
+    }
+
+    @Test
+    fun getContextLength_returnsStoredValue() {
+        whenever(mockSharedPreferences.getInt("model_context_length", 2048)).thenReturn(4096)
+        
+        val result = repository.getContextLength()
+        
+        assertEquals(4096, result)
+    }
+
+    @Test
+    fun setContextLength_storesValue() {
+        repository.setContextLength(3072)
+        
+        verify(mockEditor).putInt("model_context_length", 3072)
+        verify(mockEditor).apply()
+    }
+
+    @Test
+    fun resetParametersToDefaults_resetsAllParameters() {
+        whenever(mockEditor.putFloat(org.mockito.kotlin.any(), org.mockito.kotlin.any())).thenReturn(mockEditor)
+        whenever(mockEditor.putInt(org.mockito.kotlin.any(), org.mockito.kotlin.any())).thenReturn(mockEditor)
+        
+        repository.resetParametersToDefaults()
+        
+        verify(mockEditor).putFloat("model_temperature", 1.0f)
+        verify(mockEditor).putFloat("model_top_p", 0.9f)
+        verify(mockEditor).putInt("model_top_k", 40)
+        verify(mockEditor).putInt("model_context_length", 2048)
+        verify(mockEditor).apply()
+    }
 }

@@ -1014,6 +1014,182 @@ fun SettingsBottomSheet(
                     }
 
                 }
+                
+                // Model Parameters Section
+                item {
+                    var temperature by remember { mutableStateOf(viewModel.getTemperature()) }
+                    var topP by remember { mutableStateOf(viewModel.getTopP()) }
+                    var topK by remember { mutableStateOf(viewModel.getTopK()) }
+                    var contextLength by remember { mutableStateOf(viewModel.getContextLength()) }
+                    
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp)
+                            .background(
+                                color = Color(0xFF14161f),
+                                shape = RoundedCornerShape(8.dp),
+                            )
+                            .border(
+                                border = BorderStroke(
+                                    width = 1.dp,
+                                    color = Color.LightGray.copy(alpha = 0.5f)
+                                ),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(16.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = "Model Parameters",
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            
+                            Text(
+                                text = "Adjust model inference parameters. Changes apply on next model load.",
+                                color = Color.Gray,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            
+                            // Parameter Presets
+                            Text(
+                                text = "Quick Presets",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 16.dp)
+                            ) {
+                                Button(
+                                    onClick = {
+                                        viewModel.applyParameterPreset(com.nervesparks.iris.ParameterPreset.CONSERVATIVE)
+                                        temperature = viewModel.getTemperature()
+                                        topP = viewModel.getTopP()
+                                        topK = viewModel.getTopK()
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF2a2d3a)
+                                    )
+                                ) {
+                                    Text("Conservative", fontSize = 12.sp)
+                                }
+                                
+                                Button(
+                                    onClick = {
+                                        viewModel.applyParameterPreset(com.nervesparks.iris.ParameterPreset.BALANCED)
+                                        temperature = viewModel.getTemperature()
+                                        topP = viewModel.getTopP()
+                                        topK = viewModel.getTopK()
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF2a2d3a)
+                                    )
+                                ) {
+                                    Text("Balanced", fontSize = 12.sp)
+                                }
+                                
+                                Button(
+                                    onClick = {
+                                        viewModel.applyParameterPreset(com.nervesparks.iris.ParameterPreset.CREATIVE)
+                                        temperature = viewModel.getTemperature()
+                                        topP = viewModel.getTopP()
+                                        topK = viewModel.getTopK()
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF2a2d3a)
+                                    )
+                                ) {
+                                    Text("Creative", fontSize = 12.sp)
+                                }
+                            }
+                            
+                            // Temperature Slider
+                            com.nervesparks.iris.ui.components.ParameterSlider(
+                                label = "Temperature",
+                                value = temperature,
+                                onValueChange = {
+                                    temperature = it
+                                    viewModel.setTemperature(it)
+                                },
+                                valueRange = 0.1f..2.0f,
+                                helpText = "Controls randomness. Lower values make output more focused and deterministic, higher values make it more creative."
+                            )
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            // Top P Slider
+                            com.nervesparks.iris.ui.components.ParameterSlider(
+                                label = "Top P",
+                                value = topP,
+                                onValueChange = {
+                                    topP = it
+                                    viewModel.setTopP(it)
+                                },
+                                valueRange = 0.1f..1.0f,
+                                helpText = "Nucleus sampling. Considers tokens with cumulative probability up to this value. Lower values focus on more likely tokens."
+                            )
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            // Top K Slider
+                            com.nervesparks.iris.ui.components.ParameterSliderInt(
+                                label = "Top K",
+                                value = topK,
+                                onValueChange = {
+                                    topK = it
+                                    viewModel.setTopK(it)
+                                },
+                                valueRange = 1..100,
+                                helpText = "Limits sampling to the top K most likely tokens. Lower values reduce randomness."
+                            )
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            // Context Length Slider
+                            com.nervesparks.iris.ui.components.ParameterSliderInt(
+                                label = "Context Length",
+                                value = contextLength,
+                                onValueChange = {
+                                    contextLength = it
+                                    viewModel.setContextLength(it)
+                                },
+                                valueRange = 512..4096,
+                                helpText = "Maximum conversation context length. Higher values use more memory. (Note: Currently fixed at 4096)"
+                            )
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Reset to Defaults Button
+                            TextButton(
+                                onClick = {
+                                    viewModel.resetParametersToDefaults()
+                                    temperature = viewModel.getTemperature()
+                                    topP = viewModel.getTopP()
+                                    topK = viewModel.getTopK()
+                                    contextLength = viewModel.getContextLength()
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    "Reset to Defaults",
+                                    color = Color(0xFF6200EE)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

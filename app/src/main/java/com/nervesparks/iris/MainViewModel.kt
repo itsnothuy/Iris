@@ -522,7 +522,13 @@ class MainViewModel(
                 newShowModal = false
                 showModal= false
                 showAlert = true
-                llamaAndroid.load(pathToModel, userThreads = userThreads, topK = topK, topP = topP, temp = temp)
+                
+                // Get parameters from preferences
+                val temperature = getTemperature()
+                val topP = getTopP()
+                val topK = getTopK()
+                
+                llamaAndroid.load(pathToModel, userThreads = userThreads, topK = topK, topP = topP, temp = temperature)
                 showAlert = false
 
             } catch (exc: IllegalStateException) {
@@ -910,7 +916,104 @@ class MainViewModel(
         wasLastMessageRedacted = false
         lastRedactionCount = 0
     }
+    
+    // Model parameter management
+    
+    /**
+     * Get the current temperature parameter.
+     */
+    fun getTemperature(): Float {
+        return userPreferencesRepository.getTemperature()
+    }
+    
+    /**
+     * Set the temperature parameter.
+     */
+    fun setTemperature(temperature: Float) {
+        userPreferencesRepository.setTemperature(temperature)
+    }
+    
+    /**
+     * Get the current top_p parameter.
+     */
+    fun getTopP(): Float {
+        return userPreferencesRepository.getTopP()
+    }
+    
+    /**
+     * Set the top_p parameter.
+     */
+    fun setTopP(topP: Float) {
+        userPreferencesRepository.setTopP(topP)
+    }
+    
+    /**
+     * Get the current top_k parameter.
+     */
+    fun getTopK(): Int {
+        return userPreferencesRepository.getTopK()
+    }
+    
+    /**
+     * Set the top_k parameter.
+     */
+    fun setTopK(topK: Int) {
+        userPreferencesRepository.setTopK(topK)
+    }
+    
+    /**
+     * Get the current context length parameter.
+     */
+    fun getContextLength(): Int {
+        return userPreferencesRepository.getContextLength()
+    }
+    
+    /**
+     * Set the context length parameter.
+     */
+    fun setContextLength(contextLength: Int) {
+        userPreferencesRepository.setContextLength(contextLength)
+    }
+    
+    /**
+     * Apply a parameter preset (Conservative, Balanced, or Creative).
+     */
+    fun applyParameterPreset(preset: ParameterPreset) {
+        when (preset) {
+            ParameterPreset.CONSERVATIVE -> {
+                setTemperature(0.5f)
+                setTopP(0.7f)
+                setTopK(20)
+            }
+            ParameterPreset.BALANCED -> {
+                setTemperature(1.0f)
+                setTopP(0.9f)
+                setTopK(40)
+            }
+            ParameterPreset.CREATIVE -> {
+                setTemperature(1.5f)
+                setTopP(0.95f)
+                setTopK(60)
+            }
+        }
+    }
+    
+    /**
+     * Reset all parameters to their default values.
+     */
+    fun resetParametersToDefaults() {
+        userPreferencesRepository.resetParametersToDefaults()
+    }
 
+}
+
+/**
+ * Enum defining parameter presets for quick configuration.
+ */
+enum class ParameterPreset {
+    CONSERVATIVE,
+    BALANCED,
+    CREATIVE
 }
 
 fun sentThreadsValue(){
