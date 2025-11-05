@@ -17,6 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nervesparks.iris.R
+import com.nervesparks.iris.ui.components.ExportDialog
+import com.nervesparks.iris.ui.components.PrivacyAuditDialog
+import com.nervesparks.iris.ui.components.DeleteConfirmDialog
 
 /**
  * Data Management Screen

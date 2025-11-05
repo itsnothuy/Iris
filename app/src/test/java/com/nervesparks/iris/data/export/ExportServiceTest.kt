@@ -228,6 +228,45 @@ class ExportServiceTest {
     }
 
     @Test
+    fun exportConversationsByDateRange_inclusiveBoundaries() = runTest {
+        val exactStartDate = Instant.parse("2024-01-01T00:00:00Z")
+        val exactEndDate = Instant.parse("2024-01-31T23:59:59Z")
+        
+        val conversationAtStart = Conversation(
+            id = "start-id",
+            title = "Start",
+            createdAt = exactStartDate,
+            lastModified = exactStartDate,
+            messageCount = 0
+        )
+        val conversationAtEnd = Conversation(
+            id = "end-id",
+            title = "End",
+            createdAt = exactEndDate,
+            lastModified = exactEndDate,
+            messageCount = 0
+        )
+
+        whenever(mockConversationRepository.getAllConversationsIncludingArchived())
+            .thenReturn(flowOf(listOf(conversationAtStart, conversationAtEnd)))
+        whenever(mockMessageRepository.getMessagesForConversationList(any()))
+            .thenReturn(emptyList())
+        
+        val result = exportService.exportConversationsByDateRange(
+            exactStartDate,
+            exactEndDate,
+            exportDir,
+            ExportFormat.JSON
+        )
+
+        assertTrue(result.success)
+        val content = File(result.filePath!!).readText()
+        // Both conversations at exact boundaries should be included
+        assertTrue(content.contains("Start"))
+        assertTrue(content.contains("End"))
+    }
+
+    @Test
     fun exportService_createsChecksumForExport() = runTest {
         val conversation = Conversation(
             id = "test-id",

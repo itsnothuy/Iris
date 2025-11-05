@@ -96,7 +96,7 @@ class ExportService(
             
             conversations.collect { allConversations ->
                 filteredConversations = allConversations.filter { conversation ->
-                    conversation.createdAt.isAfter(startDate) && conversation.createdAt.isBefore(endDate)
+                    !conversation.createdAt.isBefore(startDate) && !conversation.createdAt.isAfter(endDate)
                 }
             }
             
