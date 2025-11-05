@@ -18,17 +18,19 @@ class MessageRepository(private val database: AppDatabase) {
     
     /**
      * Save a message to the database.
+     * @param conversationId The conversation this message belongs to
      */
-    suspend fun saveMessage(message: Message) {
-        val entity = MessageMapper.toEntity(message)
+    suspend fun saveMessage(message: Message, conversationId: String = "default") {
+        val entity = MessageMapper.toEntity(message, conversationId)
         messageDao.insertMessage(entity)
     }
     
     /**
      * Save multiple messages to the database.
+     * @param conversationId The conversation these messages belong to
      */
-    suspend fun saveMessages(messages: List<Message>) {
-        val entities = MessageMapper.toEntityList(messages)
+    suspend fun saveMessages(messages: List<Message>, conversationId: String = "default") {
+        val entities = MessageMapper.toEntityList(messages, conversationId)
         messageDao.insertMessages(entities)
     }
     
@@ -50,10 +52,34 @@ class MessageRepository(private val database: AppDatabase) {
     }
     
     /**
+     * Get messages for a specific conversation as a Flow.
+     */
+    fun getMessagesForConversation(conversationId: String): Flow<List<Message>> {
+        return messageDao.getMessagesForConversation(conversationId).map { entities ->
+            MessageMapper.toDomainList(entities)
+        }
+    }
+    
+    /**
+     * Get messages for a specific conversation as a list.
+     */
+    suspend fun getMessagesForConversationList(conversationId: String): List<Message> {
+        val entities = messageDao.getMessagesForConversationList(conversationId)
+        return MessageMapper.toDomainList(entities)
+    }
+    
+    /**
      * Delete all messages from the database.
      */
     suspend fun deleteAllMessages() {
         messageDao.deleteAllMessages()
+    }
+    
+    /**
+     * Delete all messages for a specific conversation.
+     */
+    suspend fun deleteMessagesForConversation(conversationId: String) {
+        messageDao.deleteMessagesForConversation(conversationId)
     }
     
     /**
@@ -68,5 +94,12 @@ class MessageRepository(private val database: AppDatabase) {
      */
     suspend fun getMessageCount(): Int {
         return messageDao.getMessageCount()
+    }
+    
+    /**
+     * Get the count of messages in a specific conversation.
+     */
+    suspend fun getMessageCountForConversation(conversationId: String): Int {
+        return messageDao.getMessageCountForConversation(conversationId)
     }
 }

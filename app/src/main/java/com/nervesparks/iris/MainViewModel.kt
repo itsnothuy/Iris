@@ -31,7 +31,8 @@ import java.util.UUID
 class MainViewModel(
     private val llamaAndroid: LLamaAndroid = LLamaAndroid.instance(), 
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val messageRepository: MessageRepository? = null
+    private val messageRepository: MessageRepository? = null,
+    private val conversationRepository: com.nervesparks.iris.data.repository.ConversationRepository? = null
 ): ViewModel() {
     companion object {
 //        @JvmStatic
@@ -41,14 +42,46 @@ class MainViewModel(
 
     private val _defaultModelName = mutableStateOf("")
     val defaultModelName: State<String> = _defaultModelName
+    
+    // Current conversation ID - defaults to "default" for backward compatibility
+    var currentConversationId by mutableStateOf("default")
+        private set
 
     init {
         loadDefaultModelName()
+        ensureDefaultConversationExists()
         restoreMessagesFromDatabase()
     }
     
     private fun loadDefaultModelName(){
         _defaultModelName.value = userPreferencesRepository.getDefaultModelName()
+    }
+    
+    /**
+     * Ensure the default conversation exists in the database.
+     * This provides backward compatibility for existing installations.
+     */
+    private fun ensureDefaultConversationExists() {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    val existing = repo.getConversationById("default")
+                    if (existing == null) {
+                        // Create default conversation if it doesn't exist
+                        val defaultConversation = com.nervesparks.iris.data.Conversation(
+                            id = "default",
+                            title = "Conversation",
+                            createdAt = Instant.now(),
+                            lastModified = Instant.now()
+                        )
+                        repo.createConversation(defaultConversation)
+                        Log.i(tag, "Created default conversation")
+                    }
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to ensure default conversation exists", e)
+                }
+            }
+        }
     }
     
     /**
@@ -58,7 +91,7 @@ class MainViewModel(
         messageRepository?.let { repo ->
             viewModelScope.launch {
                 try {
-                    val savedMessages = repo.getAllMessagesList()
+                    val savedMessages = repo.getMessagesForConversationList(currentConversationId)
                     if (savedMessages.isNotEmpty()) {
                         // Convert domain Messages back to Map format for compatibility
                         messages = savedMessages.map { msg ->
@@ -76,6 +109,117 @@ class MainViewModel(
             }
         }
     }
+    
+    /**
+     * Switch to a different conversation.
+     * Loads messages for the specified conversation.
+     */
+    fun switchConversation(conversationId: String) {
+        currentConversationId = conversationId
+        messageRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    val savedMessages = repo.getMessagesForConversationList(conversationId)
+                    messages = savedMessages.map { msg ->
+                        mapOf(
+                            "role" to msg.role.name.lowercase(),
+                            "content" to msg.content
+                        )
+                    }
+                    first = messages.isEmpty()
+                    Log.i(tag, "Switched to conversation $conversationId with ${savedMessages.size} messages")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to switch conversation", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Create a new conversation and switch to it.
+     */
+    fun createNewConversation() {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    val newConversation = com.nervesparks.iris.data.Conversation(
+                        title = "New Conversation",
+                        createdAt = Instant.now(),
+                        lastModified = Instant.now()
+                    )
+                    repo.createConversation(newConversation)
+                    switchConversation(newConversation.id)
+                    Log.i(tag, "Created new conversation ${newConversation.id}")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to create new conversation", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Delete a conversation by ID.
+     * If deleting the current conversation, switches to default.
+     */
+    fun deleteConversation(conversationId: String) {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    repo.deleteConversation(conversationId)
+                    Log.i(tag, "Deleted conversation $conversationId")
+                    
+                    // If we deleted the current conversation, switch to default
+                    if (conversationId == currentConversationId) {
+                        switchConversation("default")
+                    }
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to delete conversation", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Toggle pin status for a conversation.
+     */
+    fun toggleConversationPin(conversationId: String, isPinned: Boolean) {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    repo.togglePin(conversationId, isPinned)
+                    Log.i(tag, "Toggled pin for conversation $conversationId to $isPinned")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to toggle pin", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Toggle archive status for a conversation.
+     */
+    fun toggleConversationArchive(conversationId: String, isArchived: Boolean) {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    repo.toggleArchive(conversationId, isArchived)
+                    Log.i(tag, "Toggled archive for conversation $conversationId to $isArchived")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to toggle archive", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Get all conversations as a Flow.
+     */
+    fun getAllConversations() = conversationRepository?.getAllConversations()
+    
+    /**
+     * Search conversations by query.
+     */
+    fun searchConversations(query: String) = conversationRepository?.searchConversations(query)
 
     fun setDefaultModelName(modelName: String){
         userPreferencesRepository.setDefaultModelName(modelName)
@@ -618,7 +762,10 @@ class MainViewModel(
                         role = MessageRole.USER,
                         timestamp = Instant.now()
                     )
-                    messageRepository.saveMessage(domainMessage)
+                    messageRepository.saveMessage(domainMessage, currentConversationId)
+                    
+                    // Update conversation metadata
+                    updateConversationMetadata()
                 } catch (e: Exception) {
                     Log.e(tag, "Failed to persist message to database", e)
                 }
@@ -643,8 +790,11 @@ class MainViewModel(
                         role = MessageRole.ASSISTANT,
                         timestamp = Instant.now()
                     )
-                    messageRepository.saveMessage(domainMessage)
+                    messageRepository.saveMessage(domainMessage, currentConversationId)
                     Log.i(tag, "Persisted assistant message to database")
+                    
+                    // Update conversation metadata
+                    updateConversationMetadata()
                 } catch (e: Exception) {
                     Log.e(tag, "Failed to persist assistant message to database", e)
                 }
@@ -670,9 +820,28 @@ class MainViewModel(
                     role = messageRole,
                     timestamp = Instant.now()
                 )
-                messageRepository.saveMessage(domainMessage)
+                messageRepository.saveMessage(domainMessage, currentConversationId)
+                
+                // Update conversation metadata
+                updateConversationMetadata()
             } catch (e: Exception) {
                 Log.e(tag, "Failed to persist initial message to database", e)
+            }
+        }
+    }
+    
+    /**
+     * Update conversation metadata (message count and last modified time).
+     */
+    private fun updateConversationMetadata() {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    val messageCount = messageRepository?.getMessageCountForConversation(currentConversationId) ?: 0
+                    repo.updateConversationMetadata(currentConversationId, messageCount)
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to update conversation metadata", e)
+                }
             }
         }
     }
@@ -702,7 +871,7 @@ class MainViewModel(
             viewModelScope.launch {
                 try {
                     // Clear and re-save all messages to maintain consistency
-                    repo.deleteAllMessages()
+                    repo.deleteMessagesForConversation(currentConversationId)
                     messages.forEach { msg ->
                         val role = msg["role"] ?: return@forEach
                         val content = msg["content"] ?: return@forEach
@@ -713,10 +882,13 @@ class MainViewModel(
                                 role = messageRole,
                                 timestamp = Instant.now()
                             )
-                            repo.saveMessage(domainMessage)
+                            repo.saveMessage(domainMessage, currentConversationId)
                         }
                     }
                     Log.i(tag, "Deleted message at index $messageIndex")
+                    
+                    // Update conversation metadata
+                    updateConversationMetadata()
                 } catch (e: Exception) {
                     Log.e(tag, "Failed to delete message from database", e)
                 }
@@ -765,12 +937,15 @@ class MainViewModel(
         )
         first = true
         
-        // Clear database
+        // Clear database for current conversation
         messageRepository?.let { repo ->
             viewModelScope.launch {
                 try {
-                    repo.deleteAllMessages()
-                    Log.i(tag, "Cleared all messages from database")
+                    repo.deleteMessagesForConversation(currentConversationId)
+                    Log.i(tag, "Cleared all messages from conversation $currentConversationId")
+                    
+                    // Update conversation metadata
+                    updateConversationMetadata()
                 } catch (e: Exception) {
                     Log.e(tag, "Failed to clear messages from database", e)
                 }
