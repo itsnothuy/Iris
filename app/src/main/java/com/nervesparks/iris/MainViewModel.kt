@@ -180,6 +180,35 @@ class MainViewModel(
     }
     
     /**
+     * Delete all conversations and messages.
+     * This is a destructive operation that cannot be undone.
+     */
+    fun deleteAllData() {
+        conversationRepository?.let { convRepo ->
+            messageRepository?.let { msgRepo ->
+                viewModelScope.launch {
+                    try {
+                        // Clear messages
+                        messages.clear()
+                        
+                        // Delete all data from repositories
+                        convRepo.deleteAllConversations()
+                        msgRepo.deleteAllMessages()
+                        
+                        // Reset to default state
+                        currentConversationId = "default"
+                        createDefaultConversation()
+                        
+                        Log.i(tag, "Deleted all conversations and messages")
+                    } catch (e: Exception) {
+                        Log.e(tag, "Failed to delete all data", e)
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
      * Toggle pin status for a conversation.
      */
     fun toggleConversationPin(conversationId: String, isPinned: Boolean) {

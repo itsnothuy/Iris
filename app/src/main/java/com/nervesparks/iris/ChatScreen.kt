@@ -56,6 +56,7 @@ import androidx.navigation.compose.rememberNavController
 import com.nervesparks.iris.ui.AboutScreen
 import com.nervesparks.iris.ui.BenchMarkScreen
 import com.nervesparks.iris.ui.ConversationListScreen
+import com.nervesparks.iris.ui.DataManagementScreen
 import com.nervesparks.iris.ui.MainChatScreen
 import com.nervesparks.iris.ui.ModelsScreen
 import com.nervesparks.iris.ui.ParametersScreen
@@ -73,6 +74,7 @@ enum class ChatScreen(@StringRes val title: Int) {
     AboutScreen(title = R.string.about_screen_title),
     BenchMarkScreen(title = R.string.benchmark_screen_title),
     ConversationList(title = R.string.conversation_list_screen_title),
+    DataManagement(title = R.string.data_management_screen_title),
 }
 
 
@@ -294,6 +296,9 @@ fun ChatScreen(
                         onBenchMarkScreenButtonClicked = {
                             navController.navigate((ChatScreen.BenchMarkScreen.name))
                         },
+                        onDataManagementButtonClicked = {
+                            navController.navigate(ChatScreen.DataManagement.name)
+                        },
                         viewModel = viewModel
 
                     )
@@ -355,6 +360,22 @@ fun ChatScreen(
                         },
                         onBackPressed = {
                             navController.navigateUp()
+                        }
+                    )
+                }
+                composable(route = ChatScreen.DataManagement.name) {
+                    DataManagementScreen(
+                        onExportClicked = {
+                            // Export logic will be handled by dialogs
+                        },
+                        onImportClicked = {
+                            // Import logic will be handled separately
+                        },
+                        onPrivacyAuditClicked = {
+                            // Privacy audit logic will be handled by dialog
+                        },
+                        onDeleteDataClicked = {
+                            viewModel.deleteAllData()
                         }
                     )
                 }
