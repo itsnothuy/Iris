@@ -94,13 +94,16 @@ class LLamaAndroid {
      * Returns 0 if not rate limited or if window has already passed.
      */
     fun getRateLimitCooldownSeconds(): Int {
-        if (!_isRateLimited.value) return 0
+        // Capture state atomically to prevent race conditions
+        val isLimited = _isRateLimited.value
+        if (!isLimited) return 0
         
         val currentTime = System.currentTimeMillis()
         val elapsed = currentTime - lastResetTime
         val remaining = rateLimitWindow - elapsed
         
-        return if (remaining > 0) {
+        // Double-check rate limit hasn't expired during calculation
+        return if (remaining > 0 && _isRateLimited.value) {
             (remaining / 1000).toInt()
         } else {
             0

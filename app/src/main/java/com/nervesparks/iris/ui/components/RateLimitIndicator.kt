@@ -39,16 +39,21 @@ fun RateLimitIndicator(
     var remainingSeconds by remember { mutableStateOf(initialCooldownSeconds) }
     
     // Single LaunchedEffect to handle both sync and countdown
+    // Cancels and restarts when isRateLimited or initialCooldownSeconds changes
     LaunchedEffect(isRateLimited, initialCooldownSeconds) {
         if (isRateLimited) {
             // Sync with backend value whenever it changes
             remainingSeconds = initialCooldownSeconds
             
-            // Count down while rate limited and time remaining
-            while (remainingSeconds > 0 && isRateLimited) {
+            // Count down while time remaining
+            // The effect will be cancelled if isRateLimited becomes false
+            while (remainingSeconds > 0) {
                 delay(1000L)
                 remainingSeconds = maxOf(0, remainingSeconds - 1)
             }
+        } else {
+            // Reset when not rate limited
+            remainingSeconds = 0
         }
     }
     
