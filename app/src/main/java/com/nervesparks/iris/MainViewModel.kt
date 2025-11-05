@@ -540,6 +540,7 @@ class MainViewModel(
                         if (messages.isNotEmpty() && messages.last()["role"] == "user") {
                             messages = messages.dropLast(1)
                         }
+                        updateQueueState()
                         return@launch
                     }
                     

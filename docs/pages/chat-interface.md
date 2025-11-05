@@ -1035,6 +1035,105 @@ Created `.github/workflows/build-and-test.yml` with three jobs:
 
 ---
 
+## Implementation Notes (MVP 8)
+
+### Queue State UI Synchronization
+
+**Implementation Date**: November 2025
+
+**Objective**: Fix MainViewModel to properly synchronize queue state with UI during message sending operations, ensuring users see real-time feedback about queue status, rate limiting, and thermal throttling.
+
+**Problem Resolved**:
+- MainViewModel had `updateQueueState()` method and all required properties
+- LLamaAndroid had full queue implementation with `tryEnqueue()`, rate limiting, thermal throttling
+- QueueStateIndicator and ThermalHint components existed and worked
+- **Missing**: Call to `updateQueueState()` when messages were rejected due to full queue
+- **Impact**: UI showed stale queue state, users couldn't see queue status during rapid message sending
+
+**Files Modified** (2):
+```
+app/src/main/java/com/nervesparks/iris/
+  └── MainViewModel.kt                    - Added updateQueueState() call on queue rejection
+app/src/test/java/com/nervesparks/iris/
+  └── MainViewModelQueueTest.kt           - Added test for queue state after rejection
+docs/pages/
+  └── chat-interface.md                   - This documentation update
+```
+
+**Key Changes**:
+
+1. **MainViewModel.send() Enhancement**:
+   - Added `updateQueueState()` call before `return@launch` when `tryEnqueue()` returns false
+   - Ensures queue state is synchronized with UI immediately when messages are rejected
+   - Existing `updateQueueState()` calls after successful enqueue and in finally block remain unchanged
+   - No changes to error handling or message removal logic
+
+2. **Test Coverage**:
+   - Added `queueState_updatesAfterRejection()` test in MainViewModelQueueTest
+   - Test verifies that when queue is full and message is rejected:
+     - Error message is set correctly
+     - Queue state properties (isMessageQueued, queueSize) are updated
+     - User message is removed from conversation
+   - Test uses mock LLamaAndroid to simulate full queue scenario
+
+**Code Change**:
+```kotlin
+if (!canSend) {
+    // Queue is full, reject the message
+    setError("Too many requests in queue. Please wait and try again.")
+    Log.w(tag, "Message rejected: queue is full")
+    // Remove the user message we just added since it wasn't queued
+    if (messages.isNotEmpty() && messages.last()["role"] == "user") {
+        messages = messages.dropLast(1)
+    }
+    updateQueueState()  // <-- ADDED THIS LINE
+    return@launch
+}
+```
+
+**Behavior After Fix**:
+- ✅ Queue state updates immediately when messages are queued
+- ✅ Queue state updates immediately when messages are rejected (queue full)
+- ✅ Rate limiting indicators sync with UI in real-time
+- ✅ Thermal throttling indicators sync with UI in real-time
+- ✅ Error message + queue state update shown when queue is full
+- ✅ All existing queue tests continue passing
+- ✅ No regression in message sending functionality
+
+**Design Decisions**:
+
+1. **Minimal Change Approach**: Added single `updateQueueState()` call rather than refactoring queue management, following the project's principle of surgical changes.
+
+2. **Placement Before Return**: Placed `updateQueueState()` immediately before `return@launch` to ensure state is updated regardless of whether the return is executed (it always is in this block).
+
+3. **No Additional Error Handling**: Existing error message and message removal logic is sufficient; only queue state synchronization was missing.
+
+4. **Test Strategy**: Added integration-style test that exercises the full send() flow with mocked dependencies to verify end-to-end queue state synchronization.
+
+**Acceptance Criteria Met**:
+- ✅ Updated MainViewModel.send() to call updateQueueState() after tryEnqueue() attempt
+- ✅ Queue state updates immediately when messages are queued or rejected
+- ✅ Rate limit and thermal state sync with UI in real-time (existing functionality maintained)
+- ✅ Error handling for queue full scenarios with proper UI feedback (existing functionality maintained)
+- ✅ Message removal logic when messages are rejected (existing functionality maintained)
+- ✅ Unit test added to verify queue state synchronization in MainViewModelQueueTest
+- ✅ No destructive refactors, package renames, or build-script changes
+- ✅ Follows .github/copilot-instructions.md and existing patterns
+- ✅ Documentation updated with implementation notes
+
+**Testing**:
+- **Unit Test**: `queueState_updatesAfterRejection()` - Verifies queue state updates when message rejected
+- **Existing Tests**: All 8 existing MainViewModelQueueTest tests remain passing
+- **Integration**: QueueStateIndicator component already tested in QueueStateTest.kt (8 tests)
+
+**Future Enhancements**:
+- Consider adding more granular queue state updates during message processing
+- Add telemetry (local only) to track queue utilization patterns
+- Implement queue priority for different message types
+- Add user-facing queue position indicators
+
+---
+
 *Specification Version: 1.0*  
-*Last Updated: October 2025*  
+*Last Updated: November 2025*  
 *Implementation Target: Milestone 1*

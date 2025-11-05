@@ -181,4 +181,31 @@ class MainViewModelQueueTest {
             assertEquals(cooldown, mockLlamaAndroid.getRateLimitCooldownSeconds())
         }
     }
+    
+    @Test
+    fun queueState_updatesAfterRejection() {
+        // Given: Queue is full and will reject
+        whenever(mockLlamaAndroid.tryEnqueue(org.mockito.kotlin.any())).thenReturn(false)
+        whenever(mockLlamaAndroid.isQueued()).thenReturn(true)
+        whenever(mockLlamaAndroid.getQueueSize()).thenReturn(3)
+        whenever(mockLlamaAndroid.isRateLimited()).thenReturn(false)
+        whenever(mockLlamaAndroid.isThermalThrottled()).thenReturn(false)
+        whenever(mockLlamaAndroid.getRateLimitCooldownSeconds()).thenReturn(0)
+        whenever(mockLlamaAndroid.getTemplate(org.mockito.kotlin.any())).thenReturn("test")
+        whenever(mockUserPreferencesRepository.getPrivacyRedactionEnabled()).thenReturn(false)
+        
+        // Initially, queue state should be empty
+        assertFalse(viewModel.isMessageQueued)
+        assertEquals(0, viewModel.queueSize)
+        
+        // When: User sends a message that gets rejected
+        viewModel.updateMessage("Test message")
+        viewModel.send()
+        testDispatcher.scheduler.advanceUntilIdle()
+        
+        // Then: Queue state should be updated to reflect the actual queue state
+        assertTrue(viewModel.isMessageQueued)
+        assertEquals(3, viewModel.queueSize)
+        assertEquals("Too many requests in queue. Please wait and try again.", viewModel.errorMessage)
+    }
 }
