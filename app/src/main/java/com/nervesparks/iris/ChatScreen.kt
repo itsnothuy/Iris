@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,6 +55,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.nervesparks.iris.ui.AboutScreen
 import com.nervesparks.iris.ui.BenchMarkScreen
+import com.nervesparks.iris.ui.ConversationListScreen
 import com.nervesparks.iris.ui.MainChatScreen
 import com.nervesparks.iris.ui.ModelsScreen
 import com.nervesparks.iris.ui.ParametersScreen
@@ -70,6 +72,7 @@ enum class ChatScreen(@StringRes val title: Int) {
     ParamsScreen(title = R.string.parameters_screen_title),
     AboutScreen(title = R.string.about_screen_title),
     BenchMarkScreen(title = R.string.benchmark_screen_title),
+    ConversationList(title = R.string.conversation_list_screen_title),
 }
 
 
@@ -316,6 +319,44 @@ fun ChatScreen(
                 }
                 composable(route = ChatScreen.BenchMarkScreen.name){
                     BenchMarkScreen(viewModel)
+                }
+                composable(route = ChatScreen.ConversationList.name) {
+                    val conversations by viewModel.getAllConversations()?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) }
+                    val searchQuery = remember { mutableStateOf("") }
+                    val displayedConversations = if (searchQuery.value.isEmpty()) {
+                        conversations
+                    } else {
+                        val searchResults by viewModel.searchConversations(searchQuery.value)?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) }
+                        searchResults
+                    }
+                    
+                    ConversationListScreen(
+                        conversations = displayedConversations,
+                        currentConversationId = viewModel.currentConversationId,
+                        onConversationSelected = { conversationId ->
+                            viewModel.switchConversation(conversationId)
+                            navController.navigateUp()
+                        },
+                        onNewConversation = {
+                            viewModel.createNewConversation()
+                            navController.navigateUp()
+                        },
+                        onDeleteConversation = { conversationId ->
+                            viewModel.deleteConversation(conversationId)
+                        },
+                        onPinConversation = { conversationId, isPinned ->
+                            viewModel.toggleConversationPin(conversationId, isPinned)
+                        },
+                        onArchiveConversation = { conversationId, isArchived ->
+                            viewModel.toggleConversationArchive(conversationId, isArchived)
+                        },
+                        onSearchQueryChanged = { query ->
+                            searchQuery.value = query
+                        },
+                        onBackPressed = {
+                            navController.navigateUp()
+                        }
+                    )
                 }
             }
         }
