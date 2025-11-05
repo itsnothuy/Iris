@@ -121,6 +121,7 @@ import com.nervesparks.iris.ui.components.ErrorBanner
 import com.nervesparks.iris.ui.components.LoadingSkeleton
 import com.nervesparks.iris.ui.components.ProcessingIndicator
 import com.nervesparks.iris.ui.components.QueueStateIndicator
+import com.nervesparks.iris.ui.components.RateLimitIndicator
 import com.nervesparks.iris.ui.components.ThermalHint
 
 import kotlinx.coroutines.launch
@@ -217,35 +218,70 @@ fun MainChatScreen (
                                 .background(Color(0xFF050B16))
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = Color(0xFF1a1f2e),
-                                modifier = Modifier.align(Alignment.CenterStart)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                // Model status chip
+                                Surface(
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = Color(0xFF1a1f2e)
                                 ) {
-                                    // Model icon indicator
-                                    Box(
-                                        modifier = Modifier
-                                            .size(8.dp)
-                                            .background(
-                                                color = if (viewModel.isSwitchingModel.value) 
-                                                    Color(0xFFFFA500) // Orange when switching
-                                                else 
-                                                    Color(0xFF6200EE), // Purple when active
-                                                shape = CircleShape
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        // Model icon indicator
+                                        Box(
+                                            modifier = Modifier
+                                                .size(8.dp)
+                                                .background(
+                                                    color = if (viewModel.isSwitchingModel.value) 
+                                                        Color(0xFFFFA500) // Orange when switching
+                                                    else 
+                                                        Color(0xFF6200EE), // Purple when active
+                                                    shape = CircleShape
+                                                )
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = viewModel.loadedModelName.value.take(30) + 
+                                                   if (viewModel.loadedModelName.value.length > 30) "..." else "",
+                                            color = Color.White,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
+                                }
+                                
+                                // Queue status chip (when active)
+                                if (viewModel.isMessageQueued && viewModel.queueSize > 0) {
+                                    Surface(
+                                        shape = RoundedCornerShape(16.dp),
+                                        color = Color(0xFF1a1f2e).copy(alpha = 0.8f)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(6.dp)
+                                                    .background(
+                                                        color = Color(0xFF00BCD4), // Cyan for queue
+                                                        shape = CircleShape
+                                                    )
                                             )
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = viewModel.loadedModelName.value.take(30) + 
-                                               if (viewModel.loadedModelName.value.length > 30) "..." else "",
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Medium
-                                    )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = "${viewModel.queueSize} queued",
+                                                color = Color.White.copy(alpha = 0.9f),
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -540,6 +576,12 @@ fun MainChatScreen (
                             QueueStateIndicator(
                                 isQueued = viewModel.isMessageQueued,
                                 queueSize = viewModel.queueSize
+                            )
+                            
+                            // Show rate limit cooldown indicator
+                            RateLimitIndicator(
+                                isRateLimited = viewModel.isRateLimited,
+                                initialCooldownSeconds = viewModel.rateLimitCooldownSeconds
                             )
                             
                             // Show thermal/rate-limit hint if throttled

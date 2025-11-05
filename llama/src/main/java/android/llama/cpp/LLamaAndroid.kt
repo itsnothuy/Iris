@@ -88,6 +88,27 @@ class LLamaAndroid {
             Log.w(tag, "Thermal throttling activated")
         }
     }
+    
+    /**
+     * Get remaining time in seconds until rate limit window resets.
+     * Returns 0 if not rate limited or if window has already passed.
+     */
+    fun getRateLimitCooldownSeconds(): Int {
+        // Capture state atomically to prevent race conditions
+        val isLimited = _isRateLimited.value
+        if (!isLimited) return 0
+        
+        val currentTime = System.currentTimeMillis()
+        val elapsed = currentTime - lastResetTime
+        val remaining = rateLimitWindow - elapsed
+        
+        // Double-check rate limit hasn't expired during calculation
+        return if (remaining > 0 && _isRateLimited.value) {
+            (remaining / 1000).toInt()
+        } else {
+            0
+        }
+    }
 
     fun stopTextGeneration() {
         _isSending.value = false

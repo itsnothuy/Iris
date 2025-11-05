@@ -296,6 +296,8 @@ class MainViewModel(
         private set
     var isThermalThrottled by mutableStateOf(false)
         private set
+    var rateLimitCooldownSeconds by mutableStateOf(0)
+        private set
 
     override fun onCleared() {
         textToSpeech?.shutdown()
@@ -865,6 +867,7 @@ class MainViewModel(
         queueSize = llamaAndroid.getQueueSize()
         isRateLimited = llamaAndroid.isRateLimited()
         isThermalThrottled = llamaAndroid.isThermalThrottled()
+        rateLimitCooldownSeconds = llamaAndroid.getRateLimitCooldownSeconds()
     }
     
     /**
