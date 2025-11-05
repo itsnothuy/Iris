@@ -31,7 +31,8 @@ import java.util.UUID
 class MainViewModel(
     private val llamaAndroid: LLamaAndroid = LLamaAndroid.instance(), 
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val messageRepository: MessageRepository? = null
+    private val messageRepository: MessageRepository? = null,
+    private val conversationRepository: com.nervesparks.iris.data.repository.ConversationRepository? = null
 ): ViewModel() {
     companion object {
 //        @JvmStatic
@@ -41,14 +42,46 @@ class MainViewModel(
 
     private val _defaultModelName = mutableStateOf("")
     val defaultModelName: State<String> = _defaultModelName
+    
+    // Current conversation ID - defaults to "default" for backward compatibility
+    var currentConversationId by mutableStateOf("default")
+        private set
 
     init {
         loadDefaultModelName()
+        ensureDefaultConversationExists()
         restoreMessagesFromDatabase()
     }
     
     private fun loadDefaultModelName(){
         _defaultModelName.value = userPreferencesRepository.getDefaultModelName()
+    }
+    
+    /**
+     * Ensure the default conversation exists in the database.
+     * This provides backward compatibility for existing installations.
+     */
+    private fun ensureDefaultConversationExists() {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    val existing = repo.getConversationById("default")
+                    if (existing == null) {
+                        // Create default conversation if it doesn't exist
+                        val defaultConversation = com.nervesparks.iris.data.Conversation(
+                            id = "default",
+                            title = "Conversation",
+                            createdAt = Instant.now(),
+                            lastModified = Instant.now()
+                        )
+                        repo.createConversation(defaultConversation)
+                        Log.i(tag, "Created default conversation")
+                    }
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to ensure default conversation exists", e)
+                }
+            }
+        }
     }
     
     /**
@@ -58,7 +91,7 @@ class MainViewModel(
         messageRepository?.let { repo ->
             viewModelScope.launch {
                 try {
-                    val savedMessages = repo.getAllMessagesList()
+                    val savedMessages = repo.getMessagesForConversationList(currentConversationId)
                     if (savedMessages.isNotEmpty()) {
                         // Convert domain Messages back to Map format for compatibility
                         messages = savedMessages.map { msg ->
@@ -72,6 +105,31 @@ class MainViewModel(
                     }
                 } catch (e: Exception) {
                     Log.e(tag, "Failed to restore messages from database", e)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Switch to a different conversation.
+     * Loads messages for the specified conversation.
+     */
+    fun switchConversation(conversationId: String) {
+        currentConversationId = conversationId
+        messageRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    val savedMessages = repo.getMessagesForConversationList(conversationId)
+                    messages = savedMessages.map { msg ->
+                        mapOf(
+                            "role" to msg.role.name.lowercase(),
+                            "content" to msg.content
+                        )
+                    }
+                    first = messages.isEmpty()
+                    Log.i(tag, "Switched to conversation $conversationId with ${savedMessages.size} messages")
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to switch conversation", e)
                 }
             }
         }
@@ -618,7 +676,10 @@ class MainViewModel(
                         role = MessageRole.USER,
                         timestamp = Instant.now()
                     )
-                    messageRepository.saveMessage(domainMessage)
+                    messageRepository.saveMessage(domainMessage, currentConversationId)
+                    
+                    // Update conversation metadata
+                    updateConversationMetadata()
                 } catch (e: Exception) {
                     Log.e(tag, "Failed to persist message to database", e)
                 }
@@ -643,8 +704,11 @@ class MainViewModel(
                         role = MessageRole.ASSISTANT,
                         timestamp = Instant.now()
                     )
-                    messageRepository.saveMessage(domainMessage)
+                    messageRepository.saveMessage(domainMessage, currentConversationId)
                     Log.i(tag, "Persisted assistant message to database")
+                    
+                    // Update conversation metadata
+                    updateConversationMetadata()
                 } catch (e: Exception) {
                     Log.e(tag, "Failed to persist assistant message to database", e)
                 }
@@ -670,9 +734,28 @@ class MainViewModel(
                     role = messageRole,
                     timestamp = Instant.now()
                 )
-                messageRepository.saveMessage(domainMessage)
+                messageRepository.saveMessage(domainMessage, currentConversationId)
+                
+                // Update conversation metadata
+                updateConversationMetadata()
             } catch (e: Exception) {
                 Log.e(tag, "Failed to persist initial message to database", e)
+            }
+        }
+    }
+    
+    /**
+     * Update conversation metadata (message count and last modified time).
+     */
+    private fun updateConversationMetadata() {
+        conversationRepository?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    val messageCount = messageRepository?.getMessageCountForConversation(currentConversationId) ?: 0
+                    repo.updateConversationMetadata(currentConversationId, messageCount)
+                } catch (e: Exception) {
+                    Log.e(tag, "Failed to update conversation metadata", e)
+                }
             }
         }
     }
@@ -702,7 +785,7 @@ class MainViewModel(
             viewModelScope.launch {
                 try {
                     // Clear and re-save all messages to maintain consistency
-                    repo.deleteAllMessages()
+                    repo.deleteMessagesForConversation(currentConversationId)
                     messages.forEach { msg ->
                         val role = msg["role"] ?: return@forEach
                         val content = msg["content"] ?: return@forEach
@@ -713,10 +796,13 @@ class MainViewModel(
                                 role = messageRole,
                                 timestamp = Instant.now()
                             )
-                            repo.saveMessage(domainMessage)
+                            repo.saveMessage(domainMessage, currentConversationId)
                         }
                     }
                     Log.i(tag, "Deleted message at index $messageIndex")
+                    
+                    // Update conversation metadata
+                    updateConversationMetadata()
                 } catch (e: Exception) {
                     Log.e(tag, "Failed to delete message from database", e)
                 }
@@ -765,12 +851,15 @@ class MainViewModel(
         )
         first = true
         
-        // Clear database
+        // Clear database for current conversation
         messageRepository?.let { repo ->
             viewModelScope.launch {
                 try {
-                    repo.deleteAllMessages()
-                    Log.i(tag, "Cleared all messages from database")
+                    repo.deleteMessagesForConversation(currentConversationId)
+                    Log.i(tag, "Cleared all messages from conversation $currentConversationId")
+                    
+                    // Update conversation metadata
+                    updateConversationMetadata()
                 } catch (e: Exception) {
                     Log.e(tag, "Failed to clear messages from database", e)
                 }
