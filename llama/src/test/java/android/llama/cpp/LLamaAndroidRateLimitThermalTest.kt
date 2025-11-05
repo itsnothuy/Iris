@@ -1,5 +1,6 @@
 package android.llama.cpp
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
@@ -160,8 +161,8 @@ class LLamaAndroidRateLimitThermalTest {
         // When: Get initial cooldown
         val initialCooldown = llamaAndroid.getRateLimitCooldownSeconds()
         
-        // Wait a bit
-        Thread.sleep(2000)
+        // Wait a bit using coroutine delay
+        delay(2000)
         
         // Get cooldown again
         val laterCooldown = llamaAndroid.getRateLimitCooldownSeconds()
