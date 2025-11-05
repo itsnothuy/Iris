@@ -33,6 +33,7 @@ fun SettingsScreen(
     onModelsScreenButtonClicked: () -> Unit,
     onAboutScreenButtonClicked: () -> Unit,
     onBenchMarkScreenButtonClicked: () -> Unit,
+    onDataManagementButtonClicked: () -> Unit = {},
     viewModel: com.nervesparks.iris.MainViewModel,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -70,6 +71,14 @@ fun SettingsScreen(
                         text = "BenchMark",
                         iconRes = R.drawable.bench_mark_icon,
                         onClick = onBenchMarkScreenButtonClicked
+                    )
+
+                    SettingsDivider()
+
+                    SettingsRow(
+                        text = "Data Management",
+                        iconRes = R.drawable.data_exploration_models_svgrepo_com,
+                        onClick = onDataManagementButtonClicked
                     )
 
                     SettingsDivider()
