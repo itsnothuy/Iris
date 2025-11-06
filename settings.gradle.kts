@@ -38,4 +38,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "Android"
 include(":app")
-include(":llama")
+// include(":llama")  // Temporarily disabled due to CMake issues
+include(":common")
+include(":core-llm")
+include(":core-rag")
+include(":core-safety")
+include(":core-hw")
