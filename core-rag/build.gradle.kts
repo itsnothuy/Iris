@@ -33,9 +33,7 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.androidx.core.ktx)
     
-    testImplementation(libs.junit5.api)
-    testImplementation(libs.junit5.params)
-    testRuntimeOnly(libs.junit5.engine)
+    testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.coroutines.test)
 }

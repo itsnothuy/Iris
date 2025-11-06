@@ -26,11 +26,4 @@ interface EventBus {
      * Subscribe to all events
      */
     val events: kotlinx.coroutines.flow.SharedFlow<IrisEvent>
-    
-    /**
-     * Subscribe to specific event type
-     */
-    inline fun <reified T : IrisEvent> subscribe(): Flow<T> {
-        return events.filterIsInstance<T>()
-    }
 }

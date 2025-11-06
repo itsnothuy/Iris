@@ -25,7 +25,10 @@ class EventBusImpl @Inject constructor() : EventBus {
         _events.tryEmit(event)
     }
     
-    override inline fun <reified T : IrisEvent> subscribe(): Flow<T> {
+    /**
+     * Subscribe to specific event type
+     */
+    inline fun <reified T : IrisEvent> subscribe(): Flow<T> {
         return events.filterIsInstance<T>()
     }
 }
