@@ -95,9 +95,9 @@ graph TD
       CoreSafety[core-safety<br/>Safety Engine]
     end
 
-    CPU[CPU (ARM cores)]
-    GPU[GPU (Adreno / Mali / Xclipse)]
-    NPU[NPU / DSP (Hexagon / QNN)]
+    CPU["CPU (ARM cores)"]
+    GPU["GPU (Adreno / Mali / Xclipse)"]
+    NPU["NPU / DSP (Hexagon / QNN)"]
     LocalData[Local Content<br/>Notes/Files/Screenshots]
   end
 
