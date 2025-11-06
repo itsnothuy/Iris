@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 General Discussion
+    url: https://github.com/itsnothuy/Iris/discussions
+    about: Ask questions, share ideas, or discuss features
+  - name: 📖 Documentation
+    url: https://github.com/itsnothuy/Iris/tree/main/docs
+    about: Read the project documentation and architecture guides
+  - name: 🔒 Security Advisory
+    url: https://github.com/itsnothuy/Iris/security/advisories/new
+    about: Report a security vulnerability privately

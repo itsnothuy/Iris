@@ -1,0 +1,126 @@
+name: Security Issue
+description: Report a security vulnerability (please use GitHub Security Advisories for sensitive issues)
+title: "[SECURITY] "
+labels: ["security", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **IMPORTANT: If you have found a critical security vulnerability, please use GitHub Security Advisories instead of creating a public issue.**
+        
+        Navigate to: Repository → Security → Advisories → New draft security advisory
+        
+        This template should only be used for non-critical security improvements or general security discussions.
+
+  - type: checkboxes
+    id: severity-check
+    attributes:
+      label: Severity Check
+      description: Confirm this is not a critical vulnerability
+      options:
+        - label: This is NOT a critical security vulnerability (no immediate risk of data breach, privilege escalation, or code execution)
+          required: true
+        - label: I understand that critical vulnerabilities should be reported privately via GitHub Security Advisories
+          required: true
+
+  - type: dropdown
+    id: security-category
+    attributes:
+      label: Security Category
+      description: What type of security concern is this?
+      options:
+        - Security Enhancement
+        - Privacy Improvement
+        - Dependency Vulnerability (non-critical)
+        - Security Documentation
+        - Security Testing
+        - Code Quality (security-related)
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue Description
+      description: Describe the security concern or improvement
+      placeholder: Describe the security aspect...
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact-assessment
+    attributes:
+      label: Impact Assessment
+      description: What is the potential impact of this issue?
+      placeholder: |
+        - Affected components: ...
+        - Potential impact: ...
+        - Likelihood: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-mitigation
+    attributes:
+      label: Proposed Mitigation
+      description: How should this be addressed?
+      placeholder: The issue can be mitigated by...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: cvss-score
+    attributes:
+      label: Estimated CVSS Score
+      description: Rough estimate of severity (if applicable)
+      options:
+        - None (0.0) - Informational
+        - Low (0.1-3.9)
+        - Medium (4.0-6.9)
+        - High (7.0-8.9)
+        - Critical (9.0-10.0) - Use Security Advisories instead!
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: security-principles
+    attributes:
+      label: Security Principles
+      description: Which security principles does this relate to?
+      options:
+        - label: Privacy-first (on-device processing)
+        - label: Data minimization
+        - label: Secure storage
+        - label: Input validation
+        - label: Output encoding
+        - label: Authentication/Authorization
+        - label: Cryptography
+        - label: Secure communication
+
+  - type: textarea
+    id: affected-versions
+    attributes:
+      label: Affected Versions
+      description: Which versions are affected?
+      placeholder: All versions, or specific versions...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: References to security standards, similar issues, etc...
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        **For Maintainers:**
+        - Verify the severity assessment
+        - Consider if this should be converted to a Security Advisory
+        - Apply appropriate labels and priority
+        - Follow responsible disclosure practices
