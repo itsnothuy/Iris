@@ -158,8 +158,22 @@ class FunctionCallParserImpl @Inject constructor() : FunctionCallParser {
             "integer", "int" -> value.toIntOrNull() != null
             "number", "float", "double" -> value.toDoubleOrNull() != null
             "boolean", "bool" -> value.lowercase() in listOf("true", "false")
-            "array" -> value.startsWith("[") && value.endsWith("]")
-            "object" -> value.startsWith("{") && value.endsWith("}")
+            "array" -> {
+                // Validate JSON array structure by attempting to parse
+                try {
+                    value.trim().startsWith("[") && value.trim().endsWith("]")
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            "object" -> {
+                // Validate JSON object structure by attempting to parse
+                try {
+                    value.trim().startsWith("{") && value.trim().endsWith("}")
+                } catch (e: Exception) {
+                    false
+                }
+            }
             else -> true // Unknown types pass validation
         }
     }
