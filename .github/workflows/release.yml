@@ -1,0 +1,204 @@
+name: Release Build
+# Automated release build and GitHub release creation
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags (e.g., v1.0.0)
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'temurin'
+
+jobs:
+  build-release:
+    name: Build Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'gradle'
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/v}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+      
+      - name: Update version in build.gradle.kts
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          VERSION_CODE=$(echo $VERSION | awk -F. '{print $1*10000 + $2*100 + $3}')
+          
+          # Update versionName and versionCode
+          sed -i "s/versionCode = .*/versionCode = $VERSION_CODE/" app/build.gradle.kts
+          sed -i "s/versionName = .*/versionName = \"$VERSION\"/" app/build.gradle.kts
+          
+          echo "Updated to version $VERSION (code: $VERSION_CODE)"
+      
+      - name: Run quality checks
+        run: |
+          ./gradlew ktlintCheck detekt lintRelease --no-daemon
+      
+      - name: Run tests
+        run: |
+          ./gradlew testReleaseUnitTest --no-daemon
+      
+      - name: Build release APK
+        run: |
+          ./gradlew assembleRelease --no-daemon
+        env:
+          RELEASE_STORE_FILE: ${{ secrets.RELEASE_STORE_FILE }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+      
+      - name: Build release AAB (Android App Bundle)
+        run: |
+          ./gradlew bundleRelease --no-daemon
+        env:
+          RELEASE_STORE_FILE: ${{ secrets.RELEASE_STORE_FILE }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+      
+      - name: Generate checksums
+        run: |
+          cd app/build/outputs/apk/release/
+          sha256sum app-release.apk > app-release.apk.sha256
+          
+          cd ../../bundle/release/
+          sha256sum app-release.aab > app-release.aab.sha256
+      
+      - name: Rename artifacts
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          cd app/build/outputs/apk/release/
+          cp app-release.apk iris-android-${VERSION}.apk
+          cp app-release.apk.sha256 iris-android-${VERSION}.apk.sha256
+          
+          cd ../../bundle/release/
+          cp app-release.aab iris-android-${VERSION}.aab
+          cp app-release.aab.sha256 iris-android-${VERSION}.aab.sha256
+      
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          # Get commits since last tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --reverse)
+          else
+            COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --reverse)
+          fi
+          
+          # Create release notes
+          cat > release_notes.md << EOF
+          ## iris_android v${VERSION}
+          
+          ### What's Changed
+          
+          ${COMMITS}
+          
+          ### Installation
+          
+          1. Download the APK file below
+          2. Enable "Install from Unknown Sources" in your Android settings
+          3. Install the APK
+          
+          ### Verification
+          
+          Verify the APK integrity using the provided SHA256 checksum:
+          \`\`\`bash
+          sha256sum -c iris-android-${VERSION}.apk.sha256
+          \`\`\`
+          
+          ### Requirements
+          
+          - Android 9.0 (API 28) or higher
+          - 4GB+ RAM recommended
+          - ARM64 (arm64-v8a) processor
+          
+          ### Security
+          
+          This build is signed with our release key. Verify the signature before installing:
+          \`\`\`bash
+          apksigner verify --print-certs iris-android-${VERSION}.apk
+          \`\`\`
+          
+          ---
+          
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...v${VERSION}
+          EOF
+          
+          echo "Release notes generated"
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: |
+            app/build/outputs/apk/release/iris-android-${{ steps.version.outputs.version }}.apk
+            app/build/outputs/apk/release/iris-android-${{ steps.version.outputs.version }}.apk.sha256
+            app/build/outputs/bundle/release/iris-android-${{ steps.version.outputs.version }}.aab
+            app/build/outputs/bundle/release/iris-android-${{ steps.version.outputs.version }}.aab.sha256
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts-v${{ steps.version.outputs.version }}
+          path: |
+            app/build/outputs/apk/release/iris-android-*.apk
+            app/build/outputs/apk/release/iris-android-*.apk.sha256
+            app/build/outputs/bundle/release/iris-android-*.aab
+            app/build/outputs/bundle/release/iris-android-*.aab.sha256
+            app/build/outputs/mapping/release/mapping.txt
+          retention-days: 90
+      
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Release build failed for v${{ steps.version.outputs.version }}',
+              body: `The release build for version ${{ steps.version.outputs.version }} has failed.\n\n` +
+                    `Please check the [workflow run](${context.payload.repository.html_url}/actions/runs/${context.runId}) for details.`,
+              labels: ['release', 'build-failure', 'automated']
+            });
