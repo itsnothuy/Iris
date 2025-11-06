@@ -1,0 +1,132 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for iris_android
+title: "[FEATURE] "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please provide detailed information to help us understand and evaluate your request.
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: A clear and concise description of the feature you'd like to see
+      placeholder: I would like to see...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-category
+    attributes:
+      label: Feature Category
+      description: What category does this feature fall into?
+      options:
+        - UI/UX Enhancement
+        - AI Model Integration
+        - Performance Optimization
+        - Privacy/Security
+        - Accessibility
+        - Hardware Integration
+        - Tool/Plugin System
+        - RAG/Knowledge Base
+        - Voice/Audio
+        - Multimodal Support
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-statement
+    attributes:
+      label: Problem Statement
+      description: Describe the problem this feature would solve
+      placeholder: Currently, users cannot...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your proposed solution in detail
+      placeholder: The feature should work by...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Describe any alternative solutions or features you've considered
+      placeholder: Another approach could be...
+    validations:
+      required: false
+
+  - type: textarea
+    id: use-cases
+    attributes:
+      label: Use Cases
+      description: Provide specific use cases or scenarios where this feature would be valuable
+      placeholder: |
+        1. When a user wants to...
+        2. In the scenario where...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user-impact
+    attributes:
+      label: User Impact
+      description: How many users would benefit from this feature?
+      options:
+        - All users
+        - Most users
+        - Some users
+        - Power users only
+        - Niche use case
+    validations:
+      required: true
+
+  - type: textarea
+    id: architecture-impact
+    attributes:
+      label: Architecture Impact
+      description: |
+        How would this feature impact the architecture? Reference docs/architecture.md.
+        Which modules would be affected?
+      placeholder: This would affect core-llm and ui modules...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: implementation-considerations
+    attributes:
+      label: Implementation Considerations
+      description: Check all that apply
+      options:
+        - label: This feature requires on-device processing only (privacy-first)
+        - label: This feature may impact battery life
+        - label: This feature requires new dependencies
+        - label: This feature requires hardware acceleration (GPU/NPU)
+        - label: This feature requires new permissions
+        - label: This feature may increase app size significantly
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, or examples
+      placeholder: Screenshots, diagrams, or examples from other apps...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be willing to contribute?
+      options:
+        - label: I would be willing to implement this feature
+        - label: I would be willing to help test this feature

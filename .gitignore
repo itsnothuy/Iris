@@ -1,16 +1,147 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# Built application files
+*.apk
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+release/
+
+# Gradle files
+.gradle/
+build/
+*/build/
+
+# Local configuration file (sdk path, etc)
 local.properties
+
+# IntelliJ
+*.iml
+.idea/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/jarRepositories.xml
+.idea/caches
+.idea/modules.xml
+.idea/navEditor.xml
+.idea/.name
+.idea/compiler.xml
+.idea/copyright/profiles_settings.xml
+.idea/encodings.xml
+.idea/misc.xml
+.idea/scopes/scope_settings.xml
+.idea/vcs.xml
+*.iws
+
+# Keystore files
+*.jks
+*.keystore
+
+# External native build folder generated in Android Studio 2.2 and later
+.externalNativeBuild
+.cxx/
+
+# Android Profiling
+*.hprof
+
+# Android Studio Navigation editor temp files
+.navigation/
+
+# Android Studio captures folder
+captures/
+
+# NDK
+obj/
+.cxx/
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Version control
+.svn/
+.hg/
+
+# Log files
+*.log
+
+# Lint
+lint/generated/
+lint/outputs/
+lint/tmp/
+lint_result.txt
+lint_result.xml
+
+# Test reports
+**/build/test-results/
+**/build/reports/
+
+# Backup files
+*~
+*.swp
+*.bak
+*.tmp
+
+# Code coverage
+*.exec
+*.ec
+
+# Dependency vulnerability reports
+reports/
+dependency-check-data/
+
+# Detekt baseline
+detekt-baseline.xml
+
+# Ktlint
+.ktlint
+
+# Secrets and credentials
+secrets.properties
+google-services.json
+firebase.json
+
+# ProGuard mapping files
+mapping.txt
+seeds.txt
+usage.txt
+
+# R8 output
+*.pro.tmp
+
+# AGP debug symbols
+app/build/outputs/native-debug-symbols/
+
+# App bundle metadata
+app/build/outputs/bundle/**/metadata.json
+
+# Build cache
+.buildcache/
+
+# Temporary files
+/tmp/
+*.tmp
+
+# Documentation build artifacts
+docs/_build/
+site/
+
+# META-INF
 META-INF/

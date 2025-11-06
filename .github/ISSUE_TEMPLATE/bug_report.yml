@@ -1,0 +1,110 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in iris_android
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible to help us resolve the issue quickly.
+
+  - type: textarea
+    id: device-info
+    attributes:
+      label: Device Information
+      description: Information about your device and app version
+      placeholder: |
+        - Device Model: Samsung Galaxy S23
+        - Android Version: 14
+        - App Version: 1.0.0
+        - Architecture: arm64-v8a
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the bug
+      placeholder: Describe what went wrong...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the behavior
+      placeholder: |
+        1. Open the app
+        2. Navigate to '...'
+        3. Tap on '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen
+      placeholder: The app should...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened
+      placeholder: Instead, the app...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Please paste any relevant log output (from logcat or app logs)
+      render: shell
+      placeholder: Paste logs here...
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain your problem
+      placeholder: Drag and drop images here or paste URLs
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information about the problem
+      placeholder: Add any other context about the problem here...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy Check
+      description: Verify that you haven't included any sensitive information
+      options:
+        - label: I have verified that this report contains no personal or sensitive information
+          required: true
+
+  - type: checkboxes
+    id: architecture
+    attributes:
+      label: Architecture Compliance
+      description: For maintainers - does this relate to architectural components?
+      options:
+        - label: This bug affects core-llm module
+        - label: This bug affects core-rag module
+        - label: This bug affects UI components
+        - label: This bug affects hardware integration

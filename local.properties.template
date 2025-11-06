@@ -1,0 +1,64 @@
+# Local Properties Template for iris_android
+# Copy this file to 'local.properties' and update with your local paths
+# 
+# ⚠️ WARNING: Never commit local.properties to version control!
+# It contains paths specific to your machine and may contain sensitive information.
+
+# Android SDK location
+# Update this to point to your Android SDK installation
+sdk.dir=/path/to/android/sdk
+
+# Android NDK location (required for native code compilation)
+# Update this to point to NDK version 26.1.10909125
+ndk.dir=/path/to/android/ndk/26.1.10909125
+
+# ============================================================================
+# Release Build Signing Configuration (Optional)
+# ============================================================================
+# Uncomment and configure these properties if you need to create release builds
+# 
+# IMPORTANT: Keep your signing keys secure!
+# - Never commit them to version control
+# - Store them in a secure location
+# - Use strong passwords
+# - Consider using environment variables in CI/CD
+
+# Path to your keystore file
+#RELEASE_STORE_FILE=/path/to/your/keystore.jks
+
+# Keystore password
+#RELEASE_STORE_PASSWORD=your_secure_store_password
+
+# Key alias (the name of the key in the keystore)
+#RELEASE_KEY_ALIAS=your_key_alias
+
+# Key password
+#RELEASE_KEY_PASSWORD=your_secure_key_password
+
+# ============================================================================
+# Additional Configuration (Optional)
+# ============================================================================
+
+# Gradle JVM arguments (override defaults if needed)
+# org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
+
+# Enable parallel builds
+# org.gradle.parallel=true
+
+# Enable build cache
+# org.gradle.caching=true
+
+# ============================================================================
+# Developer Notes
+# ============================================================================
+#
+# To create a keystore for release builds:
+#   keytool -genkey -v -keystore my-release-key.jks \
+#           -keyalg RSA -keysize 2048 -validity 10000 \
+#           -alias my-alias
+#
+# To verify your keystore:
+#   keytool -list -v -keystore my-release-key.jks
+#
+# For more information, see:
+#   https://developer.android.com/studio/publish/app-signing

@@ -1,0 +1,151 @@
+name: Multi-API Testing
+# Test app on multiple Android API levels
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run weekly on Sunday at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'temurin'
+
+jobs:
+  test-matrix:
+    name: Test API ${{ matrix.api-level }}
+    runs-on: macos-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        api-level: [28, 33, 34]  # Minimum, Target-1, Target
+        arch: [x86_64]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'gradle'
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
+      - name: Build debug APK
+        run: ./gradlew assembleDebug assembleDebugAndroidTest --no-daemon
+      
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      
+      - name: Run instrumented tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: ${{ matrix.arch }}
+          target: google_apis
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: ./gradlew connectedDebugAndroidTest --no-daemon
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-api-${{ matrix.api-level }}
+          path: |
+            app/build/reports/androidTests/connected/
+            app/build/outputs/androidTest-results/connected/
+          retention-days: 30
+      
+      - name: Upload test screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots-api-${{ matrix.api-level }}
+          path: app/build/outputs/connected_android_test_additional_output/
+          retention-days: 30
+
+  robolectric-tests:
+    name: Robolectric Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'gradle'
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
+      - name: Run Robolectric tests
+        run: ./gradlew testDebugUnitTest --no-daemon
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robolectric-test-results
+          path: |
+            app/build/reports/tests/testDebugUnitTest/
+            app/build/test-results/testDebugUnitTest/
+          retention-days: 30
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [test-matrix, robolectric-tests]
+    if: always()
+    
+    steps:
+      - name: Generate test summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const matrixResult = '${{ needs.test-matrix.result }}';
+            const robolectricResult = '${{ needs.robolectric-tests.result }}';
+            
+            let summary = '## 🧪 Test Results Summary\n\n';
+            
+            summary += '### Instrumented Tests (Multi-API)\n';
+            summary += matrixResult === 'success' ? '✅ Passed\n' : '❌ Failed\n';
+            
+            summary += '\n### Robolectric Tests\n';
+            summary += robolectricResult === 'success' ? '✅ Passed\n' : '❌ Failed\n';
+            
+            summary += '\n---\n';
+            
+            const allPassed = matrixResult === 'success' && robolectricResult === 'success';
+            summary += allPassed 
+              ? '✅ All tests passed on multiple API levels!' 
+              : '❌ Some tests failed. Please review the artifacts.';
+            
+            console.log(summary);
+            
+            // Write to GitHub step summary
+            await core.summary
+              .addRaw(summary)
+              .write();
