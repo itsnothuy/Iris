@@ -99,8 +99,14 @@ if [ ! -d ".git/hooks" ]; then
     mkdir -p .git/hooks
 fi
 
-# Create pre-commit hook
-cat > .git/hooks/pre-commit << 'EOF'
+# Use pre-commit hook from scripts directory
+if [ -f "scripts/pre-commit" ]; then
+    cp scripts/pre-commit .git/hooks/pre-commit
+    chmod +x .git/hooks/pre-commit
+    echo -e "${GREEN}✓${NC} Git hooks installed from scripts/pre-commit"
+else
+    # Fallback to creating inline hook
+    cat > .git/hooks/pre-commit << 'EOF'
 #!/bin/bash
 # Pre-commit hook for iris_android
 
@@ -126,9 +132,9 @@ fi
 
 echo "✓ Pre-commit checks passed"
 EOF
-
-chmod +x .git/hooks/pre-commit
-echo -e "${GREEN}✓${NC} Git hooks installed"
+    chmod +x .git/hooks/pre-commit
+    echo -e "${GREEN}✓${NC} Git hooks installed (fallback)"
+fi
 
 echo ""
 echo "Step 3: Setting up local configuration..."

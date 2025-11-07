@@ -53,3 +53,31 @@ enum class ThermalState {
     /** Critical thermal state, minimal operation */
     CRITICAL
 }
+
+/**
+ * Device state for overall health monitoring
+ */
+enum class DeviceState {
+    /** Normal operating state */
+    NORMAL,
+    
+    /** Device is running hot */
+    HOT,
+    
+    /** Device is overheating */
+    OVERHEATING
+}
+
+/**
+ * Memory state for memory pressure monitoring
+ */
+enum class MemoryState {
+    /** Normal memory availability */
+    NORMAL,
+    
+    /** Low memory available */
+    LOW,
+    
+    /** Critical memory state */
+    CRITICAL
+}
