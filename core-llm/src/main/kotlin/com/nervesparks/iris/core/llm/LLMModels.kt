@@ -15,7 +15,7 @@ data class ModelLoadParams(
 /**
  * Exception thrown when LLM operations fail
  */
-class LLMException(message: String, cause: Throwable? = null) : Exception(message, cause)
+open class LLMException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /**
  * Exception thrown when text generation fails
