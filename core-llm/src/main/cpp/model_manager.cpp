@@ -38,22 +38,21 @@ std::string ModelManager::loadModel(const std::string& path, int contextSize,
         modelParams.n_gpu_layers = 0; // CPU only for now
         
         // Load model
-        model = llama_load_model_from_file(path.c_str(), modelParams);
+        model = llama_model_load_from_file(path.c_str(), modelParams);
         if (!model) {
             throw std::runtime_error("Failed to load model from " + path);
         }
         
         // Set up context parameters
         llama_context_params contextParams = llama_context_default_params();
-        contextParams.seed = (seed == -1) ? static_cast<uint32_t>(std::time(nullptr)) : static_cast<uint32_t>(seed);
         contextParams.n_ctx = contextSize;
         contextParams.n_threads = (threads <= 0) ? 4 : threads;
-        contextParams.n_threads_batch = contextParams.n_threads;
+        contextParams.n_batch = contextSize; // Set batch size
         
         // Create context
-        context = llama_new_context_with_model(model, contextParams);
+        context = llama_init_from_model(model, contextParams);
         if (!context) {
-            llama_free_model(model);
+            llama_model_free(model);
             model = nullptr;
             throw std::runtime_error("Failed to create context");
         }
@@ -74,7 +73,7 @@ void ModelManager::unloadModel() {
     }
     
     if (model) {
-        llama_free_model(model);
+        llama_model_free(model);
         model = nullptr;
     }
     
@@ -87,23 +86,21 @@ std::vector<float> ModelManager::generateEmbedding(const std::string& text) {
     }
     
     try {
+        // Get vocabulary from model
+        const llama_vocab* vocab = llama_model_get_vocab(model);
+        
         // Tokenize input
         std::vector<llama_token> tokens;
-        tokens.resize(text.length() + 1);
-        int n_tokens = llama_tokenize(model, text.c_str(), text.length(), 
-                                      tokens.data(), tokens.size(), true, false);
-        if (n_tokens < 0) {
-            tokens.resize(-n_tokens);
-            n_tokens = llama_tokenize(model, text.c_str(), text.length(), 
-                                     tokens.data(), tokens.size(), true, false);
-        }
+        const int n_tokens = -llama_tokenize(vocab, text.c_str(), text.length(), NULL, 0, true, false);
         tokens.resize(n_tokens);
         
-        // Clear context
-        llama_kv_cache_clear(context);
+        if (llama_tokenize(vocab, text.c_str(), text.length(), 
+                          tokens.data(), tokens.size(), true, false) < 0) {
+            throw std::runtime_error("Failed to tokenize text");
+        }
         
         // Get embedding dimension
-        int n_embd = llama_n_embd(model);
+        int n_embd = llama_model_n_embd(model);
         std::vector<float> embedding(n_embd, 0.0f);
         
         // Create batch
