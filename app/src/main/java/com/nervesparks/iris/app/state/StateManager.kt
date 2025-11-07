@@ -57,7 +57,7 @@ class StateManager @Inject constructor() {
      * Update thermal state based on temperature
      * @param temperature Current device temperature in Celsius
      */
-    suspend fun updateThermalState(temperature: Float) {
+    fun updateThermalState(temperature: Float) {
         _deviceState.value = when {
             temperature > 45.0f -> DeviceState.OVERHEATING
             temperature > 40.0f -> DeviceState.HOT
@@ -83,7 +83,7 @@ class StateManager @Inject constructor() {
      * @param availableMemory Available memory in bytes
      * @param totalMemory Total memory in bytes
      */
-    suspend fun updateMemoryState(availableMemory: Long, totalMemory: Long) {
+    fun updateMemoryState(availableMemory: Long, totalMemory: Long) {
         val memoryPercentage = if (totalMemory > 0) {
             (availableMemory.toDouble() / totalMemory) * 100
         } else {

@@ -3,7 +3,6 @@ package com.nervesparks.iris.app.state
 import com.nervesparks.iris.common.config.DeviceState
 import com.nervesparks.iris.common.config.MemoryState
 import com.nervesparks.iris.common.config.PerformanceProfile
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -21,7 +20,7 @@ class StateManagerTest {
     }
 
     @Test
-    fun `updateThermalState sets NORMAL for low temperature`() = runTest {
+    fun `updateThermalState sets NORMAL for low temperature`() {
         // Given
         val normalTemperature = 35.0f
 
@@ -33,7 +32,7 @@ class StateManagerTest {
     }
 
     @Test
-    fun `updateThermalState sets HOT for elevated temperature`() = runTest {
+    fun `updateThermalState sets HOT for elevated temperature`() {
         // Given
         val hotTemperature = 42.0f
 
@@ -46,7 +45,7 @@ class StateManagerTest {
     }
 
     @Test
-    fun `updateThermalState sets OVERHEATING for high temperature`() = runTest {
+    fun `updateThermalState sets OVERHEATING for high temperature`() {
         // Given
         val criticalTemperature = 50.0f
 
@@ -59,7 +58,7 @@ class StateManagerTest {
     }
 
     @Test
-    fun `updateMemoryState sets NORMAL for sufficient memory`() = runTest {
+    fun `updateMemoryState sets NORMAL for sufficient memory`() {
         // Given
         val availableMemory = 4L * 1024 * 1024 * 1024 // 4GB
         val totalMemory = 8L * 1024 * 1024 * 1024 // 8GB (50%)
@@ -72,7 +71,7 @@ class StateManagerTest {
     }
 
     @Test
-    fun `updateMemoryState sets LOW for low memory`() = runTest {
+    fun `updateMemoryState sets LOW for low memory`() {
         // Given
         val availableMemory = 1L * 1024 * 1024 * 1024 // 1GB
         val totalMemory = 8L * 1024 * 1024 * 1024 // 8GB (12.5%)
@@ -85,7 +84,7 @@ class StateManagerTest {
     }
 
     @Test
-    fun `updateMemoryState sets CRITICAL for very low memory`() = runTest {
+    fun `updateMemoryState sets CRITICAL for very low memory`() {
         // Given
         val availableMemory = 500L * 1024 * 1024 // 500MB
         val totalMemory = 8L * 1024 * 1024 * 1024 // 8GB (6.25%)
@@ -98,7 +97,7 @@ class StateManagerTest {
     }
 
     @Test
-    fun `thermal state boundary at 40 degrees`() = runTest {
+    fun `thermal state boundary at 40 degrees`() {
         // Test boundary conditions
         stateManager.updateThermalState(39.9f)
         assertEquals(DeviceState.NORMAL, stateManager.deviceState.value)
