@@ -33,6 +33,9 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.androidx.core.ktx)
     
+    // Gson for serialization
+    implementation("com.google.code.gson:gson:2.10.1")
+    
     testImplementation(libs.junit)
     testImplementation(libs.androidx.junit)
     testImplementation(libs.mockk)

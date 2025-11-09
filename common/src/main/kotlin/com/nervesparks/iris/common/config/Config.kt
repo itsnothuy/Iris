@@ -51,7 +51,13 @@ enum class ThermalState {
     SEVERE,
     
     /** Critical thermal state, minimal operation */
-    CRITICAL
+    CRITICAL,
+    
+    /** Emergency thermal state - Android system level */
+    THERMAL_STATUS_EMERGENCY,
+    
+    /** Critical thermal status - Android system level */
+    THERMAL_STATUS_CRITICAL
 }
 
 /**
