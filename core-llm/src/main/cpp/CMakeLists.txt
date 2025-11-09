@@ -15,7 +15,7 @@ set(GGML_NATIVE OFF CACHE BOOL "Disable native optimizations")
 set(GGML_ACCELERATE OFF CACHE BOOL "Disable Accelerate framework")
 set(GGML_CPU_HBM OFF CACHE BOOL "Disable HBM support which uses -mcpu=native")
 set(GGML_CPU_ALL_VARIANTS OFF CACHE BOOL "Disable all CPU variants to avoid -mcpu=native")
-set(GGML_CPU_ARM_ARCH "armv8-a" CACHE STRING "Set ARM architecture explicitly for Android")
+set(GGML_OPENMP OFF CACHE BOOL "Disable OpenMP")
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static libraries")
 
 # Add llama.cpp subdirectory
