@@ -44,11 +44,16 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
     implementation(project(":common"))
     implementation(project(":core-hw"))
+    implementation(project(":core-safety"))
     
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
