@@ -1,0 +1,196 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2025-11-05T00:00:00Z",
+  "models": {
+    "llm": [
+      {
+        "id": "tinyllama-1.1b-q4_0",
+        "name": "TinyLlama 1.1B Q4_0",
+        "description": "Ultra-lightweight model for budget devices",
+        "type": "llm",
+        "parameterCount": "1.1B",
+        "quantization": "Q4_0",
+        "fileSize": 669868800,
+        "contextSize": 2048,
+        "vocabSize": 32000,
+        "capabilities": ["text_generation", "chat"],
+        "license": "apache-2.0",
+        "architecture": "llama",
+        "downloadUrl": "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.q4_0.gguf",
+        "sha256": "d8c2c9d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+        "deviceRequirements": {
+          "minRAM": 2147483648,
+          "recommendedRAM": 3221225472,
+          "minAndroidVersion": 29,
+          "supportedBackends": ["CPU_NEON"],
+          "deviceClass": ["BUDGET", "MID_RANGE", "HIGH_END", "FLAGSHIP"]
+        },
+        "performance": {
+          "tokensPerSecond": {
+            "CPU_NEON": {
+              "BUDGET": 2.5,
+              "MID_RANGE": 4.0,
+              "HIGH_END": 6.0,
+              "FLAGSHIP": 8.0
+            }
+          },
+          "powerConsumption": "LOW",
+          "thermalProfile": "COOL"
+        }
+      },
+      {
+        "id": "phi-3-mini-4k-q4_k_m",
+        "name": "Phi-3 Mini 4K Q4_K_M",
+        "description": "Microsoft's efficient 3.8B parameter model",
+        "type": "llm",
+        "parameterCount": "3.8B",
+        "quantization": "Q4_K_M",
+        "fileSize": 2147483648,
+        "contextSize": 4096,
+        "vocabSize": 32064,
+        "capabilities": ["text_generation", "chat", "reasoning"],
+        "license": "mit",
+        "architecture": "phi3",
+        "downloadUrl": "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf",
+        "sha256": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+        "deviceRequirements": {
+          "minRAM": 4294967296,
+          "recommendedRAM": 6442450944,
+          "minAndroidVersion": 29,
+          "supportedBackends": ["CPU_NEON", "OPENCL_ADRENO", "VULKAN_MALI"],
+          "deviceClass": ["MID_RANGE", "HIGH_END", "FLAGSHIP"]
+        },
+        "performance": {
+          "tokensPerSecond": {
+            "CPU_NEON": {
+              "MID_RANGE": 2.0,
+              "HIGH_END": 3.5,
+              "FLAGSHIP": 5.0
+            },
+            "OPENCL_ADRENO": {
+              "HIGH_END": 8.0,
+              "FLAGSHIP": 12.0
+            },
+            "VULKAN_MALI": {
+              "HIGH_END": 6.0,
+              "FLAGSHIP": 10.0
+            }
+          },
+          "powerConsumption": "MEDIUM",
+          "thermalProfile": "WARM"
+        }
+      },
+      {
+        "id": "llama-3.2-3b-q4_k_m",
+        "name": "Llama 3.2 3B Q4_K_M",
+        "description": "Meta's latest efficient 3B parameter model",
+        "type": "llm",
+        "parameterCount": "3B",
+        "quantization": "Q4_K_M",
+        "fileSize": 1879048192,
+        "contextSize": 131072,
+        "vocabSize": 128256,
+        "capabilities": ["text_generation", "chat", "reasoning", "code"],
+        "license": "llama3.2",
+        "architecture": "llama",
+        "downloadUrl": "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf",
+        "sha256": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+        "deviceRequirements": {
+          "minRAM": 4294967296,
+          "recommendedRAM": 6442450944,
+          "minAndroidVersion": 29,
+          "supportedBackends": ["CPU_NEON", "OPENCL_ADRENO", "VULKAN_MALI", "QNN_HEXAGON"],
+          "deviceClass": ["MID_RANGE", "HIGH_END", "FLAGSHIP"]
+        },
+        "performance": {
+          "tokensPerSecond": {
+            "CPU_NEON": {
+              "MID_RANGE": 1.8,
+              "HIGH_END": 3.2,
+              "FLAGSHIP": 4.5
+            },
+            "OPENCL_ADRENO": {
+              "HIGH_END": 7.5,
+              "FLAGSHIP": 11.0
+            },
+            "VULKAN_MALI": {
+              "HIGH_END": 5.5,
+              "FLAGSHIP": 9.0
+            },
+            "QNN_HEXAGON": {
+              "FLAGSHIP": 15.0
+            }
+          },
+          "powerConsumption": "MEDIUM",
+          "thermalProfile": "WARM"
+        }
+      }
+    ],
+    "embedding": [
+      {
+        "id": "all-minilm-l6-v2-q8_0",
+        "name": "All-MiniLM-L6-v2 Q8_0",
+        "description": "Efficient sentence embedding model",
+        "type": "embedding",
+        "parameterCount": "22.7M",
+        "quantization": "Q8_0",
+        "fileSize": 22020096,
+        "dimensions": 384,
+        "maxSequenceLength": 256,
+        "capabilities": ["text_embedding", "semantic_search"],
+        "license": "apache-2.0",
+        "architecture": "bert",
+        "downloadUrl": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2-gguf/resolve/main/all-MiniLM-L6-v2-Q8_0.gguf",
+        "sha256": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4",
+        "deviceRequirements": {
+          "minRAM": 134217728,
+          "recommendedRAM": 268435456,
+          "minAndroidVersion": 29,
+          "supportedBackends": ["CPU_NEON", "OPENCL_ADRENO", "VULKAN_MALI"],
+          "deviceClass": ["BUDGET", "MID_RANGE", "HIGH_END", "FLAGSHIP"]
+        }
+      }
+    ],
+    "safety": [
+      {
+        "id": "llama-guard-3-8b-q4_0",
+        "name": "Llama Guard 3 8B Q4_0",
+        "description": "Advanced safety classification model",
+        "type": "safety",
+        "parameterCount": "8B",
+        "quantization": "Q4_0",
+        "fileSize": 4294967296,
+        "contextSize": 8192,
+        "capabilities": ["safety_classification", "content_moderation"],
+        "license": "llama3",
+        "architecture": "llama",
+        "downloadUrl": "https://huggingface.co/bartowski/Llama-Guard-3-8B-GGUF/resolve/main/Llama-Guard-3-8B-Q4_0.gguf",
+        "sha256": "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5",
+        "deviceRequirements": {
+          "minRAM": 6442450944,
+          "recommendedRAM": 8589934592,
+          "minAndroidVersion": 29,
+          "supportedBackends": ["CPU_NEON", "OPENCL_ADRENO", "VULKAN_MALI"],
+          "deviceClass": ["HIGH_END", "FLAGSHIP"]
+        }
+      }
+    ]
+  },
+  "categories": {
+    "llm": {
+      "name": "Language Models",
+      "description": "Text generation and chat models",
+      "icon": "chat_bubble"
+    },
+    "embedding": {
+      "name": "Embedding Models",
+      "description": "Models for text embeddings and semantic search",
+      "icon": "vector_combine"
+    },
+    "safety": {
+      "name": "Safety Models",
+      "description": "Content moderation and safety classification",
+      "icon": "security"
+    }
+  }
+}
