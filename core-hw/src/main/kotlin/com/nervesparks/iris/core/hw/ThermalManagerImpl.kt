@@ -90,7 +90,9 @@ class ThermalManagerImpl @Inject constructor(
         
         // Fallback based on current thermal state
         return when (_thermalState.value) {
-            ThermalState.CRITICAL -> 55.0f
+            ThermalState.CRITICAL, 
+            ThermalState.THERMAL_STATUS_CRITICAL,
+            ThermalState.THERMAL_STATUS_EMERGENCY -> 55.0f
             ThermalState.SEVERE -> 50.0f
             ThermalState.MODERATE -> 45.0f
             ThermalState.LIGHT -> 40.0f
@@ -101,7 +103,11 @@ class ThermalManagerImpl @Inject constructor(
     override fun shouldThrottle(): Boolean {
         return when (_thermalState.value) {
             ThermalState.NORMAL, ThermalState.LIGHT -> false
-            ThermalState.MODERATE, ThermalState.SEVERE, ThermalState.CRITICAL -> true
+            ThermalState.MODERATE, 
+            ThermalState.SEVERE, 
+            ThermalState.CRITICAL,
+            ThermalState.THERMAL_STATUS_CRITICAL,
+            ThermalState.THERMAL_STATUS_EMERGENCY -> true
         }
     }
     
