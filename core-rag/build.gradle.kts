@@ -22,6 +22,12 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
@@ -36,4 +42,5 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.coroutines.test)
+    testImplementation("org.robolectric:robolectric:4.11.1")
 }
