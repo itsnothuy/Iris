@@ -2,9 +2,10 @@ package com.nervesparks.iris.core.multimodal
 
 import android.net.Uri
 import com.nervesparks.iris.core.multimodal.types.*
+import kotlinx.coroutines.flow.Flow
 
 /**
- * Registry for multimodal models with device compatibility assessment
+ * Registry for multimodal AI models supporting vision-language capabilities
  */
 interface MultimodalModelRegistry {
     /**
@@ -13,14 +14,12 @@ interface MultimodalModelRegistry {
     suspend fun getRecommendedModel(visionTask: VisionTask): Result<MultimodalModelDescriptor>
     
     /**
-     * Assess compatibility of a multimodal model with current device
+     * Assess compatibility of a model with current device
      */
-    suspend fun assessModelCompatibility(
-        model: MultimodalModelDescriptor
-    ): Result<MultimodalModelCompatibilityAssessment>
+    suspend fun assessModelCompatibility(model: MultimodalModelDescriptor): Result<MultimodalModelCompatibilityAssessment>
     
     /**
-     * Get list of available multimodal models
+     * Get all available models
      */
     suspend fun getAvailableModels(): Result<List<MultimodalModelDescriptor>>
     
@@ -31,34 +30,10 @@ interface MultimodalModelRegistry {
 }
 
 /**
- * Image preprocessing and validation
- */
-interface ImageProcessor {
-    /**
-     * Preprocess image for model inference
-     * @param uri Image URI
-     * @param targetSize Target size for resizing (maintaining aspect ratio)
-     * @param format Target image format
-     * @return Processed image data ready for inference
-     */
-    suspend fun preprocessImage(
-        uri: Uri,
-        targetSize: Int,
-        format: ImageFormat
-    ): Result<ProcessedImageData>
-    
-    /**
-     * Validate if image is supported
-     * @param uri Image URI
-     * @return true if image is valid and supported
-     */
-    suspend fun validateImage(uri: Uri): Result<Boolean>
-}
-
-/**
- * Vision processing engine for multimodal inference
+ * Vision processing engine for image understanding and analysis
  */
 interface VisionProcessingEngine {
+    
     /**
      * Load a vision-language model
      */
@@ -80,12 +55,82 @@ interface VisionProcessingEngine {
     suspend fun unloadVisionModel(): Result<Unit>
     
     /**
-     * Process an image with a text prompt
-     * Note: This is a simplified interface. Full streaming support would require
-     * Flow<VisionResult> but keeping it simple for now
+     * Analyze an image with a text prompt
+     */
+    suspend fun analyzeImage(
+        imageUri: Uri,
+        prompt: String,
+        model: MultimodalModelDescriptor,
+        parameters: VisionParameters
+    ): Result<VisionResult.AnalysisResult>
+    
+    /**
+     * Process an image with a text prompt (simplified interface)
      */
     suspend fun processImageWithPrompt(
         imageUri: Uri,
         prompt: String
     ): Result<String>
+    
+    /**
+     * Process screenshot data
+     */
+    suspend fun processScreenshot(
+        screenshotData: ByteArray,
+        prompt: String,
+        model: MultimodalModelDescriptor,
+        parameters: VisionParameters
+    ): Result<VisionResult.ScreenshotResult>
+    
+    /**
+     * Extract text from image using OCR
+     */
+    suspend fun extractTextFromImage(
+        imageUri: Uri,
+        model: MultimodalModelDescriptor,
+        parameters: VisionParameters
+    ): Result<VisionResult.OCRResult>
+    
+    /**
+     * Analyze document with specific type handling
+     */
+    suspend fun analyzeDocument(
+        imageUri: Uri,
+        documentType: DocumentType,
+        prompt: String,
+        model: MultimodalModelDescriptor,
+        parameters: VisionParameters
+    ): Result<VisionResult.DocumentResult>
+    
+    /**
+     * Stream vision analysis results
+     */
+    fun streamVisionAnalysis(
+        imageUri: Uri,
+        prompt: String,
+        model: MultimodalModelDescriptor,
+        parameters: VisionParameters
+    ): Flow<VisionResult.StreamResult>
+}
+
+/**
+ * Image processor for preparing images for vision models
+ */
+interface ImageProcessor {
+    
+    /**
+     * Preprocess image for vision models
+     */
+    suspend fun preprocessImage(
+        uri: Uri,
+        targetSize: Int,
+        format: ImageFormat
+    ): Result<ProcessedImageData>
+    
+    /**
+     * Validate image requirements
+     */
+    suspend fun validateImage(
+        uri: Uri
+    ): Result<Boolean>
 }

@@ -1,0 +1,49 @@
+name: GitHub Coding Agent
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  coding-agent:
+    if: contains(github.event.issue.labels.*.name, 'coding-agent')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for proper git operations
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'  # Ensure compatible Node version
+
+      - name: Remove stale git lock
+        run: |
+          if [ -f "${GITHUB_WORKSPACE}/.git/index.lock" ]; then
+            echo "Removing stale .git/index.lock"
+            rm -f "${GITHUB_WORKSPACE}/.git/index.lock"
+          fi
+
+      - name: Debug git state
+        run: |
+          echo "Git status:"
+          git status --porcelain || true
+          echo "Available branches:"
+          git branch -a || true
+          echo "Remote info:"
+          git remote show origin || true
+          echo "Current ref: ${{ github.sha }}"
+
+      - name: Run GitHub Coding Agent
+        run: |
+          # Set environment variables for the agent
+          export AGENT_CALLBACK_URL="${{ secrets.AGENT_CALLBACK_URL || '' }}"
+          export BASE_BRANCH="${{ github.base_ref || github.ref_name || 'main' }}"
+          export GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+          
+          # Run the coding agent (adjust path as needed)
+          npx @github/copilot-swe-agent || echo "Agent completed with warnings"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

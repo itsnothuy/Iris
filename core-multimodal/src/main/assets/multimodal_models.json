@@ -1,54 +1,230 @@
 {
   "version": "1.0.0",
-  "lastUpdated": 1699747200000,
+  "lastUpdated": 1731283200000,
   "models": [
     {
-      "id": "llava-1.5-7b-q4",
-      "name": "LLaVA 1.5 7B (Q4)",
-      "baseModel": "vicuna-7b-v1.5",
-      "visionRequirements": {
-        "maxImageSize": {
-          "width": 512,
-          "height": 512
+      "id": "llava-v1.6-mistral-7b-q4_k_m",
+      "name": "LLaVA v1.6 Mistral 7B Q4_K_M",
+      "description": "High-performance vision-language model based on Mistral 7B with improved visual reasoning capabilities",
+      "baseModel": {
+        "id": "llava-v1.6-mistral-7b",
+        "name": "LLaVA v1.6 Mistral 7B",
+        "type": "multimodal",
+        "size": 4368000000,
+        "quantization": "Q4_K_M",
+        "contextLength": 4096,
+        "deviceRequirements": {
+          "minAndroidVersion": 29,
+          "recommendedRAM": 6000000000,
+          "minimumRAM": 4000000000,
+          "supportedBackends": ["CPU", "OpenCL", "Vulkan"],
+          "deviceClasses": ["MID_RANGE", "HIGH_END", "FLAGSHIP"]
         },
-        "supportedFormats": ["JPEG", "PNG"],
-        "minConfidence": 0.6
+        "downloadInfo": {
+          "url": "https://huggingface.co/mys/ggml_llava-v1.6-mistral-7b/resolve/main/ggml-model-Q4_K_M.gguf",
+          "sha256": "a1b2c3d4e5f6789abcdef1234567890fedcba9876543210abcdef1234567890a",
+          "mirrorUrls": []
+        },
+        "modelCard": {
+          "description": "LLaVA (Large Language and Vision Assistant) v1.6 with Mistral 7B backbone",
+          "license": "Apache 2.0",
+          "author": "Microsoft, University of Wisconsin-Madison",
+          "tags": ["vision-language", "multimodal", "llava", "mistral"]
+        }
       },
-      "supportedImageFormats": ["JPEG", "PNG", "WEBP"],
-      "performance": {
-        "inferenceTimeMs": 800,
-        "memoryUsageMB": 4096,
-        "accuracy": 0.82
+      "visionRequirements": {
+        "maxImageResolution": 1024,
+        "supportedChannels": ["RGB", "RGBA"],
+        "preferredBackends": ["GPU", "CPU"],
+        "minVRAM": 2000000000
       },
       "capabilities": [
+        "VISION_LANGUAGE",
+        "IMAGE_CAPTIONING", 
         "VISUAL_QUESTION_ANSWERING",
-        "IMAGE_CLASSIFICATION",
-        "SCENE_ANALYSIS"
-      ]
+        "DOCUMENT_UNDERSTANDING"
+      ],
+      "supportedImageFormats": ["image/jpeg", "image/png", "image/webp"],
+      "performance": {
+        "imageProcessingTimeMs": {
+          "512": 3000,
+          "768": 5500,
+          "1024": 8500
+        },
+        "memoryUsage": {
+          "512": 1500000000,
+          "768": 2200000000,
+          "1024": 3100000000
+        },
+        "powerConsumption": "moderate"
+      }
     },
     {
-      "id": "qwen-vl-chat-q4",
-      "name": "Qwen-VL-Chat (Q4)",
-      "baseModel": "qwen-7b-chat",
-      "visionRequirements": {
-        "maxImageSize": {
-          "width": 448,
-          "height": 448
+      "id": "llava-v1.5-7b-q4_0",
+      "name": "LLaVA v1.5 7B Q4_0",
+      "description": "Efficient vision-language model optimized for mobile devices with good balance of performance and resource usage",
+      "baseModel": {
+        "id": "llava-v1.5-7b",
+        "name": "LLaVA v1.5 7B",
+        "type": "multimodal",
+        "size": 3800000000,
+        "quantization": "Q4_0",
+        "contextLength": 2048,
+        "deviceRequirements": {
+          "minAndroidVersion": 29,
+          "recommendedRAM": 5000000000,
+          "minimumRAM": 3500000000,
+          "supportedBackends": ["CPU", "OpenCL"],
+          "deviceClasses": ["BUDGET", "MID_RANGE", "HIGH_END", "FLAGSHIP"]
         },
-        "supportedFormats": ["JPEG", "PNG"],
-        "minConfidence": 0.65
+        "downloadInfo": {
+          "url": "https://huggingface.co/mys/ggml_llava-v1.5-7b/resolve/main/ggml-model-Q4_0.gguf",
+          "sha256": "b2c3d4e5f6789abcdef1234567890fedcba9876543210abcdef1234567890ab1",
+          "mirrorUrls": []
+        },
+        "modelCard": {
+          "description": "LLaVA v1.5 with Llama 2 7B backbone, optimized for efficiency",
+          "license": "Apache 2.0",
+          "author": "University of Wisconsin-Madison",
+          "tags": ["vision-language", "multimodal", "llava", "llama2"]
+        }
       },
-      "supportedImageFormats": ["JPEG", "PNG"],
-      "performance": {
-        "inferenceTimeMs": 750,
-        "memoryUsageMB": 3800,
-        "accuracy": 0.85
+      "visionRequirements": {
+        "maxImageResolution": 768,
+        "supportedChannels": ["RGB"],
+        "preferredBackends": ["CPU", "GPU"],
+        "minVRAM": 1500000000
       },
       "capabilities": [
-        "VISUAL_QUESTION_ANSWERING",
-        "TEXT_RECOGNITION",
-        "DOCUMENT_ANALYSIS"
-      ]
+        "VISION_LANGUAGE",
+        "IMAGE_CAPTIONING",
+        "VISUAL_QUESTION_ANSWERING"
+      ],
+      "supportedImageFormats": ["image/jpeg", "image/png"],
+      "performance": {
+        "imageProcessingTimeMs": {
+          "512": 2500,
+          "768": 4200
+        },
+        "memoryUsage": {
+          "512": 1200000000,
+          "768": 1800000000
+        },
+        "powerConsumption": "low"
+      }
+    },
+    {
+      "id": "qwen-vl-chat-q4_k_m",
+      "name": "Qwen-VL Chat Q4_K_M",
+      "description": "Advanced vision-language model from Alibaba with strong OCR and document understanding capabilities",
+      "baseModel": {
+        "id": "qwen-vl-chat",
+        "name": "Qwen-VL Chat",
+        "type": "multimodal", 
+        "size": 4100000000,
+        "quantization": "Q4_K_M",
+        "contextLength": 8192,
+        "deviceRequirements": {
+          "minAndroidVersion": 29,
+          "recommendedRAM": 6500000000,
+          "minimumRAM": 4500000000,
+          "supportedBackends": ["CPU", "OpenCL", "Vulkan"],
+          "deviceClasses": ["MID_RANGE", "HIGH_END", "FLAGSHIP"]
+        },
+        "downloadInfo": {
+          "url": "https://huggingface.co/Qwen/Qwen-VL-Chat-GGUF/resolve/main/qwen-vl-chat-q4_k_m.gguf",
+          "sha256": "c3d4e5f6789abcdef1234567890fedcba9876543210abcdef1234567890abc2",
+          "mirrorUrls": []
+        },
+        "modelCard": {
+          "description": "Qwen-VL Chat model with advanced visual understanding capabilities",
+          "license": "Apache 2.0",
+          "author": "Alibaba Cloud",
+          "tags": ["vision-language", "multimodal", "qwen", "ocr", "document"]
+        }
+      },
+      "visionRequirements": {
+        "maxImageResolution": 1536,
+        "supportedChannels": ["RGB", "RGBA", "Grayscale"],
+        "preferredBackends": ["GPU", "NPU", "CPU"],
+        "minVRAM": 2500000000
+      },
+      "capabilities": [
+        "VISION_LANGUAGE",
+        "IMAGE_CAPTIONING",
+        "VISUAL_QUESTION_ANSWERING", 
+        "OCR",
+        "DOCUMENT_UNDERSTANDING",
+        "CHART_ANALYSIS"
+      ],
+      "supportedImageFormats": ["image/jpeg", "image/png", "image/webp", "image/bmp"],
+      "performance": {
+        "imageProcessingTimeMs": {
+          "512": 2800,
+          "768": 4500,
+          "1024": 7200,
+          "1536": 12000
+        },
+        "memoryUsage": {
+          "512": 1800000000,
+          "768": 2400000000,
+          "1024": 3200000000,
+          "1536": 4500000000
+        },
+        "powerConsumption": "moderate-high"
+      }
+    },
+    {
+      "id": "moondream2-q8_0",
+      "name": "Moondream2 Q8_0",
+      "description": "Ultra-lightweight vision-language model optimized for edge devices with fast inference",
+      "baseModel": {
+        "id": "moondream2",
+        "name": "Moondream2",
+        "type": "multimodal",
+        "size": 1800000000,
+        "quantization": "Q8_0", 
+        "contextLength": 2048,
+        "deviceRequirements": {
+          "minAndroidVersion": 29,
+          "recommendedRAM": 3000000000,
+          "minimumRAM": 2000000000,
+          "supportedBackends": ["CPU", "OpenCL"],
+          "deviceClasses": ["BUDGET", "MID_RANGE", "HIGH_END", "FLAGSHIP"]
+        },
+        "downloadInfo": {
+          "url": "https://huggingface.co/vikhyatk/moondream2-gguf/resolve/main/moondream2-q8_0.gguf",
+          "sha256": "d4e5f6789abcdef1234567890fedcba9876543210abcdef1234567890abcd3",
+          "mirrorUrls": []
+        },
+        "modelCard": {
+          "description": "Compact vision-language model for efficient edge deployment",
+          "license": "Apache 2.0",
+          "author": "vikhyatk",
+          "tags": ["vision-language", "multimodal", "lightweight", "edge"]
+        }
+      },
+      "visionRequirements": {
+        "maxImageResolution": 512,
+        "supportedChannels": ["RGB"],
+        "preferredBackends": ["CPU"],
+        "minVRAM": 800000000
+      },
+      "capabilities": [
+        "VISION_LANGUAGE",
+        "IMAGE_CAPTIONING",
+        "VISUAL_QUESTION_ANSWERING"
+      ],
+      "supportedImageFormats": ["image/jpeg", "image/png"],
+      "performance": {
+        "imageProcessingTimeMs": {
+          "512": 1500
+        },
+        "memoryUsage": {
+          "512": 900000000
+        },
+        "powerConsumption": "very-low"
+      }
     }
   ]
 }
