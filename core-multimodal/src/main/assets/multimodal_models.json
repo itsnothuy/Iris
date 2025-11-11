@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": 1699747200000,
+  "models": [
+    {
+      "id": "llava-1.5-7b-q4",
+      "name": "LLaVA 1.5 7B (Q4)",
+      "baseModel": "vicuna-7b-v1.5",
+      "visionRequirements": {
+        "maxImageSize": {
+          "width": 512,
+          "height": 512
+        },
+        "supportedFormats": ["JPEG", "PNG"],
+        "minConfidence": 0.6
+      },
+      "supportedImageFormats": ["JPEG", "PNG", "WEBP"],
+      "performance": {
+        "inferenceTimeMs": 800,
+        "memoryUsageMB": 4096,
+        "accuracy": 0.82
+      },
+      "capabilities": [
+        "VISUAL_QUESTION_ANSWERING",
+        "IMAGE_CLASSIFICATION",
+        "SCENE_ANALYSIS"
+      ]
+    },
+    {
+      "id": "qwen-vl-chat-q4",
+      "name": "Qwen-VL-Chat (Q4)",
+      "baseModel": "qwen-7b-chat",
+      "visionRequirements": {
+        "maxImageSize": {
+          "width": 448,
+          "height": 448
+        },
+        "supportedFormats": ["JPEG", "PNG"],
+        "minConfidence": 0.65
+      },
+      "supportedImageFormats": ["JPEG", "PNG"],
+      "performance": {
+        "inferenceTimeMs": 750,
+        "memoryUsageMB": 3800,
+        "accuracy": 0.85
+      },
+      "capabilities": [
+        "VISUAL_QUESTION_ANSWERING",
+        "TEXT_RECOGNITION",
+        "DOCUMENT_ANALYSIS"
+      ]
+    }
+  ]
+}
