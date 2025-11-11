@@ -93,7 +93,8 @@ enum class HardwareCapability {
     NNAPI,
     QNN,
     FP16_SUPPORT,
-    INT8_SUPPORT
+    INT8_SUPPORT,
+    MICROPHONE
 }
 
 /**

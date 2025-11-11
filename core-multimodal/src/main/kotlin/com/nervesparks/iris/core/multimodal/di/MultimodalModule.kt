@@ -3,9 +3,15 @@ package com.nervesparks.iris.core.multimodal.di
 import com.nervesparks.iris.core.multimodal.ImageProcessor
 import com.nervesparks.iris.core.multimodal.MultimodalModelRegistry
 import com.nervesparks.iris.core.multimodal.VisionProcessingEngine
+import com.nervesparks.iris.core.multimodal.audio.AudioProcessorImpl
 import com.nervesparks.iris.core.multimodal.image.ImageProcessorImpl
 import com.nervesparks.iris.core.multimodal.registry.MultimodalModelRegistryImpl
 import com.nervesparks.iris.core.multimodal.vision.VisionProcessingEngineImpl
+import com.nervesparks.iris.core.multimodal.voice.AudioProcessor
+import com.nervesparks.iris.core.multimodal.voice.SpeechToTextEngine
+import com.nervesparks.iris.core.multimodal.voice.SpeechToTextEngineImpl
+import com.nervesparks.iris.core.multimodal.voice.TextToSpeechEngine
+import com.nervesparks.iris.core.multimodal.voice.TextToSpeechEngineImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -40,6 +46,24 @@ abstract class MultimodalModule {
     abstract fun bindVisionProcessingEngine(
         impl: VisionProcessingEngineImpl
     ): VisionProcessingEngine
+    
+    @Binds
+    @Singleton
+    abstract fun bindAudioProcessor(
+        impl: AudioProcessorImpl
+    ): AudioProcessor
+    
+    @Binds
+    @Singleton
+    abstract fun bindSpeechToTextEngine(
+        impl: SpeechToTextEngineImpl
+    ): SpeechToTextEngine
+    
+    @Binds
+    @Singleton
+    abstract fun bindTextToSpeechEngine(
+        impl: TextToSpeechEngineImpl
+    ): TextToSpeechEngine
 }
 
 /**
