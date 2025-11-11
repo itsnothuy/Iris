@@ -62,17 +62,23 @@ class TextToSpeechEngineImpl @Inject constructor(
                     return@withContext Result.failure(error)
                 }
                 
-                // TODO: Load model through native engine
-                // For now, we'll simulate model loading
+                // Load TTS model (placeholder implementation for on-device synthesis)
+                // Production: This would load Piper or similar native TTS engine
+                // For now, validate model file and store configuration
                 val modelPath = getModelPath(model)
                 val modelFile = File(modelPath)
                 
                 if (!modelFile.exists()) {
-                    Log.w(TAG, "Model file not found at: $modelPath")
-                    // Continue anyway for development - in production this would fail
+                    Log.w(TAG, "Model file not found at: $modelPath, using mock mode")
+                    // In development, continue with mock mode
+                    // In production with native engine: return Result.failure(VoiceException("Model file not found"))
                 }
                 
-                // Simulate model loading
+                // Select optimal backend for this device
+                val selectedBackend = selectOptimalTTSBackend(model)
+                Log.i(TAG, "Selected TTS backend: $selectedBackend for device capabilities")
+                
+                // Store model configuration for synthesis
                 currentTTSModel = model
                 isTTSModelLoaded = true
                 
@@ -104,12 +110,28 @@ class TextToSpeechEngineImpl @Inject constructor(
         }
         
         try {
-            // TODO: Synthesize through native engine
-            // For now, generate simple tone as placeholder
-            val sampleRate = currentTTSModel!!.audioFormat.sampleRate
-            val duration = text.length * 0.05 // ~50ms per character
-            val samples = generatePlaceholderAudio(duration.toFloat(), sampleRate)
+            // Synthesize speech from text
+            // Production: This would use Piper native synthesis engine
+            // Current: Mock implementation with realistic audio generation
             
+            val sampleRate = currentTTSModel!!.audioFormat.sampleRate
+            
+            // Estimate duration based on text length and speaking rate
+            // Average speaking rate: ~150 words per minute = ~2.5 words per second
+            // Average word length: ~5 characters, so ~12.5 characters per second
+            val baseDuration = text.length * 0.08f // ~80ms per character
+            val adjustedDuration = baseDuration / parameters.speakingRate
+            
+            // Generate audio with characteristics matching the parameters
+            val samples = generateSpeechAudio(
+                text = text,
+                duration = adjustedDuration,
+                sampleRate = sampleRate,
+                pitch = parameters.pitch,
+                volume = parameters.volume
+            )
+            
+            Log.d(TAG, "Synthesized ${samples.size} samples for ${text.length} characters")
             Result.success(AudioData.Chunk(samples, System.currentTimeMillis()))
             
         } catch (e: Exception) {
@@ -132,16 +154,30 @@ class TextToSpeechEngineImpl @Inject constructor(
         }
         
         try {
-            // Split text into chunks for streaming
+            // Split text into chunks for streaming synthesis
             val chunks = text.chunked(CHUNK_SIZE)
             
-            chunks.forEach { chunk ->
-                // TODO: Process chunk through native engine
-                // For now, generate placeholder audio
-                val sampleRate = currentTTSModel!!.audioFormat.sampleRate
-                val duration = chunk.length * 0.05f
-                val samples = generatePlaceholderAudio(duration, sampleRate)
+            chunks.forEachIndexed { index, chunk ->
+                // Process each chunk through synthesis engine
+                // Production: This would use Piper streaming synthesis
+                // Current: Mock implementation with realistic audio
                 
+                val sampleRate = currentTTSModel!!.audioFormat.sampleRate
+                
+                // Estimate duration for this chunk
+                val baseDuration = chunk.length * 0.08f
+                val adjustedDuration = baseDuration / parameters.speakingRate
+                
+                // Generate audio for this chunk
+                val samples = generateSpeechAudio(
+                    text = chunk,
+                    duration = adjustedDuration,
+                    sampleRate = sampleRate,
+                    pitch = parameters.pitch,
+                    volume = parameters.volume
+                )
+                
+                Log.v(TAG, "Streaming chunk $index: ${chunk.length} chars -> ${samples.size} samples")
                 emit(AudioChunk(samples, sampleRate, System.currentTimeMillis()))
             }
             
@@ -225,11 +261,17 @@ class TextToSpeechEngineImpl @Inject constructor(
     override suspend fun pause(): Boolean {
         return try {
             if (isSpeaking && !isPaused) {
-                // TODO: Implement pause functionality
+                // Pause speech playback
+                // Production: This would pause the AudioTrack or native playback
+                // Current: Set paused state and emit event
+                
                 isPaused = true
-                Log.d(TAG, "Speech paused")
+                eventBus.emit(IrisEvent.TTSSpeechPaused)
+                
+                Log.d(TAG, "Speech paused (session: ${currentSpeechSession?.sessionId})")
                 true
             } else {
+                Log.w(TAG, "Cannot pause: isSpeaking=$isSpeaking, isPaused=$isPaused")
                 false
             }
         } catch (e: Exception) {
@@ -241,11 +283,17 @@ class TextToSpeechEngineImpl @Inject constructor(
     override suspend fun resume(): Boolean {
         return try {
             if (isSpeaking && isPaused) {
-                // TODO: Implement resume functionality
+                // Resume speech playback
+                // Production: This would resume the AudioTrack or native playback
+                // Current: Clear paused state and emit event
+                
                 isPaused = false
-                Log.d(TAG, "Speech resumed")
+                eventBus.emit(IrisEvent.TTSSpeechResumed)
+                
+                Log.d(TAG, "Speech resumed (session: ${currentSpeechSession?.sessionId})")
                 true
             } else {
+                Log.w(TAG, "Cannot resume: isSpeaking=$isSpeaking, isPaused=$isPaused")
                 false
             }
         } catch (e: Exception) {
@@ -306,12 +354,38 @@ class TextToSpeechEngineImpl @Inject constructor(
     }
     
     private fun generatePlaceholderAudio(duration: Float, sampleRate: Int): FloatArray {
-        // Generate a simple sine wave as placeholder audio
-        val numSamples = (duration * sampleRate).toInt()
-        val frequency = 440.0 // A4 note
+        // Legacy method - kept for backward compatibility
+        return generateSpeechAudio("", duration, sampleRate, 1.0f, 1.0f)
+    }
+    
+    private fun generateSpeechAudio(
+        text: String,
+        duration: Float,
+        sampleRate: Int,
+        pitch: Float,
+        volume: Float
+    ): FloatArray {
+        // Generate realistic speech-like audio
+        // Production: This would be replaced by Piper native synthesis
+        // Current: Generate multi-frequency audio simulating speech formants
+        
+        val numSamples = (duration * sampleRate).toInt().coerceAtLeast(1)
+        val baseFrequency = 200.0 * pitch // Fundamental frequency (F0)
         
         return FloatArray(numSamples) { index ->
-            (sin(2.0 * Math.PI * frequency * index / sampleRate) * 0.3).toFloat()
+            val time = index.toDouble() / sampleRate
+            
+            // Simulate speech formants (F1, F2, F3)
+            val f1 = 0.4 * sin(2.0 * Math.PI * baseFrequency * time) // Fundamental
+            val f2 = 0.25 * sin(2.0 * Math.PI * (baseFrequency * 2.5) * time) // First harmonic
+            val f3 = 0.15 * sin(2.0 * Math.PI * (baseFrequency * 4.0) * time) // Second harmonic
+            
+            // Add amplitude envelope for naturalness
+            val envelopeFreq = 3.0 // Syllable rate
+            val envelope = 0.5 + 0.5 * sin(2.0 * Math.PI * envelopeFreq * time)
+            
+            // Combine formants with envelope and volume
+            ((f1 + f2 + f3) * envelope * volume * 0.3).toFloat()
         }
     }
     
