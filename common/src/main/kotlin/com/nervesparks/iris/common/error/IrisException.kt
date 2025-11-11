@@ -63,3 +63,11 @@ class ToolException(
     message: String,
     cause: Throwable? = null
 ) : IrisException(message, cause)
+
+/**
+ * Exception thrown when voice processing operations fail
+ */
+class VoiceException(
+    message: String,
+    cause: Throwable? = null
+) : IrisException(message, cause)

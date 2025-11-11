@@ -34,6 +34,24 @@ sealed class IrisEvent {
     /** RAG index updated */
     data class RAGIndexUpdated(val documentCount: Int) : IrisEvent()
     
+    /** STT model load started */
+    data class STTModelLoadStarted(val modelId: String) : IrisEvent()
+    
+    /** STT model load completed */
+    data class STTModelLoadCompleted(val modelId: String) : IrisEvent()
+    
+    /** STT model load failed */
+    data class STTModelLoadFailed(val modelId: String, val reason: String) : IrisEvent()
+    
+    /** TTS model load started */
+    data class TTSModelLoadStarted(val modelId: String) : IrisEvent()
+    
+    /** TTS model load completed */
+    data class TTSModelLoadCompleted(val modelId: String) : IrisEvent()
+    
+    /** TTS model load failed */
+    data class TTSModelLoadFailed(val modelId: String, val reason: String) : IrisEvent()
+    
     /** Error occurred in a component */
     data class ErrorOccurred(val error: com.nervesparks.iris.common.error.IrisException, val component: String) : IrisEvent()
 }
