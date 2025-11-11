@@ -379,14 +379,45 @@ class SpeechToTextEngineImpl @Inject constructor(
     private suspend fun performVAD(audioSamples: FloatArray): VADResult {
         return withContext(Dispatchers.Default) {
             try {
-                // Calculate RMS energy
+                // Enhanced Voice Activity Detection using multiple features
+                // Production: Could use WebRTC VAD or Silero VAD for better accuracy
+                
+                // Feature 1: RMS Energy
                 val rms = sqrt(audioSamples.map { it * it }.average().toFloat())
                 val energyDb = 20 * log10(rms + 1e-8f)
                 
-                // Simple energy-based VAD
+                // Feature 2: Zero Crossing Rate (ZCR)
+                var zeroCrossings = 0
+                for (i in 1 until audioSamples.size) {
+                    if ((audioSamples[i] >= 0 && audioSamples[i - 1] < 0) ||
+                        (audioSamples[i] < 0 && audioSamples[i - 1] >= 0)) {
+                        zeroCrossings++
+                    }
+                }
+                val zcr = zeroCrossings.toFloat() / audioSamples.size
+                
+                // Feature 3: Spectral Centroid (simplified estimation)
+                val spectralCentroid = calculateSimpleSpectralCentroid(audioSamples)
+                
+                // Decision logic combining multiple features
+                val isSpeech = when {
+                    // High energy and moderate ZCR indicates speech
+                    energyDb > SILENCE_THRESHOLD_DB + 10 && 
+                    zcr > 0.02f && zcr < 0.3f &&
+                    spectralCentroid > 200f -> true
+                    
+                    // Medium energy with good spectral characteristics
+                    energyDb > SILENCE_THRESHOLD_DB + 5 &&
+                    spectralCentroid > 300f -> true
+                    
+                    else -> false
+                }
+                
+                val isNoise = !isSpeech && energyDb > SILENCE_THRESHOLD_DB
+                
                 when {
-                    energyDb > SILENCE_THRESHOLD_DB + 10 -> VADResult.SPEECH
-                    energyDb > SILENCE_THRESHOLD_DB -> VADResult.NOISE
+                    isSpeech -> VADResult.SPEECH
+                    isNoise -> VADResult.NOISE
                     else -> VADResult.SILENCE
                 }
             } catch (e: Exception) {
@@ -394,6 +425,42 @@ class SpeechToTextEngineImpl @Inject constructor(
                 VADResult.NOISE
             }
         }
+    }
+    
+    /**
+     * Calculate a simplified spectral centroid
+     * Returns estimated center frequency of the signal
+     */
+    private fun calculateSimpleSpectralCentroid(samples: FloatArray): Float {
+        if (samples.isEmpty()) return 0f
+        
+        // Simple frequency estimation using zero-crossings in windows
+        val windowSize = 100
+        var totalCentroid = 0f
+        var windowCount = 0
+        
+        for (i in 0 until samples.size - windowSize step windowSize / 2) {
+            val window = samples.sliceArray(i until minOf(i + windowSize, samples.size))
+            val windowEnergy = sqrt(window.map { it * it }.average().toFloat())
+            
+            if (windowEnergy > 0.01f) {
+                // Count zero crossings in this window
+                var zc = 0
+                for (j in 1 until window.size) {
+                    if ((window[j] >= 0 && window[j - 1] < 0) ||
+                        (window[j] < 0 && window[j - 1] >= 0)) {
+                        zc++
+                    }
+                }
+                
+                // Estimate frequency from zero-crossings
+                val estimatedFreq = (zc * DEFAULT_SAMPLE_RATE.toFloat()) / (2 * window.size)
+                totalCentroid += estimatedFreq * windowEnergy
+                windowCount++
+            }
+        }
+        
+        return if (windowCount > 0) totalCentroid / windowCount else 0f
     }
     
     private suspend fun processAudioChunk(
