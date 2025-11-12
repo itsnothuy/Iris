@@ -40,6 +40,20 @@ class TextToSpeechEngineImpl @Inject constructor(
         private const val DEFAULT_SPEAKING_RATE = 1.0f
         private const val MAX_TEXT_LENGTH = 5000
         private const val CHUNK_SIZE = 500 // characters
+        
+        // Native library loading - only loads if library exists
+        private var nativeLibraryLoaded = false
+        
+        init {
+            try {
+                System.loadLibrary("iris_multimodal")
+                nativeLibraryLoaded = true
+                Log.i(TAG, "Native multimodal library loaded successfully")
+            } catch (e: UnsatisfiedLinkError) {
+                Log.w(TAG, "Native multimodal library not available, using mock mode", e)
+                nativeLibraryLoaded = false
+            }
+        }
     }
     
     private var currentTTSModel: TTSModelDescriptor? = null
@@ -399,4 +413,32 @@ class TextToSpeechEngineImpl @Inject constructor(
             "${model.id}.bin"
         ).absolutePath
     }
+    
+    // =========================================================================
+    // Native Method Declarations (JNI Bridge)
+    // =========================================================================
+    // These methods are implemented in native C++ code (piper_android.cpp)
+    // They will only be called if nativeLibraryLoaded is true
+    
+    /**
+     * Load a Piper TTS voice model into native memory
+     * @param modelPath Path to the ONNX model file
+     * @param configPath Path to the model config JSON file
+     * @return Native voice pointer (0 if failed)
+     */
+    private external fun nativeLoadPiperModel(modelPath: String, configPath: String): Long
+    
+    /**
+     * Synthesize speech from text using the loaded Piper model
+     * @param voicePtr Native voice pointer from nativeLoadPiperModel
+     * @param text Text to synthesize
+     * @return Audio samples as float array or null if failed
+     */
+    private external fun nativeSynthesizeSpeech(voicePtr: Long, text: String): FloatArray?
+    
+    /**
+     * Unload a Piper voice model and free native memory
+     * @param voicePtr Native voice pointer from nativeLoadPiperModel
+     */
+    private external fun nativeUnloadPiperModel(voicePtr: Long)
 }

@@ -37,6 +37,20 @@ class VisionProcessingEngineImpl @Inject constructor(
         private const val TAG = "VisionProcessingEngine"
         private const val VISION_MODEL_CACHE_SIZE = 2
         private const val DEFAULT_TIMEOUT_MS = 30_000L
+        
+        // Native library loading - only loads if library exists
+        private var nativeLibraryLoaded = false
+        
+        init {
+            try {
+                System.loadLibrary("iris_multimodal")
+                nativeLibraryLoaded = true
+                Log.i(TAG, "Native multimodal library loaded successfully")
+            } catch (e: UnsatisfiedLinkError) {
+                Log.w(TAG, "Native multimodal library not available, using mock mode", e)
+                nativeLibraryLoaded = false
+            }
+        }
     }
     
     private val loadedModels = ConcurrentHashMap<String, VisionModelState>()
@@ -199,4 +213,33 @@ class VisionProcessingEngineImpl @Inject constructor(
         val isLoaded: Boolean,
         val loadTimestamp: Long
     )
+    
+    // =========================================================================
+    // Native Method Declarations (JNI Bridge)
+    // =========================================================================
+    // These methods are implemented in native C++ code (llava_android.cpp)
+    // They will only be called if nativeLibraryLoaded is true
+    
+    /**
+     * Load a vision model into native memory
+     * @param modelPath Path to the GGUF model file
+     * @param mmprojPath Path to the multimodal projector file
+     * @return Native context pointer (0 if failed)
+     */
+    private external fun nativeLoadVisionModel(modelPath: String, mmprojPath: String): Long
+    
+    /**
+     * Process an image with the loaded vision model
+     * @param contextPtr Native context pointer from nativeLoadVisionModel
+     * @param imageData Raw image bytes (JPEG/PNG)
+     * @param prompt Text prompt for vision-language inference
+     * @return Generated description or null if failed
+     */
+    private external fun nativeProcessImage(contextPtr: Long, imageData: ByteArray, prompt: String): String?
+    
+    /**
+     * Unload a vision model and free native memory
+     * @param contextPtr Native context pointer from nativeLoadVisionModel
+     */
+    private external fun nativeUnloadVisionModel(contextPtr: Long)
 }

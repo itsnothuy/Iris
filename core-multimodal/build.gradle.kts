@@ -10,11 +10,31 @@ plugins {
 android {
     namespace = "com.nervesparks.iris.core.multimodal"
     compileSdk = 35
+    
+    // NDK version for native builds (when native integration is enabled)
+    // ndkVersion = "27.0.12077973"
 
     defaultConfig {
         minSdk = 28
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+        
+        // Native build configuration (commented out until submodules are added)
+        // externalNativeBuild {
+        //     cmake {
+        //         cppFlags += listOf("-std=c++17", "-fexceptions", "-frtti")
+        //         arguments += listOf(
+        //             "-DANDROID_STL=c++_shared",
+        //             "-DGGML_USE_CPU=ON",
+        //             "-DGGML_USE_LLAMAFILE=OFF"
+        //         )
+        //     }
+        // }
+        
+        // Target architectures for native libraries
+        // ndk {
+        //     abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        // }
     }
 
     buildTypes {
@@ -43,6 +63,14 @@ android {
         unitTests.isReturnDefaultValues = true
         unitTests.isIncludeAndroidResources = true
     }
+    
+    // CMake configuration for native builds (commented out until ready)
+    // externalNativeBuild {
+    //     cmake {
+    //         path = file("src/main/cpp/CMakeLists.txt")
+    //         version = "3.22.1"
+    //     }
+    // }
 }
 
 dependencies {
@@ -76,4 +104,15 @@ dependencies {
     
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+// KAPT configuration for stable Hilt compilation
+kapt {
+    correctErrorTypes = true
+    useBuildCache = true
+    
+    arguments {
+        arg("dagger.hilt.shareTestComponents", "true")
+        arg("dagger.hilt.disableModulesHaveInstallInCheck", "true")
+    }
 }
