@@ -1,8 +1,6 @@
 package com.nervesparks.iris.data.export
 
 import com.nervesparks.iris.data.Conversation
-import com.nervesparks.iris.data.Message
-import com.nervesparks.iris.data.MessageRole
 import com.nervesparks.iris.data.repository.ConversationRepository
 import com.nervesparks.iris.data.repository.MessageRepository
 import kotlinx.coroutines.test.runTest
@@ -108,7 +106,7 @@ class ImportServiceTest {
             id = "existing-id",
             title = "Existing",
             createdAt = Instant.now(),
-            lastModified = Instant.now()
+            lastModified = Instant.now(),
         )
         whenever(mockConversationRepository.getConversationById("existing-id"))
             .thenReturn(existingConversation)

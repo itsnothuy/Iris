@@ -1,7 +1,6 @@
 package com.nervesparks.iris.data.export
 
 import com.nervesparks.iris.data.Conversation
-import com.nervesparks.iris.data.Message
 import com.nervesparks.iris.data.MessageRole
 import com.nervesparks.iris.data.repository.ConversationRepository
 import com.nervesparks.iris.data.repository.MessageRepository
@@ -21,13 +20,13 @@ import java.time.format.DateTimeFormatter
  */
 class ExportService(
     private val conversationRepository: ConversationRepository,
-    private val messageRepository: MessageRepository
+    private val messageRepository: MessageRepository,
 ) {
-    
+
     private val dateFormatter = DateTimeFormatter
         .ofPattern("yyyy-MM-dd HH:mm:ss")
         .withZone(ZoneId.systemDefault())
-    
+
     /**
      * Export all conversations to the specified format.
      *
@@ -37,21 +36,21 @@ class ExportService(
      */
     suspend fun exportAllConversations(
         exportDir: File,
-        format: ExportFormat
+        format: ExportFormat,
     ): ExportResult {
         return try {
             val conversations = conversationRepository.getAllConversationsIncludingArchived()
             var allConversations: List<Conversation> = emptyList()
-            
+
             // Collect all conversations from the Flow
             conversations.collect { allConversations = it }
-            
-            exportConversations(allConversations, exportDir, format)
+
+            exportConversationsList(allConversations, exportDir, format)
         } catch (e: Exception) {
             ExportResult(success = false, error = e.message ?: "Unknown error during export")
         }
     }
-    
+
     /**
      * Export specific conversations to the specified format.
      *
@@ -63,18 +62,18 @@ class ExportService(
     suspend fun exportConversations(
         conversationIds: List<String>,
         exportDir: File,
-        format: ExportFormat
+        format: ExportFormat,
     ): ExportResult {
         return try {
             val conversations = conversationIds.mapNotNull { id ->
                 conversationRepository.getConversationById(id)
             }
-            exportConversations(conversations, exportDir, format)
+            exportConversationsList(conversations, exportDir, format)
         } catch (e: Exception) {
             ExportResult(success = false, error = e.message ?: "Unknown error during export")
         }
     }
-    
+
     /**
      * Export conversations in date range.
      *
@@ -88,24 +87,24 @@ class ExportService(
         startDate: Instant,
         endDate: Instant,
         exportDir: File,
-        format: ExportFormat
+        format: ExportFormat,
     ): ExportResult {
         return try {
             val conversations = conversationRepository.getAllConversationsIncludingArchived()
             var filteredConversations: List<Conversation> = emptyList()
-            
+
             conversations.collect { allConversations ->
                 filteredConversations = allConversations.filter { conversation ->
                     !conversation.createdAt.isBefore(startDate) && !conversation.createdAt.isAfter(endDate)
                 }
             }
-            
-            exportConversations(filteredConversations, exportDir, format)
+
+            exportConversationsList(filteredConversations, exportDir, format)
         } catch (e: Exception) {
             ExportResult(success = false, error = e.message ?: "Unknown error during export")
         }
     }
-    
+
     /**
      * Export conversations with progress reporting.
      *
@@ -117,54 +116,60 @@ class ExportService(
     fun exportConversationsWithProgress(
         conversationIds: List<String>,
         exportDir: File,
-        format: ExportFormat
+        format: ExportFormat,
     ): Flow<Any> = flow {
         emit(ExportProgress(0, conversationIds.size, "Starting export..."))
-        
+
         val conversations = mutableListOf<Conversation>()
         conversationIds.forEachIndexed { index, id ->
             val conversation = conversationRepository.getConversationById(id)
             conversation?.let { conversations.add(it) }
-            emit(ExportProgress(index + 1, conversationIds.size, "Loading conversation ${index + 1}/${conversationIds.size}"))
+            emit(
+                ExportProgress(
+                    index + 1,
+                    conversationIds.size,
+                    "Loading conversation ${index + 1}/${conversationIds.size}",
+                ),
+            )
         }
-        
+
         emit(ExportProgress(conversationIds.size, conversationIds.size, "Generating export file..."))
-        val result = exportConversations(conversations, exportDir, format)
+        val result = exportConversationsList(conversations, exportDir, format)
         emit(result)
     }
-    
+
     /**
      * Internal method to export a list of conversations.
      */
-    private suspend fun exportConversations(
+    private suspend fun exportConversationsList(
         conversations: List<Conversation>,
         exportDir: File,
-        format: ExportFormat
+        format: ExportFormat,
     ): ExportResult {
         if (!exportDir.exists()) {
             exportDir.mkdirs()
         }
-        
+
         val timestamp = Instant.now().toEpochMilli()
-        val fileName = "iris_export_${timestamp}.${format.getFileExtension()}"
+        val fileName = "iris_export_$timestamp.${format.getFileExtension()}"
         val file = File(exportDir, fileName)
-        
+
         val content = when (format) {
             ExportFormat.JSON -> exportToJson(conversations)
             ExportFormat.MARKDOWN -> exportToMarkdown(conversations)
             ExportFormat.PLAIN_TEXT -> exportToPlainText(conversations)
         }
-        
+
         file.writeText(content)
         val checksum = calculateChecksum(file)
-        
+
         return ExportResult(
             success = true,
             filePath = file.absolutePath,
-            checksum = checksum
+            checksum = checksum,
         )
     }
-    
+
     /**
      * Export conversations to JSON format.
      */
@@ -173,7 +178,7 @@ class ExportService(
         root.put("version", "1.0")
         root.put("exportedAt", Instant.now().toString())
         root.put("conversationCount", conversations.size)
-        
+
         val conversationsArray = JSONArray()
         for (conversation in conversations) {
             val conversationObj = JSONObject()
@@ -184,7 +189,7 @@ class ExportService(
             conversationObj.put("messageCount", conversation.messageCount)
             conversationObj.put("isPinned", conversation.isPinned)
             conversationObj.put("isArchived", conversation.isArchived)
-            
+
             val messages = messageRepository.getMessagesForConversationList(conversation.id)
             val messagesArray = JSONArray()
             for (message in messages) {
@@ -200,11 +205,11 @@ class ExportService(
             conversationObj.put("messages", messagesArray)
             conversationsArray.put(conversationObj)
         }
-        
+
         root.put("conversations", conversationsArray)
         return root.toString(2)
     }
-    
+
     /**
      * Export conversations to Markdown format.
      */
@@ -217,7 +222,7 @@ class ExportService(
         builder.appendLine()
         builder.appendLine("---")
         builder.appendLine()
-        
+
         for (conversation in conversations) {
             builder.appendLine("## ${conversation.title}")
             builder.appendLine()
@@ -227,7 +232,7 @@ class ExportService(
             if (conversation.isPinned) builder.appendLine("- **Pinned**: Yes")
             if (conversation.isArchived) builder.appendLine("- **Archived**: Yes")
             builder.appendLine()
-            
+
             val messages = messageRepository.getMessagesForConversationList(conversation.id)
             for (message in messages) {
                 val roleLabel = when (message.role) {
@@ -240,7 +245,7 @@ class ExportService(
                 builder.appendLine()
                 builder.appendLine(message.content)
                 builder.appendLine()
-                message.processingTimeMs?.let { 
+                message.processingTimeMs?.let {
                     builder.appendLine("*Processing time: ${it}ms*")
                 }
                 message.tokenCount?.let {
@@ -248,26 +253,26 @@ class ExportService(
                 }
                 builder.appendLine()
             }
-            
+
             builder.appendLine("---")
             builder.appendLine()
         }
-        
+
         return builder.toString()
     }
-    
+
     /**
      * Export conversations to plain text format.
      */
     private suspend fun exportToPlainText(conversations: List<Conversation>): String {
         val builder = StringBuilder()
         builder.appendLine("IRIS CONVERSATIONS EXPORT")
-        builder.appendLine("=" .repeat(80))
+        builder.appendLine("=".repeat(80))
         builder.appendLine()
         builder.appendLine("Exported: ${dateFormatter.format(Instant.now())}")
         builder.appendLine("Total Conversations: ${conversations.size}")
         builder.appendLine()
-        
+
         for (conversation in conversations) {
             builder.appendLine("-".repeat(80))
             builder.appendLine("Conversation: ${conversation.title}")
@@ -276,7 +281,7 @@ class ExportService(
             builder.appendLine("Messages: ${conversation.messageCount}")
             builder.appendLine("-".repeat(80))
             builder.appendLine()
-            
+
             val messages = messageRepository.getMessagesForConversationList(conversation.id)
             for (message in messages) {
                 val roleLabel = when (message.role) {
@@ -288,13 +293,13 @@ class ExportService(
                 builder.appendLine(message.content)
                 builder.appendLine()
             }
-            
+
             builder.appendLine()
         }
-        
+
         return builder.toString()
     }
-    
+
     /**
      * Calculate SHA-256 checksum for a file.
      */
@@ -304,7 +309,7 @@ class ExportService(
         val hash = digest.digest(bytes)
         return hash.joinToString("") { "%02x".format(it) }
     }
-    
+
     /**
      * Get file extension for export format.
      */

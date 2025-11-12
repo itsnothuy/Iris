@@ -27,16 +27,16 @@ class SettingsSelectorTest {
                 options = listOf(
                     ThemePreference.LIGHT to "Light",
                     ThemePreference.DARK to "Dark",
-                    ThemePreference.SYSTEM to "System"
+                    ThemePreference.SYSTEM to "System",
                 ),
                 selectedOption = ThemePreference.SYSTEM,
-                onOptionSelected = {}
+                onOptionSelected = {},
             )
         }
 
         // Verify label is displayed
         composeTestRule.onNodeWithText("Theme").assertExists()
-        
+
         // Verify all theme options are displayed
         composeTestRule.onNodeWithText("Light").assertExists()
         composeTestRule.onNodeWithText("Dark").assertExists()
@@ -51,10 +51,10 @@ class SettingsSelectorTest {
                 options = listOf(
                     ThemePreference.LIGHT to "Light",
                     ThemePreference.DARK to "Dark",
-                    ThemePreference.SYSTEM to "System"
+                    ThemePreference.SYSTEM to "System",
                 ),
                 selectedOption = ThemePreference.DARK,
-                onOptionSelected = {}
+                onOptionSelected = {},
             )
         }
 
@@ -72,10 +72,10 @@ class SettingsSelectorTest {
                 options = listOf(
                     ThemePreference.LIGHT to "Light",
                     ThemePreference.DARK to "Dark",
-                    ThemePreference.SYSTEM to "System"
+                    ThemePreference.SYSTEM to "System",
                 ),
                 selectedOption = ThemePreference.SYSTEM,
-                onOptionSelected = { selectedTheme = it }
+                onOptionSelected = { selectedTheme = it },
             )
         }
 
@@ -97,13 +97,13 @@ class SettingsSelectorTest {
                 options = listOf(
                     ThemePreference.LIGHT to "Light",
                     ThemePreference.DARK to "Dark",
-                    ThemePreference.SYSTEM to "System"
+                    ThemePreference.SYSTEM to "System",
                 ),
                 selectedOption = ThemePreference.SYSTEM,
-                onOptionSelected = { 
+                onOptionSelected = {
                     lastSelectedTheme = it
                     clickCount++
-                }
+                },
             )
         }
 
@@ -124,16 +124,16 @@ class SettingsSelectorTest {
                 label = "Language",
                 options = listOf(
                     LanguagePreference.ENGLISH to "English",
-                    LanguagePreference.SPANISH to "Español"
+                    LanguagePreference.SPANISH to "Español",
                 ),
                 selectedOption = LanguagePreference.ENGLISH,
-                onOptionSelected = {}
+                onOptionSelected = {},
             )
         }
 
         // Verify label is displayed
         composeTestRule.onNodeWithText("Language").assertExists()
-        
+
         // Verify language options are displayed
         composeTestRule.onNodeWithText("English").assertExists()
         composeTestRule.onNodeWithText("Español").assertExists()
@@ -148,10 +148,10 @@ class SettingsSelectorTest {
                 label = "Language",
                 options = listOf(
                     LanguagePreference.ENGLISH to "English",
-                    LanguagePreference.SPANISH to "Español"
+                    LanguagePreference.SPANISH to "Español",
                 ),
                 selectedOption = LanguagePreference.ENGLISH,
-                onOptionSelected = { selectedLanguage = it }
+                onOptionSelected = { selectedLanguage = it },
             )
         }
 
@@ -169,10 +169,10 @@ class SettingsSelectorTest {
                 label = "Test",
                 options = listOf(
                     "A" to "Option A",
-                    "B" to "Option B"
+                    "B" to "Option B",
                 ),
                 selectedOption = "A",
-                onOptionSelected = {}
+                onOptionSelected = {},
             )
         }
 
@@ -189,10 +189,10 @@ class SettingsSelectorTest {
                 options = listOf(
                     "A" to "Option A",
                     "B" to "Option B",
-                    "C" to "Option C"
+                    "C" to "Option C",
                 ),
                 selectedOption = "B",
-                onOptionSelected = {}
+                onOptionSelected = {},
             )
         }
 
@@ -211,10 +211,10 @@ class SettingsSelectorTest {
                 label = "Theme",
                 options = listOf(
                     ThemePreference.LIGHT to "Light",
-                    ThemePreference.DARK to "Dark"
+                    ThemePreference.DARK to "Dark",
                 ),
                 selectedOption = ThemePreference.LIGHT,
-                onOptionSelected = { clickCount++ }
+                onOptionSelected = { clickCount++ },
             )
         }
 
@@ -232,10 +232,10 @@ class SettingsSelectorTest {
                 label = "Custom Label",
                 options = listOf(
                     1 to "First",
-                    2 to "Second"
+                    2 to "Second",
                 ),
                 selectedOption = 1,
-                onOptionSelected = {}
+                onOptionSelected = {},
             )
         }
 

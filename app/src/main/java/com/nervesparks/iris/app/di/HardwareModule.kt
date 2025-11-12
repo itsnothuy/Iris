@@ -18,22 +18,22 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class HardwareModule {
-    
+
     @Binds
     @Singleton
     abstract fun bindDeviceProfileProvider(
-        impl: DeviceProfileProviderImpl
+        impl: DeviceProfileProviderImpl,
     ): DeviceProfileProvider
-    
+
     @Binds
     @Singleton
     abstract fun bindBackendRouter(
-        impl: BackendRouterImpl
+        impl: BackendRouterImpl,
     ): BackendRouter
-    
+
     @Binds
     @Singleton
     abstract fun bindThermalManager(
-        impl: ThermalManagerImpl
+        impl: ThermalManagerImpl,
     ): ThermalManager
 }

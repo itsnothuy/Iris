@@ -2,8 +2,6 @@ package com.nervesparks.iris.core.multimodal.voice
 
 import android.content.Context
 import android.util.Log
-import com.nervesparks.iris.app.events.EventBus
-import com.nervesparks.iris.app.events.IrisEvent
 import com.nervesparks.iris.common.error.VoiceException
 import com.nervesparks.iris.core.hw.DeviceProfileProvider
 import com.nervesparks.iris.common.models.HardwareCapability
@@ -31,7 +29,6 @@ import kotlin.math.sqrt
 class SpeechToTextEngineImpl @Inject constructor(
     private val audioProcessor: AudioProcessor,
     private val deviceProfileProvider: DeviceProfileProvider,
-    private val eventBus: EventBus,
     @ApplicationContext private val context: Context
 ) : SpeechToTextEngine {
     
@@ -67,13 +64,13 @@ class SpeechToTextEngineImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 Log.i(TAG, "Loading STT model: ${model.id}")
-                eventBus.emit(IrisEvent.STTModelLoadStarted(model.id))
+                Log.d(TAG, "STT model load started: ${model.id}")
                 
                 // Validate model compatibility
                 val validation = validateSTTModel(model)
                 if (!validation.isValid) {
                     val error = VoiceException("STT model validation failed: ${validation.reason}")
-                    eventBus.emit(IrisEvent.STTModelLoadFailed(model.id, validation.reason))
+                    Log.e(TAG, "STT model load failed: ${model.id} - ${validation.reason}")
                     return@withContext Result.failure(error)
                 }
                 
@@ -98,12 +95,12 @@ class SpeechToTextEngineImpl @Inject constructor(
                 isSTTModelLoaded = true
                 
                 Log.i(TAG, "STT model loaded successfully: ${model.id}")
-                eventBus.emit(IrisEvent.STTModelLoadCompleted(model.id))
+                Log.d(TAG, "STT model load completed: ${model.id}")
                 Result.success(Unit)
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Exception during STT model loading", e)
-                eventBus.emit(IrisEvent.STTModelLoadFailed(model.id, e.message ?: "Exception"))
+                Log.e(TAG, "STT model load failed: ${model.id} - ${e.message ?: "Exception"}")
                 Result.failure(VoiceException("STT model loading exception", e))
             }
         }

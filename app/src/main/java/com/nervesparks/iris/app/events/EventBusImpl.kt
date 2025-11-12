@@ -13,18 +13,18 @@ import javax.inject.Singleton
  */
 @Singleton
 class EventBusImpl @Inject constructor() : EventBus {
-    
+
     private val _events = MutableSharedFlow<IrisEvent>(
         extraBufferCapacity = 64,
-        replay = 0
+        replay = 0,
     )
-    
+
     override val events: SharedFlow<IrisEvent> = _events.asSharedFlow()
-    
+
     override fun emit(event: IrisEvent) {
         _events.tryEmit(event)
     }
-    
+
     /**
      * Subscribe to specific event type
      */

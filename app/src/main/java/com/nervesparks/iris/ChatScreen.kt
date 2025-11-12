@@ -64,7 +64,6 @@ import com.nervesparks.iris.ui.SearchResultScreen
 import com.nervesparks.iris.ui.SettingsScreen
 import java.io.File
 
-
 enum class ChatScreen(@StringRes val title: Int) {
     Start(title = R.string.app_name),
     Settings(title = R.string.settings_screen_title),
@@ -76,8 +75,6 @@ enum class ChatScreen(@StringRes val title: Int) {
     ConversationList(title = R.string.conversation_list_screen_title),
     DataManagement(title = R.string.data_management_screen_title),
 }
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,8 +102,8 @@ fun ChatScreenAppBar(
                 vibrator.vibrate(
                     VibrationEffect.createOneShot(
                         200, // Duration in milliseconds
-                        VibrationEffect.DEFAULT_AMPLITUDE
-                    )
+                        VibrationEffect.DEFAULT_AMPLITUDE,
+                    ),
                 )
             } else {
                 @Suppress("DEPRECATION")
@@ -125,7 +122,7 @@ fun ChatScreenAppBar(
     // Animation for smooth rotation
     val animatedRotationAngle by animateFloatAsState(
         targetValue = rotationAngle,
-        animationSpec = tween(durationMillis = 600, easing = LinearEasing)
+        animationSpec = tween(durationMillis = 600, easing = LinearEasing),
     )
 
     TopAppBar(
@@ -133,11 +130,11 @@ fun ChatScreenAppBar(
             Text(
                 stringResource(currentScreen.title),
                 color = Color.White,
-                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 28.sp)
+                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 28.sp),
             )
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = Color.Transparent
+            containerColor = Color.Transparent,
         ),
         modifier = modifier.background(darkNavyBlue),
         navigationIcon = {
@@ -146,7 +143,7 @@ fun ChatScreenAppBar(
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.back_button),
-                        tint = Color.White
+                        tint = Color.White,
                     )
                 }
             }
@@ -158,7 +155,7 @@ fun ChatScreenAppBar(
                         painter = painterResource(id = R.drawable.settings_gear_rounded),
                         contentDescription = stringResource(R.string.setting),
                         tint = Color.White,
-                        modifier = Modifier.size(25.dp)
+                        modifier = Modifier.size(25.dp),
                     )
                 }
             }
@@ -168,13 +165,13 @@ fun ChatScreenAppBar(
                         kc?.hide()
                         viewModel.stop()
                         viewModel.clear()
-                    }
+                    },
                 ) {
                     Icon(
                         modifier = Modifier.size(25.dp),
                         painter = painterResource(id = R.drawable.edit_3_svgrepo_com),
                         contentDescription = "newChat",
-                        tint = Color.White
+                        tint = Color.White,
                     )
                 }
             }
@@ -186,7 +183,7 @@ fun ChatScreenAppBar(
                             viewModel.loadExistingModels(extFileDir)
                             provideHapticFeedback(context)
                         }
-                    }
+                    },
                 ) {
                     Icon(
                         modifier = Modifier
@@ -194,7 +191,7 @@ fun ChatScreenAppBar(
                             .graphicsLayer { rotationZ = animatedRotationAngle },
                         imageVector = Icons.Default.Refresh,
                         contentDescription = stringResource(R.string.refresh_button),
-                        tint = Color.White
+                        tint = Color.White,
                     )
                 }
             }
@@ -202,23 +199,21 @@ fun ChatScreenAppBar(
                 IconButton(
                     onClick = {
                         viewModel.showDownloadInfoModal = true
-                    }
+                    },
                 ) {
                     Icon(
                         modifier = Modifier
                             .size(25.dp)
                             .graphicsLayer { rotationZ = animatedRotationAngle },
                         painter = painterResource(id = R.drawable.question_small_svgrepo_com),
-                        contentDescription = "question_svg" ,
-                        tint = Color.White
+                        contentDescription = "question_svg",
+                        tint = Color.White,
                     )
                 }
             }
-        }
+        },
     )
 }
-
-
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -228,7 +223,7 @@ fun ChatScreen(
     downloadManager: DownloadManager,
     models: List<Downloadable>,
     extFileDir: File?,
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
 ) {
     // Define gradient colors
     val darkNavyBlue = Color(0xFF050a14)
@@ -236,7 +231,7 @@ fun ChatScreen(
 
     // Create gradient brush
     val gradientBrush = Brush.verticalGradient(
-        colors = listOf(darkNavyBlue, lightNavyBlue)
+        colors = listOf(darkNavyBlue, lightNavyBlue),
     )
 
     // Wrap the entire Scaffold with a Box that has the gradient background
@@ -245,7 +240,7 @@ fun ChatScreen(
             .fillMaxSize()
             .background(gradientBrush)
             .windowInsetsPadding(WindowInsets.navigationBars)
-            .imePadding()
+            .imePadding(),
     ) {
         Scaffold(
             backgroundColor = Color.Transparent, // Make Scaffold background transparent
@@ -253,22 +248,22 @@ fun ChatScreen(
                 ChatScreenAppBar(
                     currentScreen = ChatScreen.valueOf(
                         navController.currentBackStackEntryAsState().value?.destination?.route
-                            ?: ChatScreen.Start.name
+                            ?: ChatScreen.Start.name,
                     ),
                     canNavigateBack = navController.previousBackStackEntry != null,
                     navigateUp = { navController.navigateUp() },
-                    onSettingsClick = {navController.navigate(ChatScreen.Settings.name)},
+                    onSettingsClick = { navController.navigate(ChatScreen.Settings.name) },
                     viewModel = viewModel,
-                    extFileDir = extFileDir
+                    extFileDir = extFileDir,
                 )
-            }
+            },
         ) { innerPadding ->
             NavHost(
                 navController = navController,
                 startDestination = ChatScreen.Start.name,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+                    .padding(innerPadding),
             ) {
                 composable(route = ChatScreen.Start.name) {
                     MainChatScreen(
@@ -288,7 +283,7 @@ fun ChatScreen(
                             navController.navigate(ChatScreen.ModelsScreen.name)
                         },
                         onParamsScreenButtonClicked = {
-                          navController.navigate((ChatScreen.ParamsScreen.name))
+                            navController.navigate((ChatScreen.ParamsScreen.name))
                         },
                         onAboutScreenButtonClicked = {
                             navController.navigate((ChatScreen.AboutScreen.name))
@@ -299,7 +294,7 @@ fun ChatScreen(
                         onDataManagementButtonClicked = {
                             navController.navigate(ChatScreen.DataManagement.name)
                         },
-                        viewModel = viewModel
+                        viewModel = viewModel,
 
                     )
                 }
@@ -308,33 +303,40 @@ fun ChatScreen(
                         SearchResultScreen(
                             viewModel,
                             downloadManager,
-                            extFileDir)
+                            extFileDir,
+                        )
                     }
                 }
                 composable(route = ChatScreen.ModelsScreen.name) {
-                    ModelsScreen(dm = downloadManager, extFileDir = extFileDir, viewModel = viewModel,onSearchResultButtonClick = {navController.navigate(
-                        ChatScreen.SearchResults.name
-                    )})
+                    ModelsScreen(dm = downloadManager, extFileDir = extFileDir, viewModel = viewModel, onSearchResultButtonClick = {
+                        navController.navigate(
+                            ChatScreen.SearchResults.name,
+                        )
+                    })
                 }
-                composable(route = ChatScreen.ParamsScreen.name){
+                composable(route = ChatScreen.ParamsScreen.name) {
                     ParametersScreen(viewModel)
                 }
-                composable(route = ChatScreen.AboutScreen.name){
+                composable(route = ChatScreen.AboutScreen.name) {
                     AboutScreen()
                 }
-                composable(route = ChatScreen.BenchMarkScreen.name){
+                composable(route = ChatScreen.BenchMarkScreen.name) {
                     BenchMarkScreen(viewModel)
                 }
                 composable(route = ChatScreen.ConversationList.name) {
-                    val conversations by viewModel.getAllConversations()?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) }
+                    val conversations by viewModel.getAllConversations()?.collectAsState(initial = emptyList()) ?: remember {
+                        mutableStateOf(emptyList())
+                    }
                     val searchQuery = remember { mutableStateOf("") }
                     val displayedConversations = if (searchQuery.value.isEmpty()) {
                         conversations
                     } else {
-                        val searchResults by viewModel.searchConversations(searchQuery.value)?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) }
+                        val searchResults by viewModel.searchConversations(searchQuery.value)?.collectAsState(initial = emptyList()) ?: remember {
+                            mutableStateOf(emptyList())
+                        }
                         searchResults
                     }
-                    
+
                     ConversationListScreen(
                         conversations = displayedConversations,
                         currentConversationId = viewModel.currentConversationId,
@@ -360,7 +362,7 @@ fun ChatScreen(
                         },
                         onBackPressed = {
                             navController.navigateUp()
-                        }
+                        },
                     )
                 }
                 composable(route = ChatScreen.DataManagement.name) {
@@ -376,11 +378,10 @@ fun ChatScreen(
                         },
                         onDeleteDataClicked = {
                             viewModel.deleteAllData()
-                        }
+                        },
                     )
                 }
             }
         }
     }
 }
-

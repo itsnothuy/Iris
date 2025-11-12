@@ -22,7 +22,7 @@ class ErrorBannerTest {
         composeTestRule.setContent {
             ErrorBanner(
                 errorMessage = "Failed to process message",
-                onRetry = {}
+                onRetry = {},
             )
         }
 
@@ -36,7 +36,7 @@ class ErrorBannerTest {
         composeTestRule.setContent {
             ErrorBanner(
                 errorMessage = "Something went wrong",
-                onRetry = {}
+                onRetry = {},
             )
         }
 
@@ -51,7 +51,7 @@ class ErrorBannerTest {
         composeTestRule.setContent {
             ErrorBanner(
                 errorMessage = "Connection failed",
-                onRetry = { retryClicked = true }
+                onRetry = { retryClicked = true },
             )
         }
 
@@ -68,7 +68,7 @@ class ErrorBannerTest {
             ErrorBanner(
                 errorMessage = "Error occurred",
                 onRetry = {},
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -84,7 +84,7 @@ class ErrorBannerTest {
             ErrorBanner(
                 errorMessage = "Error occurred",
                 onRetry = {},
-                onDismiss = { dismissClicked = true }
+                onDismiss = { dismissClicked = true },
             )
         }
 
@@ -101,7 +101,7 @@ class ErrorBannerTest {
             ErrorBanner(
                 errorMessage = "Error occurred",
                 onRetry = {},
-                onDismiss = null
+                onDismiss = null,
             )
         }
 
@@ -114,7 +114,7 @@ class ErrorBannerTest {
         composeTestRule.setContent {
             ErrorBanner(
                 errorMessage = "Test error",
-                onRetry = {}
+                onRetry = {},
             )
         }
 
@@ -127,7 +127,7 @@ class ErrorBannerTest {
         composeTestRule.setContent {
             ErrorBanner(
                 errorMessage = "Visible error",
-                onRetry = {}
+                onRetry = {},
             )
         }
 
@@ -143,7 +143,7 @@ class ErrorBannerTest {
         composeTestRule.setContent {
             ErrorBanner(
                 errorMessage = "Test error",
-                onRetry = { retryCount++ }
+                onRetry = { retryCount++ },
             )
         }
 

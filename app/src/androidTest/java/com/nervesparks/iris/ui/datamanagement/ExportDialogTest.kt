@@ -3,7 +3,6 @@ package com.nervesparks.iris.ui.datamanagement
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.nervesparks.iris.data.export.ExportFormat
 import com.nervesparks.iris.ui.components.ExportDialog
 import org.junit.Rule
 import org.junit.Test
@@ -24,7 +23,7 @@ class ExportDialogTest {
         composeTestRule.setContent {
             ExportDialog(
                 onDismiss = {},
-                onExport = {}
+                onExport = {},
             )
         }
 
@@ -36,7 +35,7 @@ class ExportDialogTest {
         composeTestRule.setContent {
             ExportDialog(
                 onDismiss = {},
-                onExport = {}
+                onExport = {},
             )
         }
 
@@ -51,7 +50,7 @@ class ExportDialogTest {
         composeTestRule.setContent {
             ExportDialog(
                 onDismiss = {},
-                onExport = {}
+                onExport = {},
             )
         }
 
@@ -66,7 +65,7 @@ class ExportDialogTest {
         composeTestRule.setContent {
             ExportDialog(
                 onDismiss = {},
-                onExport = {}
+                onExport = {},
             )
         }
 
@@ -80,7 +79,7 @@ class ExportDialogTest {
         composeTestRule.setContent {
             ExportDialog(
                 onDismiss = { dismissed = true },
-                onExport = {}
+                onExport = {},
             )
         }
 
@@ -94,7 +93,7 @@ class ExportDialogTest {
         composeTestRule.setContent {
             ExportDialog(
                 onDismiss = {},
-                onExport = { exported = true }
+                onExport = { exported = true },
             )
         }
 
@@ -107,13 +106,13 @@ class ExportDialogTest {
         composeTestRule.setContent {
             ExportDialog(
                 onDismiss = {},
-                onExport = {}
+                onExport = {},
             )
         }
 
         // Click on Markdown format
         composeTestRule.onNodeWithText("Markdown").performClick()
-        
+
         // Should still display the dialog
         composeTestRule.onNodeWithText("Export Conversations").assertExists()
     }

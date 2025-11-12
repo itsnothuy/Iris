@@ -13,7 +13,7 @@ class PrivacyGuardTest {
     fun redactPII_withEmail_redactsEmail() {
         val input = "Contact me at john.doe@example.com for details"
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertEquals("Contact me at [EMAIL_REDACTED] for details", result.redactedText)
         assertTrue(result.wasRedacted)
         assertEquals(1, result.redactionCount)
@@ -23,7 +23,7 @@ class PrivacyGuardTest {
     fun redactPII_withMultipleEmails_redactsAllEmails() {
         val input = "Email john@test.com or jane@example.org"
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertEquals("Email [EMAIL_REDACTED] or [EMAIL_REDACTED]", result.redactedText)
         assertTrue(result.wasRedacted)
         assertEquals(2, result.redactionCount)
@@ -33,7 +33,7 @@ class PrivacyGuardTest {
     fun redactPII_withUSPhone_redactsPhone() {
         val input = "Call me at 555-123-4567"
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertTrue(result.redactedText.contains("[PHONE_REDACTED]"))
         assertTrue(result.wasRedacted)
         assertTrue(result.redactionCount > 0)
@@ -43,7 +43,7 @@ class PrivacyGuardTest {
     fun redactPII_withParenthesesPhone_redactsPhone() {
         val input = "My number is (555) 123-4567"
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertTrue(result.redactedText.contains("[PHONE_REDACTED]"))
         assertTrue(result.wasRedacted)
         assertTrue(result.redactionCount > 0)
@@ -53,7 +53,7 @@ class PrivacyGuardTest {
     fun redactPII_withInternationalPhone_redactsPhone() {
         val input = "Call +1-555-123-4567 for support"
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertTrue(result.redactedText.contains("[PHONE_REDACTED]"))
         assertTrue(result.wasRedacted)
         assertTrue(result.redactionCount > 0)
@@ -63,7 +63,7 @@ class PrivacyGuardTest {
     fun redactPII_withSSN_redactsID() {
         val input = "My SSN is 123-45-6789"
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertTrue(result.redactedText.contains("[ID_REDACTED]"))
         assertTrue(result.wasRedacted)
         assertTrue(result.redactionCount > 0)
@@ -73,7 +73,7 @@ class PrivacyGuardTest {
     fun redactPII_withCreditCard_redactsID() {
         val input = "Card number: 1234-5678-9012-3456"
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertTrue(result.redactedText.contains("[ID_REDACTED]"))
         assertTrue(result.wasRedacted)
         assertTrue(result.redactionCount > 0)
@@ -83,7 +83,7 @@ class PrivacyGuardTest {
     fun redactPII_withLongNumberSequence_redactsID() {
         val input = "Account ID: 12345678901"
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertTrue(result.redactedText.contains("[ID_REDACTED]"))
         assertTrue(result.wasRedacted)
         assertTrue(result.redactionCount > 0)
@@ -93,7 +93,7 @@ class PrivacyGuardTest {
     fun redactPII_withMixedPII_redactsAll() {
         val input = "Contact john@test.com or call 555-1234 with ID 123456789"
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertTrue(result.redactedText.contains("[EMAIL_REDACTED]"))
         assertTrue(result.redactedText.contains("[PHONE_REDACTED]") || result.redactedText.contains("[ID_REDACTED]"))
         assertTrue(result.wasRedacted)
@@ -104,7 +104,7 @@ class PrivacyGuardTest {
     fun redactPII_withNoPII_returnsOriginalText() {
         val input = "Hello, how can I help you today?"
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertEquals(input, result.redactedText)
         assertFalse(result.wasRedacted)
         assertEquals(0, result.redactionCount)
@@ -114,7 +114,7 @@ class PrivacyGuardTest {
     fun redactPII_withEmptyString_returnsEmptyResult() {
         val input = ""
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertEquals("", result.redactedText)
         assertFalse(result.wasRedacted)
         assertEquals(0, result.redactionCount)
@@ -154,7 +154,7 @@ class PrivacyGuardTest {
     fun redactPII_preservesContextAroundRedactions() {
         val input = "Please send documents to alice@company.com by Friday"
         val result = PrivacyGuard.redactPII(input)
-        
+
         assertTrue(result.redactedText.startsWith("Please send documents to"))
         assertTrue(result.redactedText.endsWith("by Friday"))
         assertTrue(result.redactedText.contains("[EMAIL_REDACTED]"))

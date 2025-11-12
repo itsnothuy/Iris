@@ -3,15 +3,12 @@ package com.nervesparks.iris.ui
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.nervesparks.iris.MainViewModel
-import com.nervesparks.iris.data.UserPreferencesRepository
 import com.nervesparks.iris.ui.components.EmptyState
 import com.nervesparks.iris.ui.components.ErrorBanner
 import com.nervesparks.iris.ui.components.ProcessingIndicator
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.mock
 
 /**
  * State machine tests for the chat interface.
@@ -49,7 +46,7 @@ class ChatStateTransitionTest {
         composeTestRule.setContent {
             ErrorBanner(
                 errorMessage = "Processing failed",
-                onRetry = {}
+                onRetry = {},
             )
         }
 
@@ -67,7 +64,7 @@ class ChatStateTransitionTest {
             ErrorBanner(
                 errorMessage = "Connection error",
                 onRetry = { errorCleared = true },
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -86,7 +83,7 @@ class ChatStateTransitionTest {
             ErrorBanner(
                 errorMessage = "Error message",
                 onRetry = {},
-                onDismiss = { errorDismissed = true }
+                onDismiss = { errorDismissed = true },
             )
         }
 
@@ -117,8 +114,8 @@ class ChatStateTransitionTest {
         var starterClicked = false
 
         composeTestRule.setContent {
-            EmptyState(onStarterClick = { 
-                starterClicked = true 
+            EmptyState(onStarterClick = {
+                starterClicked = true
             })
         }
 
@@ -136,7 +133,7 @@ class ChatStateTransitionTest {
             ErrorBanner(
                 errorMessage = "Test error",
                 onRetry = {},
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -153,7 +150,7 @@ class ChatStateTransitionTest {
 
         // Verify "Thinking" text is not displayed when metrics are disabled
         composeTestRule.onNodeWithText("Thinking").assertDoesNotExist()
-        
+
         // But icon should still be present
         composeTestRule.onNodeWithContentDescription("AI Assistant Icon").assertExists()
     }

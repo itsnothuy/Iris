@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 /**
  * Room entity representing a conversation in the chat application.
- * 
+ *
  * Each conversation contains multiple messages and has metadata
  * for organization and display purposes.
  */
@@ -18,5 +18,5 @@ data class ConversationEntity(
     val lastModified: Long,
     val messageCount: Int,
     val isPinned: Boolean,
-    val isArchived: Boolean
+    val isArchived: Boolean,
 )

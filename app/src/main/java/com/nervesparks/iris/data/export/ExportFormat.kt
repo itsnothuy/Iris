@@ -6,12 +6,12 @@ package com.nervesparks.iris.data.export
 enum class ExportFormat {
     /** Machine-readable JSON with full metadata */
     JSON,
-    
+
     /** Human-readable Markdown with proper formatting */
     MARKDOWN,
-    
+
     /** Simple text format for universal compatibility */
-    PLAIN_TEXT
+    PLAIN_TEXT,
 }
 
 /**
@@ -26,7 +26,7 @@ data class ExportResult(
     val success: Boolean,
     val filePath: String? = null,
     val checksum: String? = null,
-    val error: String? = null
+    val error: String? = null,
 )
 
 /**
@@ -39,5 +39,5 @@ data class ExportResult(
 data class ExportProgress(
     val current: Int,
     val total: Int,
-    val message: String
+    val message: String,
 )

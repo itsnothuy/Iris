@@ -24,7 +24,7 @@ class ParameterSliderTest {
                 label = "Temperature",
                 value = 1.0f,
                 onValueChange = {},
-                valueRange = 0.1f..2.0f
+                valueRange = 0.1f..2.0f,
             )
         }
 
@@ -39,7 +39,7 @@ class ParameterSliderTest {
                 label = "Top P",
                 value = 0.85f,
                 onValueChange = {},
-                valueRange = 0.1f..1.0f
+                valueRange = 0.1f..1.0f,
             )
         }
 
@@ -55,7 +55,7 @@ class ParameterSliderTest {
                 value = 1.0f,
                 onValueChange = {},
                 valueRange = 0.1f..2.0f,
-                helpText = "Controls randomness in generation"
+                helpText = "Controls randomness in generation",
             )
         }
 
@@ -71,7 +71,7 @@ class ParameterSliderTest {
                 value = 1.0f,
                 onValueChange = {},
                 valueRange = 0.1f..2.0f,
-                helpText = null
+                helpText = null,
             )
         }
 
@@ -89,12 +89,12 @@ class ParameterSliderTest {
                 label = "Temperature",
                 value = currentValue,
                 onValueChange = { currentValue = it },
-                valueRange = 0.1f..2.0f
+                valueRange = 0.1f..2.0f,
             )
         }
 
         // Perform slider interaction (move to a specific position)
-        // Note: Slider interaction tests can be tricky in Compose, 
+        // Note: Slider interaction tests can be tricky in Compose,
         // so we verify the component accepts the callback
         assert(currentValue == 1.0f)
     }
@@ -107,7 +107,7 @@ class ParameterSliderTest {
                 value = 42.5f,
                 onValueChange = {},
                 valueRange = 0f..100f,
-                valueFormatter = { "${it.toInt()}%" }
+                valueFormatter = { "${it.toInt()}%" },
             )
         }
 
@@ -122,7 +122,7 @@ class ParameterSliderTest {
                 label = "Top K",
                 value = 40,
                 onValueChange = {},
-                valueRange = 1..100
+                valueRange = 1..100,
             )
         }
 
@@ -137,7 +137,7 @@ class ParameterSliderTest {
                 label = "Context Length",
                 value = 2048,
                 onValueChange = {},
-                valueRange = 512..4096
+                valueRange = 512..4096,
             )
         }
 
@@ -153,7 +153,7 @@ class ParameterSliderTest {
                 value = 40,
                 onValueChange = {},
                 valueRange = 1..100,
-                helpText = "Limits sampling to top K tokens"
+                helpText = "Limits sampling to top K tokens",
             )
         }
 
@@ -170,7 +170,7 @@ class ParameterSliderTest {
                 label = "Top K",
                 value = currentValue,
                 onValueChange = { currentValue = it },
-                valueRange = 1..100
+                valueRange = 1..100,
             )
         }
 
@@ -185,7 +185,7 @@ class ParameterSliderTest {
                 label = "Temperature",
                 value = 1.0f,
                 onValueChange = {},
-                valueRange = 0.1f..2.0f
+                valueRange = 0.1f..2.0f,
             )
         }
 
@@ -202,7 +202,7 @@ class ParameterSliderTest {
                 value = 1.2f,
                 onValueChange = {},
                 valueRange = 0.1f..2.0f,
-                helpText = "Test help text"
+                helpText = "Test help text",
             )
         }
 

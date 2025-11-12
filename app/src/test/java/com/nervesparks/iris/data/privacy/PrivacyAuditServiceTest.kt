@@ -12,7 +12,6 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.io.File
 import java.time.Instant
 
 /**
@@ -37,7 +36,7 @@ class PrivacyAuditServiceTest {
         privacyAuditService = PrivacyAuditService(
             mockConversationRepository,
             mockMessageRepository,
-            databasePath
+            databasePath,
         )
     }
 
@@ -45,22 +44,22 @@ class PrivacyAuditServiceTest {
     fun generateAuditReport_withData_returnsCorrectCounts() = runTest {
         val oldDate = Instant.parse("2023-01-01T00:00:00Z")
         val newDate = Instant.parse("2024-01-01T00:00:00Z")
-        
+
         val conversations = listOf(
             Conversation(
                 id = "1",
                 title = "Old",
                 createdAt = oldDate,
                 lastModified = oldDate,
-                messageCount = 5
+                messageCount = 5,
             ),
             Conversation(
                 id = "2",
                 title = "New",
                 createdAt = newDate,
                 lastModified = newDate,
-                messageCount = 10
-            )
+                messageCount = 10,
+            ),
         )
 
         whenever(mockConversationRepository.getConversationCount()).thenReturn(2)
@@ -108,7 +107,7 @@ class PrivacyAuditServiceTest {
             title = "Test",
             createdAt = Instant.now(),
             lastModified = Instant.now(),
-            messageCount = 5
+            messageCount = 5,
         )
 
         whenever(mockConversationRepository.getConversationCount()).thenReturn(1)
@@ -129,7 +128,7 @@ class PrivacyAuditServiceTest {
             title = "Test",
             createdAt = Instant.now(),
             lastModified = Instant.now(),
-            messageCount = 5
+            messageCount = 5,
         )
 
         whenever(mockConversationRepository.getConversationCount()).thenReturn(1)

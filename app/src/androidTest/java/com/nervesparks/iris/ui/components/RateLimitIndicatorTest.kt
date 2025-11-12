@@ -22,7 +22,7 @@ class RateLimitIndicatorTest {
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = false,
-                initialCooldownSeconds = 30
+                initialCooldownSeconds = 30,
             )
         }
 
@@ -35,7 +35,7 @@ class RateLimitIndicatorTest {
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = true,
-                initialCooldownSeconds = 0
+                initialCooldownSeconds = 0,
             )
         }
 
@@ -48,7 +48,7 @@ class RateLimitIndicatorTest {
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = true,
-                initialCooldownSeconds = 30
+                initialCooldownSeconds = 30,
             )
         }
 
@@ -61,7 +61,7 @@ class RateLimitIndicatorTest {
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = true,
-                initialCooldownSeconds = 30
+                initialCooldownSeconds = 30,
             )
         }
 
@@ -74,7 +74,7 @@ class RateLimitIndicatorTest {
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = true,
-                initialCooldownSeconds = 45
+                initialCooldownSeconds = 45,
             )
         }
 
@@ -87,7 +87,7 @@ class RateLimitIndicatorTest {
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = true,
-                initialCooldownSeconds = 30
+                initialCooldownSeconds = 30,
             )
         }
 
@@ -98,26 +98,26 @@ class RateLimitIndicatorTest {
     @Test
     fun rateLimitIndicator_updatesCooldownValue() {
         var cooldown = 30
-        
+
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = true,
-                initialCooldownSeconds = cooldown
+                initialCooldownSeconds = cooldown,
             )
         }
 
         // Initially shows 30 seconds
         composeTestRule.onNodeWithText("Cooldown: 30s remaining").assertExists()
-        
+
         // Update cooldown value
         cooldown = 15
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = true,
-                initialCooldownSeconds = cooldown
+                initialCooldownSeconds = cooldown,
             )
         }
-        
+
         // Now shows 15 seconds
         composeTestRule.onNodeWithText("Cooldown: 15s remaining").assertExists()
     }
@@ -125,26 +125,26 @@ class RateLimitIndicatorTest {
     @Test
     fun rateLimitIndicator_hidesWhenRateLimitClears() {
         var isRateLimited = true
-        
+
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = isRateLimited,
-                initialCooldownSeconds = 30
+                initialCooldownSeconds = 30,
             )
         }
 
         // Initially visible
         composeTestRule.onNodeWithTag("rate-limit-indicator").assertIsDisplayed()
-        
+
         // Change state to not rate limited
         isRateLimited = false
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = isRateLimited,
-                initialCooldownSeconds = 30
+                initialCooldownSeconds = 30,
             )
         }
-        
+
         // Should no longer be visible
         composeTestRule.onNodeWithTag("rate-limit-indicator").assertDoesNotExist()
     }
@@ -153,27 +153,27 @@ class RateLimitIndicatorTest {
     fun rateLimitIndicator_transitionsFromHiddenToVisible() {
         var isRateLimited = false
         var cooldown = 0
-        
+
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = isRateLimited,
-                initialCooldownSeconds = cooldown
+                initialCooldownSeconds = cooldown,
             )
         }
 
         // Initially not visible
         composeTestRule.onNodeWithTag("rate-limit-indicator").assertDoesNotExist()
-        
+
         // Transition to rate limited with cooldown
         isRateLimited = true
         cooldown = 60
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = isRateLimited,
-                initialCooldownSeconds = cooldown
+                initialCooldownSeconds = cooldown,
             )
         }
-        
+
         // Now visible
         composeTestRule.onNodeWithTag("rate-limit-indicator").assertIsDisplayed()
         composeTestRule.onNodeWithText("Cooldown: 60s remaining").assertExists()
@@ -182,12 +182,12 @@ class RateLimitIndicatorTest {
     @Test
     fun rateLimitIndicator_handlesVariousCooldownValues() {
         val testCases = listOf(1, 10, 30, 60, 120)
-        
+
         testCases.forEach { seconds ->
             composeTestRule.setContent {
                 RateLimitIndicator(
                     isRateLimited = true,
-                    initialCooldownSeconds = seconds
+                    initialCooldownSeconds = seconds,
                 )
             }
 
@@ -201,7 +201,7 @@ class RateLimitIndicatorTest {
         composeTestRule.setContent {
             RateLimitIndicator(
                 isRateLimited = true,
-                initialCooldownSeconds = 30
+                initialCooldownSeconds = 30,
             )
         }
 

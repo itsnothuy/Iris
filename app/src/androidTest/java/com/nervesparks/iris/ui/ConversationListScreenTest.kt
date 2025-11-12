@@ -27,7 +27,7 @@ class ConversationListScreenTest {
                 onPinConversation = { _, _ -> },
                 onArchiveConversation = { _, _ -> },
                 onSearchQueryChanged = {},
-                onBackPressed = {}
+                onBackPressed = {},
             )
         }
 
@@ -46,7 +46,7 @@ class ConversationListScreenTest {
                 onPinConversation = { _, _ -> },
                 onArchiveConversation = { _, _ -> },
                 onSearchQueryChanged = {},
-                onBackPressed = {}
+                onBackPressed = {},
             )
         }
 
@@ -65,7 +65,7 @@ class ConversationListScreenTest {
                 onPinConversation = { _, _ -> },
                 onArchiveConversation = { _, _ -> },
                 onSearchQueryChanged = {},
-                onBackPressed = {}
+                onBackPressed = {},
             )
         }
 
@@ -80,15 +80,15 @@ class ConversationListScreenTest {
                 title = "Test Conversation 1",
                 createdAt = Instant.now(),
                 lastModified = Instant.now(),
-                messageCount = 5
+                messageCount = 5,
             ),
             Conversation(
                 id = "conv-2",
                 title = "Test Conversation 2",
                 createdAt = Instant.now(),
                 lastModified = Instant.now(),
-                messageCount = 3
-            )
+                messageCount = 3,
+            ),
         )
 
         composeTestRule.setContent {
@@ -101,7 +101,7 @@ class ConversationListScreenTest {
                 onPinConversation = { _, _ -> },
                 onArchiveConversation = { _, _ -> },
                 onSearchQueryChanged = {},
-                onBackPressed = {}
+                onBackPressed = {},
             )
         }
 
@@ -114,7 +114,7 @@ class ConversationListScreenTest {
     @Test
     fun conversationListScreen_clickingBackButton_triggersCallback() {
         var backPressed = false
-        
+
         composeTestRule.setContent {
             ConversationListScreen(
                 conversations = emptyList(),
@@ -125,7 +125,7 @@ class ConversationListScreenTest {
                 onPinConversation = { _, _ -> },
                 onArchiveConversation = { _, _ -> },
                 onSearchQueryChanged = {},
-                onBackPressed = { backPressed = true }
+                onBackPressed = { backPressed = true },
             )
         }
 
@@ -137,7 +137,7 @@ class ConversationListScreenTest {
     @Test
     fun conversationListScreen_clickingNewButton_triggersCallback() {
         var newConversationClicked = false
-        
+
         composeTestRule.setContent {
             ConversationListScreen(
                 conversations = emptyList(),
@@ -148,7 +148,7 @@ class ConversationListScreenTest {
                 onPinConversation = { _, _ -> },
                 onArchiveConversation = { _, _ -> },
                 onSearchQueryChanged = {},
-                onBackPressed = {}
+                onBackPressed = {},
             )
         }
 
@@ -166,8 +166,8 @@ class ConversationListScreenTest {
                 title = "Test Conversation",
                 createdAt = Instant.now(),
                 lastModified = Instant.now(),
-                messageCount = 5
-            )
+                messageCount = 5,
+            ),
         )
 
         composeTestRule.setContent {
@@ -180,7 +180,7 @@ class ConversationListScreenTest {
                 onPinConversation = { _, _ -> },
                 onArchiveConversation = { _, _ -> },
                 onSearchQueryChanged = {},
-                onBackPressed = {}
+                onBackPressed = {},
             )
         }
 
@@ -192,7 +192,7 @@ class ConversationListScreenTest {
     @Test
     fun conversationListScreen_searchBar_acceptsInput() {
         var searchQuery = ""
-        
+
         composeTestRule.setContent {
             ConversationListScreen(
                 conversations = emptyList(),
@@ -203,7 +203,7 @@ class ConversationListScreenTest {
                 onPinConversation = { _, _ -> },
                 onArchiveConversation = { _, _ -> },
                 onSearchQueryChanged = { searchQuery = it },
-                onBackPressed = {}
+                onBackPressed = {},
             )
         }
 
@@ -220,15 +220,15 @@ class ConversationListScreenTest {
                 title = "Current Conversation",
                 createdAt = Instant.now(),
                 lastModified = Instant.now(),
-                messageCount = 5
+                messageCount = 5,
             ),
             Conversation(
                 id = "other",
                 title = "Other Conversation",
                 createdAt = Instant.now(),
                 lastModified = Instant.now(),
-                messageCount = 3
-            )
+                messageCount = 3,
+            ),
         )
 
         composeTestRule.setContent {
@@ -241,7 +241,7 @@ class ConversationListScreenTest {
                 onPinConversation = { _, _ -> },
                 onArchiveConversation = { _, _ -> },
                 onSearchQueryChanged = {},
-                onBackPressed = {}
+                onBackPressed = {},
             )
         }
 
@@ -259,8 +259,8 @@ class ConversationListScreenTest {
                 createdAt = Instant.now(),
                 lastModified = Instant.now(),
                 messageCount = 5,
-                isPinned = true
-            )
+                isPinned = true,
+            ),
         )
 
         composeTestRule.setContent {
@@ -273,7 +273,7 @@ class ConversationListScreenTest {
                 onPinConversation = { _, _ -> },
                 onArchiveConversation = { _, _ -> },
                 onSearchQueryChanged = {},
-                onBackPressed = {}
+                onBackPressed = {},
             )
         }
 

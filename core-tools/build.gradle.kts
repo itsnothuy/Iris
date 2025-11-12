@@ -1,9 +1,9 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("dagger.hilt.android.plugin")
-    kotlin("plugin.serialization") version "1.9.22"
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -29,7 +29,7 @@ dependencies {
     implementation(project(":common"))
     
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
     implementation(libs.androidx.core.ktx)

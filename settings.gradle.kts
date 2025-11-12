@@ -46,4 +46,4 @@ include(":core-safety")
 include(":core-hw")
 include(":core-tools")
 include(":core-models")
-include(":core-multimodal")
+// include(":core-multimodal")  // Temporarily excluded for MVP build

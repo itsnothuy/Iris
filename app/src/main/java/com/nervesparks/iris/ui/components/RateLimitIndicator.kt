@@ -7,7 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.HourglassEmpty
+import androidx.compose.material.icons.filled.Warning  // Changed from HourglassEmpty for MVP
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,7 +24,7 @@ import kotlinx.coroutines.delay
 /**
  * Rate limiting indicator with countdown timer.
  * Shows remaining cooldown time when rate limited.
- * 
+ *
  * @param isRateLimited Whether rate limiting is active
  * @param initialCooldownSeconds Initial countdown value in seconds
  * @param modifier Optional modifier for the component
@@ -33,18 +33,18 @@ import kotlinx.coroutines.delay
 fun RateLimitIndicator(
     isRateLimited: Boolean,
     initialCooldownSeconds: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     // Track cooldown countdown locally, synced with backend value
     var remainingSeconds by remember { mutableStateOf(initialCooldownSeconds) }
-    
+
     // Single LaunchedEffect to handle both sync and countdown
     // Cancels and restarts when isRateLimited or initialCooldownSeconds changes
     LaunchedEffect(isRateLimited, initialCooldownSeconds) {
         if (isRateLimited) {
             // Sync with backend value whenever it changes
             remainingSeconds = initialCooldownSeconds
-            
+
             // Count down while time remaining
             // The effect will be cancelled if isRateLimited becomes false
             while (remainingSeconds > 0) {
@@ -56,12 +56,12 @@ fun RateLimitIndicator(
             remainingSeconds = 0
         }
     }
-    
+
     AnimatedVisibility(
         visible = isRateLimited && remainingSeconds > 0,
         enter = fadeIn(),
         exit = fadeOut(),
-        modifier = modifier
+        modifier = modifier,
     ) {
         Box(
             modifier = Modifier
@@ -69,43 +69,43 @@ fun RateLimitIndicator(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .background(
                     color = Color(0xFFFFA500).copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 )
                 .padding(12.dp)
-                .testTag("rate-limit-indicator")
+                .testTag("rate-limit-indicator"),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(
-                    imageVector = Icons.Default.HourglassEmpty,
+                imageVector = Icons.Default.Warning,
                     contentDescription = "Rate limit cooldown",
                     tint = Color(0xFFFFA500),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
-                
+
                 Spacer(modifier = Modifier.width(8.dp))
-                
+
                 Column {
                     Text(
                         text = "Rate limit active",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = Color.White,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp
-                        )
+                            fontSize = 13.sp,
+                        ),
                     )
-                    
+
                     Spacer(modifier = Modifier.height(2.dp))
-                    
+
                     Text(
                         text = "Cooldown: ${remainingSeconds}s remaining",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 11.sp
-                        )
+                            fontSize = 11.sp,
+                        ),
                     )
                 }
             }

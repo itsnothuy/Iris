@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("dagger.hilt.android.plugin")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("kotlin-parcelize")
@@ -84,7 +84,7 @@ dependencies {
     
     // Dependency Injection
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     
     // Coroutines
     implementation(libs.coroutines.core)
@@ -106,13 +106,8 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 }
 
-// KAPT configuration for stable Hilt compilation
-kapt {
-    correctErrorTypes = true
-    useBuildCache = true
-    
-    arguments {
-        arg("dagger.hilt.shareTestComponents", "true")
-        arg("dagger.hilt.disableModulesHaveInstallInCheck", "true")
-    }
+// KSP configuration for stable Hilt compilation
+ksp {
+    arg("dagger.hilt.shareTestComponents", "true")
+    arg("dagger.hilt.disableModulesHaveInstallInCheck", "true")
 }

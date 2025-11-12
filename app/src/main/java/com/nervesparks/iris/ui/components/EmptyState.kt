@@ -30,12 +30,12 @@ import com.nervesparks.iris.R
 @Composable
 fun EmptyState(
     onStarterClick: ((String) -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val conversationStarters = listOf(
         "Explains complex topics simply.",
         "Remembers previous inputs.",
-        "May sometimes be inaccurate."
+        "May sometimes be inaccurate.",
     )
 
     Column(
@@ -43,7 +43,7 @@ fun EmptyState(
             .fillMaxSize()
             .wrapContentHeight(Alignment.CenterVertically)
             .padding(horizontal = 16.dp, vertical = 2.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         // Welcome header
         Text(
@@ -53,21 +53,21 @@ fun EmptyState(
                 fontWeight = FontWeight.W300,
                 letterSpacing = 1.sp,
                 fontSize = 50.sp,
-                lineHeight = 60.sp
+                lineHeight = 60.sp,
             ),
             fontFamily = FontFamily.SansSerif,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .wrapContentHeight()
+                .wrapContentHeight(),
         )
 
         // Conversation starters
         conversationStarters.forEach { starter ->
             ConversationStarterCard(
                 text = starter,
-                onClick = { onStarterClick?.invoke(starter) }
+                onClick = { onStarterClick?.invoke(starter) },
             )
         }
     }
@@ -80,7 +80,7 @@ fun EmptyState(
 private fun ConversationStarterCard(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -90,15 +90,15 @@ private fun ConversationStarterCard(
             .padding(8.dp)
             .background(
                 Color(0xFF010825),
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(20.dp),
             )
-            .clickable { onClick() }
+            .clickable { onClick() },
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp)
+                .padding(horizontal = 8.dp),
         ) {
             // Info icon
             Box(
@@ -106,12 +106,12 @@ private fun ConversationStarterCard(
                     .size(20.dp)
                     .background(Color.White, shape = CircleShape)
                     .padding(4.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.info_svgrepo_com),
                     contentDescription = null,
-                    tint = Color.Black
+                    tint = Color.Black,
                 )
             }
 
@@ -125,7 +125,7 @@ private fun ConversationStarterCard(
                 fontSize = 12.sp,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = 8.dp),
             )
         }
     }

@@ -14,7 +14,6 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -34,18 +33,18 @@ class MainViewModelModelSwitchTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        
+
         // Mock the UserPreferencesRepository to return an empty default model name
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         // Mock LLamaAndroid methods
         whenever(mockLlamaAndroid.getIsSending()).thenReturn(false)
         whenever(mockLlamaAndroid.send_eot_str()).thenReturn("")
-        
+
         viewModel = MainViewModel(
             llamaAndroid = mockLlamaAndroid,
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
     }
 
@@ -60,11 +59,11 @@ class MainViewModelModelSwitchTest {
         whenever(mockLlamaAndroid.getIsSending()).thenReturn(false)
         val modelPath = "/path/to/model.gguf"
         val threads = 4
-        
+
         // When: Switch model is called
         viewModel.switchModel(modelPath, threads)
         advanceUntilIdle()
-        
+
         // Then: Model is switched and state is updated
         assertEquals("model.gguf", viewModel.loadedModelName.value)
         assertFalse(viewModel.isSwitchingModel.value)
@@ -76,10 +75,10 @@ class MainViewModelModelSwitchTest {
         whenever(mockLlamaAndroid.getIsSending()).thenReturn(true)
         val modelPath = "/path/to/model.gguf"
         val threads = 4
-        
+
         // When: Switch model is called
         viewModel.switchModel(modelPath, threads)
-        
+
         // Then: Switch is deferred and state shows switching
         assertTrue(viewModel.isSwitchingModel.value)
         // Model should not be loaded yet
@@ -92,11 +91,11 @@ class MainViewModelModelSwitchTest {
         whenever(mockLlamaAndroid.getIsSending()).thenReturn(false)
         val modelPath = "/path/to/newmodel.gguf"
         val threads = 4
-        
+
         // When: Switch model is called
         viewModel.switchModel(modelPath, threads)
         advanceUntilIdle()
-        
+
         // Then: Default model preference is updated
         verify(mockUserPreferencesRepository).setDefaultModelName("newmodel.gguf")
     }
@@ -107,11 +106,11 @@ class MainViewModelModelSwitchTest {
         whenever(mockLlamaAndroid.getIsSending()).thenReturn(false)
         viewModel.switchModel("/path/to/model1.gguf", 4)
         advanceUntilIdle()
-        
+
         // When: Switch to second model
         viewModel.switchModel("/path/to/model2.gguf", 4)
         advanceUntilIdle()
-        
+
         // Then: Second model is loaded
         assertEquals("model2.gguf", viewModel.loadedModelName.value)
         assertFalse(viewModel.isSwitchingModel.value)
@@ -127,10 +126,10 @@ class MainViewModelModelSwitchTest {
     fun switchModel_setsIsSwitchingModelDuringSwitchWhenSending() {
         // Given: Request in flight
         whenever(mockLlamaAndroid.getIsSending()).thenReturn(true)
-        
+
         // When: Switch model is called
         viewModel.switchModel("/path/to/model.gguf", 4)
-        
+
         // Then: Switching state is true
         assertTrue(viewModel.isSwitchingModel.value)
     }
@@ -146,12 +145,12 @@ class MainViewModelModelSwitchTest {
         // Given: No request in flight
         whenever(mockLlamaAndroid.getIsSending()).thenReturn(false)
         val modelPath = "/path/to/model.gguf"
-        
+
         // When: Switch model with 8 threads
         val threads = 8
         viewModel.switchModel(modelPath, threads)
         advanceUntilIdle()
-        
+
         // Then: Model is loaded (thread count is used internally by load method)
         assertEquals("model.gguf", viewModel.loadedModelName.value)
     }

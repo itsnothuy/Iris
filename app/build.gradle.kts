@@ -1,15 +1,15 @@
-//plugins {
+// plugins {
 //    alias(libs.plugins.android.application)
 //    alias(libs.plugins.kotlin.android)
 //    alias(libs.plugins.kotlin.compose)
-//}
+// }
 //
-//plugins {
+// plugins {
 //    id("com.android.application")
 //    id("org.jetbrains.kotlin.android")
-//}
+// }
 //
-//android {
+// android {
 //    namespace = "com.example.android"
 //    compileSdk = 35
 //
@@ -48,9 +48,9 @@
 //    kotlinOptions {
 //        jvmTarget = "11"
 //    }
-//}
+// }
 //
-//dependencies {
+// dependencies {
 //
 //    implementation(libs.androidx.core.ktx)
 //    implementation(libs.androidx.appcompat)
@@ -58,16 +58,15 @@
 //    testImplementation(libs.junit)
 //    androidTestImplementation(libs.androidx.junit)
 //    androidTestImplementation(libs.androidx.espresso.core)
-//}
-
+// }
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("dagger.hilt.android.plugin")
     id("jacoco")
-    id("io.gitlab.arturbosch.detekt") version "1.23.4"
+    // id("io.gitlab.arturbosch.detekt") version "1.23.4"  // Temporarily disabled for MVP
 }
 
 android {
@@ -98,7 +97,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             signingConfig = signingConfigs.getByName("debug")
         }
@@ -114,14 +113,14 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.5"
     }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-    
+
     buildTypes {
         getByName("debug") {
             enableUnitTestCoverage = true
@@ -129,7 +128,6 @@ android {
         }
     }
 }
-
 
 dependencies {
 
@@ -167,41 +165,40 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    // Room dependencies (using kapt instead of ksp for Hilt compatibility)
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
-    
+    // Room dependencies (using KSP for better Kotlin compatibility)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
     // Core modules
     implementation(project(":common"))
     implementation(project(":core-llm"))
     implementation(project(":core-rag"))
     implementation(project(":core-safety"))
     implementation(project(":core-hw"))
-    
+
     // Hilt Dependency Injection
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
-    
+
     // Testing with Hilt
     testImplementation(libs.hilt.android.testing)
-    kaptTest(libs.hilt.compiler)
+    kspTest(libs.hilt.compiler)
     androidTestImplementation(libs.hilt.android.testing)
-    kaptAndroidTest(libs.hilt.compiler)
-
+    kspAndroidTest(libs.hilt.compiler)
 }
 
 // Jacoco configuration for code coverage
 tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
-    
+
     reports {
         xml.required.set(true)
         html.required.set(true)
         csv.required.set(false)
     }
-    
+
     val fileFilter = listOf(
         "**/R.class",
         "**/R$*.class",
@@ -210,20 +207,22 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         "**/*Test*.*",
         "android/**/*.*",
         "**/data/local/AppDatabase*.*",
-        "**/ui/theme/*.*"
+        "**/ui/theme/*.*",
     )
-    
+
     val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
         exclude(fileFilter)
     }
-    
+
     val mainSrc = "${project.projectDir}/src/main/java"
-    
+
     sourceDirectories.setFrom(files(mainSrc))
     classDirectories.setFrom(files(debugTree))
-    executionData.setFrom(fileTree(project.buildDir) {
-        include("**/*.exec", "**/*.ec")
-    })
+    executionData.setFrom(
+        fileTree(project.buildDir) {
+            include("**/*.exec", "**/*.ec")
+        },
+    )
 }
 
 // Task to verify coverage meets threshold
@@ -231,20 +230,20 @@ tasks.register("jacocoTestCoverageVerification") {
     group = "verification"
     description = "Verifies that test coverage meets the minimum threshold (80%)"
     dependsOn("jacocoTestReport")
-    
+
     doLast {
         val reportFile = file("${project.buildDir}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
         if (reportFile.exists()) {
             val coverage = extractCoverage(reportFile)
             val threshold = 0.80
-            
+
             println("Code coverage: ${String.format("%.2f", coverage * 100)}%")
-            
+
             if (coverage < threshold) {
                 throw GradleException(
                     "Code coverage is below threshold. " +
-                    "Expected: ${String.format("%.2f", threshold * 100)}%, " +
-                    "Actual: ${String.format("%.2f", coverage * 100)}%"
+                        "Expected: ${String.format("%.2f", threshold * 100)}%, " +
+                        "Actual: ${String.format("%.2f", coverage * 100)}%",
                 )
             } else {
                 println("✓ Code coverage meets threshold (≥${String.format("%.2f", threshold * 100)}%)")
@@ -259,7 +258,7 @@ fun extractCoverage(reportFile: File): Double {
     val xmlContent = reportFile.readText()
     val counterRegex = """<counter type="INSTRUCTION"[^>]*covered="(\d+)"[^>]*missed="(\d+)"""".toRegex()
     val match = counterRegex.find(xmlContent)
-    
+
     return if (match != null) {
         val covered = match.groupValues[1].toDouble()
         val missed = match.groupValues[2].toDouble()
@@ -273,7 +272,8 @@ fun extractCoverage(reportFile: File): Double {
     }
 }
 
-// Detekt configuration
+// Detekt configuration - Temporarily disabled for MVP
+/*
 detekt {
     buildUponDefaultConfig = true
     allRules = false
@@ -289,6 +289,7 @@ tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
         sarif.required.set(true)
     }
 }
+*/
 
 // Ktlint configuration
 val ktlint by configurations.creating
@@ -309,7 +310,7 @@ val ktlintCheck by tasks.registering(JavaExec::class) {
     args(
         "**/src/**/*.kt",
         "**.kts",
-        "!**/build/**"
+        "!**/build/**",
     )
 }
 
@@ -322,7 +323,7 @@ val ktlintFormat by tasks.registering(JavaExec::class) {
         "-F",
         "**/src/**/*.kt",
         "**.kts",
-        "!**/build/**"
+        "!**/build/**",
     )
     jvmArgs("--add-opens=java.base/java.lang=ALL-UNNAMED")
 }

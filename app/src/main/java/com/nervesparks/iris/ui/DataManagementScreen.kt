@@ -17,9 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nervesparks.iris.R
+import com.nervesparks.iris.ui.components.DeleteConfirmDialog
 import com.nervesparks.iris.ui.components.ExportDialog
 import com.nervesparks.iris.ui.components.PrivacyAuditDialog
-import com.nervesparks.iris.ui.components.DeleteConfirmDialog
 
 /**
  * Data Management Screen
@@ -30,7 +30,7 @@ fun DataManagementScreen(
     onExportClicked: () -> Unit,
     onImportClicked: () -> Unit,
     onPrivacyAuditClicked: () -> Unit,
-    onDeleteDataClicked: () -> Unit
+    onDeleteDataClicked: () -> Unit,
 ) {
     var showExportDialog by remember { mutableStateOf(false) }
     var showPrivacyAuditDialog by remember { mutableStateOf(false) }
@@ -40,7 +40,7 @@ fun DataManagementScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(8.dp),
         ) {
             item {
                 Text(
@@ -48,7 +48,7 @@ fun DataManagementScreen(
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(16.dp),
                 )
             }
 
@@ -60,13 +60,13 @@ fun DataManagementScreen(
                         .background(
                             color = Color(0xff0f172a),
                             shape = RoundedCornerShape(12.dp),
-                        )
+                        ),
                 ) {
                     DataManagementRow(
                         text = "Export Conversations",
                         description = "Export your data to JSON, Markdown, or plain text",
                         iconRes = R.drawable.data_exploration_models_svgrepo_com,
-                        onClick = { showExportDialog = true }
+                        onClick = { showExportDialog = true },
                     )
 
                     DataManagementDivider()
@@ -75,7 +75,7 @@ fun DataManagementScreen(
                         text = "Import Conversations",
                         description = "Restore conversations from an export file",
                         iconRes = R.drawable.data_exploration_models_svgrepo_com,
-                        onClick = onImportClicked
+                        onClick = onImportClicked,
                     )
                 }
             }
@@ -89,13 +89,13 @@ fun DataManagementScreen(
                         .background(
                             color = Color(0xff0f172a),
                             shape = RoundedCornerShape(12.dp),
-                        )
+                        ),
                 ) {
                     DataManagementRow(
                         text = "Privacy Audit",
                         description = "View data usage and storage information",
                         iconRes = R.drawable.information_outline_svgrepo_com,
-                        onClick = { showPrivacyAuditDialog = true }
+                        onClick = { showPrivacyAuditDialog = true },
                     )
                 }
             }
@@ -109,14 +109,14 @@ fun DataManagementScreen(
                         .background(
                             color = Color(0xff0f172a),
                             shape = RoundedCornerShape(12.dp),
-                        )
+                        ),
                 ) {
                     DataManagementRow(
                         text = "Clear All Data",
                         description = "Permanently delete all conversations and messages",
                         iconRes = R.drawable.setting_4_svgrepo_com,
                         onClick = { showDeleteConfirmDialog = true },
-                        isDanger = true
+                        isDanger = true,
                     )
                 }
             }
@@ -130,13 +130,13 @@ fun DataManagementScreen(
             onExport = { format ->
                 showExportDialog = false
                 onExportClicked()
-            }
+            },
         )
     }
 
     if (showPrivacyAuditDialog) {
         PrivacyAuditDialog(
-            onDismiss = { showPrivacyAuditDialog = false }
+            onDismiss = { showPrivacyAuditDialog = false },
         )
     }
 
@@ -146,7 +146,7 @@ fun DataManagementScreen(
             onConfirm = {
                 showDeleteConfirmDialog = false
                 onDeleteDataClicked()
-            }
+            },
         )
     }
 }
@@ -157,20 +157,20 @@ private fun DataManagementRow(
     description: String,
     iconRes: Int,
     onClick: () -> Unit,
-    isDanger: Boolean = false
+    isDanger: Boolean = false,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = text,
             tint = if (isDanger) Color(0xFFEF4444) else Color.White,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(24.dp),
         )
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -178,20 +178,20 @@ private fun DataManagementRow(
                 text = text,
                 color = if (isDanger) Color(0xFFEF4444) else Color.White,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = description,
                 color = Color(0xff94a3b8),
-                fontSize = 14.sp
+                fontSize = 14.sp,
             )
         }
         Icon(
             painter = painterResource(id = R.drawable.setting_4_svgrepo_com),
             contentDescription = "Navigate",
             tint = Color(0xff64748b),
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(20.dp),
         )
     }
 }
@@ -200,6 +200,6 @@ private fun DataManagementRow(
 private fun DataManagementDivider() {
     Divider(
         color = Color(0xff1e293b),
-        modifier = Modifier.padding(horizontal = 16.dp)
+        modifier = Modifier.padding(horizontal = 16.dp),
     )
 }

@@ -30,19 +30,19 @@ class MainViewModelQueueTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        
+
         // Mock the UserPreferencesRepository to return an empty default model name
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         // Mock LLamaAndroid methods
         whenever(mockLlamaAndroid.getIsSending()).thenReturn(false)
         whenever(mockLlamaAndroid.isQueued()).thenReturn(false)
         whenever(mockLlamaAndroid.getQueueSize()).thenReturn(0)
-        
+
         viewModel = MainViewModel(
             llamaAndroid = mockLlamaAndroid,
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
     }
 
@@ -54,7 +54,7 @@ class MainViewModelQueueTest {
     @Test
     fun queueState_initiallyEmpty() {
         // Given: Initial state
-        
+
         // Then: Queue state should be empty
         assertFalse(viewModel.isMessageQueued)
         assertEquals(0, viewModel.queueSize)
@@ -65,10 +65,10 @@ class MainViewModelQueueTest {
         // Given: LLamaAndroid reports not queued
         whenever(mockLlamaAndroid.isQueued()).thenReturn(false)
         whenever(mockLlamaAndroid.getQueueSize()).thenReturn(0)
-        
+
         // When: Update queue state is called (simulated internally)
         // This would happen via send() but we're testing state management
-        
+
         // Then: View model reflects the state
         assertFalse(viewModel.isMessageQueued)
         assertEquals(0, viewModel.queueSize)
@@ -79,10 +79,10 @@ class MainViewModelQueueTest {
         // Given: LLamaAndroid reports queued state
         whenever(mockLlamaAndroid.isQueued()).thenReturn(true)
         whenever(mockLlamaAndroid.getQueueSize()).thenReturn(2)
-        
+
         // Simulate internal state update
         // In real scenario this happens after tryEnqueue in send()
-        
+
         // Then: We can verify the mock behavior
         assertTrue(mockLlamaAndroid.isQueued())
         assertEquals(2, mockLlamaAndroid.getQueueSize())
@@ -92,10 +92,10 @@ class MainViewModelQueueTest {
     fun errorMessage_whenQueueFull_setsErrorMessage() {
         // Given: Mock tryEnqueue to return false (queue full)
         // This is tested via integration but we verify error handling
-        
+
         // When: An error is set
         viewModel.setError("Too many requests in queue. Please wait and try again.")
-        
+
         // Then: Error message is set
         assertEquals("Too many requests in queue. Please wait and try again.", viewModel.errorMessage)
     }
@@ -105,10 +105,10 @@ class MainViewModelQueueTest {
         // Given: An existing error message
         viewModel.setError("Previous error")
         assertEquals("Previous error", viewModel.errorMessage)
-        
+
         // When: clearError is called (happens at start of send())
         viewModel.clearError()
-        
+
         // Then: Error message is cleared
         assertNull(viewModel.errorMessage)
     }
@@ -117,11 +117,11 @@ class MainViewModelQueueTest {
     fun queueSize_tracksCorrectly() {
         // Given: Different queue sizes
         val testCases = listOf(0, 1, 2, 3)
-        
+
         testCases.forEach { size ->
             // When: Queue size changes
             whenever(mockLlamaAndroid.getQueueSize()).thenReturn(size)
-            
+
             // Then: Mock returns correct value
             assertEquals(size, mockLlamaAndroid.getQueueSize())
         }
@@ -130,15 +130,15 @@ class MainViewModelQueueTest {
     @Test
     fun isQueued_togglesCorrectly() {
         // Given: Queue state changes from empty to queued
-        
+
         // When: Initially not queued
         whenever(mockLlamaAndroid.isQueued()).thenReturn(false)
         assertFalse(mockLlamaAndroid.isQueued())
-        
+
         // When: Becomes queued
         whenever(mockLlamaAndroid.isQueued()).thenReturn(true)
         assertTrue(mockLlamaAndroid.isQueued())
-        
+
         // When: Returns to not queued
         whenever(mockLlamaAndroid.isQueued()).thenReturn(false)
         assertFalse(mockLlamaAndroid.isQueued())
@@ -148,7 +148,7 @@ class MainViewModelQueueTest {
     fun queueBehavior_maxSizeEnforcement() {
         // Given: Queue can have max 3 items
         val maxQueueSize = 3
-        
+
         // When/Then: Queue size should never exceed max
         for (size in 0..maxQueueSize) {
             whenever(mockLlamaAndroid.getQueueSize()).thenReturn(size)
@@ -160,28 +160,28 @@ class MainViewModelQueueTest {
     fun queueBehavior_rejectWhenFull() {
         // This tests the contract that tryEnqueue should reject when full
         // In real implementation, LLamaAndroid.tryEnqueue returns false when queue is full
-        
+
         // Given: Queue is at max capacity
         whenever(mockLlamaAndroid.getQueueSize()).thenReturn(3)
-        
+
         // Then: We verify the queue size is at max
         assertEquals(3, mockLlamaAndroid.getQueueSize())
     }
-    
+
     @Test
     fun rateLimitCooldown_tracksCorrectly() {
         // Given: Different cooldown values
         val testCases = listOf(0, 15, 30, 45, 60)
-        
+
         testCases.forEach { cooldown ->
             // When: Cooldown changes
             whenever(mockLlamaAndroid.getRateLimitCooldownSeconds()).thenReturn(cooldown)
-            
+
             // Then: Mock returns correct value
             assertEquals(cooldown, mockLlamaAndroid.getRateLimitCooldownSeconds())
         }
     }
-    
+
     @Test
     fun queueState_updatesAfterRejection() {
         // Given: Queue is full and will reject
@@ -193,16 +193,16 @@ class MainViewModelQueueTest {
         whenever(mockLlamaAndroid.getRateLimitCooldownSeconds()).thenReturn(0)
         whenever(mockLlamaAndroid.getTemplate(org.mockito.kotlin.any())).thenReturn("test")
         whenever(mockUserPreferencesRepository.getPrivacyRedactionEnabled()).thenReturn(false)
-        
+
         // Initially, queue state should be empty
         assertFalse(viewModel.isMessageQueued)
         assertEquals(0, viewModel.queueSize)
-        
+
         // When: User sends a message that gets rejected
         viewModel.updateMessage("Test message")
         viewModel.send()
         testDispatcher.scheduler.advanceUntilIdle()
-        
+
         // Then: Queue state should be updated to reflect the actual queue state
         assertTrue(viewModel.isMessageQueued)
         assertEquals(3, viewModel.queueSize)

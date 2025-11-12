@@ -28,11 +28,11 @@ import kotlinx.coroutines.delay
 fun ProcessingIndicator(
     modifier: Modifier = Modifier,
     showMetrics: Boolean = true,
-    streamingText: String? = null
+    streamingText: String? = null,
 ) {
     // Debounce streaming text updates to prevent excessive recomposition
     var debouncedText by remember { mutableStateOf<String?>(null) }
-    
+
     LaunchedEffect(streamingText) {
         if (streamingText != null && streamingText.isNotEmpty()) {
             // Debounce: wait 50ms before updating to reduce recomposition
@@ -42,60 +42,60 @@ fun ProcessingIndicator(
             debouncedText = null
         }
     }
-    
+
     Row(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
         // Assistant icon
         androidx.compose.foundation.Image(
             painter = androidx.compose.ui.res.painterResource(id = R.drawable.logo),
             contentDescription = "AI Assistant Icon",
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(24.dp),
         )
-        
+
         Spacer(modifier = Modifier.width(4.dp))
-        
+
         // Processing bubble
         Box(
             modifier = Modifier
                 .background(
                     color = Color.Transparent,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 )
-                .padding(12.dp)
+                .padding(12.dp),
         ) {
             if (debouncedText != null && debouncedText!!.isNotEmpty()) {
                 // Show streaming text with typing indicator
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
                         text = "Assistant is typing…",
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = Color(0xFFA0A0A5)
-                        )
+                            color = Color(0xFFA0A0A5),
+                        ),
                     )
                 }
             } else {
                 // Show default "Thinking" state
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     if (showMetrics) {
                         Text(
                             text = "Thinking",
                             style = MaterialTheme.typography.bodyLarge.copy(
-                                color = Color(0xFFA0A0A5)
-                            )
+                                color = Color(0xFFA0A0A5),
+                            ),
                         )
                     }
-                    
+
                     // Animated dots
                     AnimatedDots()
                 }
@@ -110,10 +110,10 @@ fun ProcessingIndicator(
 @Composable
 private fun AnimatedDots() {
     val infiniteTransition = rememberInfiniteTransition(label = "dots")
-    
+
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         repeat(3) { index ->
             val alpha by infiniteTransition.animateFloat(
@@ -123,21 +123,21 @@ private fun AnimatedDots() {
                     animation = tween(
                         durationMillis = 600,
                         delayMillis = index * 200,
-                        easing = LinearEasing
+                        easing = LinearEasing,
                     ),
-                    repeatMode = RepeatMode.Reverse
+                    repeatMode = RepeatMode.Reverse,
                 ),
-                label = "dot_$index"
+                label = "dot_$index",
             )
-            
+
             Box(
                 modifier = Modifier
                     .size(6.dp)
                     .alpha(alpha)
                     .background(
                         color = Color(0xFFA0A0A5),
-                        shape = CircleShape
-                    )
+                        shape = CircleShape,
+                    ),
             )
         }
     }

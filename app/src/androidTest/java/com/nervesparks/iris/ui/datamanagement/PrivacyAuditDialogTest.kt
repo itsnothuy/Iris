@@ -25,7 +25,7 @@ class PrivacyAuditDialogTest {
         composeTestRule.setContent {
             PrivacyAuditDialog(
                 onDismiss = {},
-                privacyAuditInfo = null
+                privacyAuditInfo = null,
             )
         }
 
@@ -37,7 +37,7 @@ class PrivacyAuditDialogTest {
         composeTestRule.setContent {
             PrivacyAuditDialog(
                 onDismiss = {},
-                privacyAuditInfo = null
+                privacyAuditInfo = null,
             )
         }
 
@@ -55,13 +55,13 @@ class PrivacyAuditDialogTest {
             newestConversation = Instant.now(),
             dataEncrypted = false,
             networkActivity = false,
-            exportHistory = emptyList()
+            exportHistory = emptyList(),
         )
 
         composeTestRule.setContent {
             PrivacyAuditDialog(
                 onDismiss = {},
-                privacyAuditInfo = auditInfo
+                privacyAuditInfo = auditInfo,
             )
         }
 
@@ -82,13 +82,13 @@ class PrivacyAuditDialogTest {
             newestConversation = null,
             dataEncrypted = false,
             networkActivity = false,
-            exportHistory = emptyList()
+            exportHistory = emptyList(),
         )
 
         composeTestRule.setContent {
             PrivacyAuditDialog(
                 onDismiss = {},
-                privacyAuditInfo = auditInfo
+                privacyAuditInfo = auditInfo,
             )
         }
 
@@ -107,19 +107,19 @@ class PrivacyAuditDialogTest {
             newestConversation = null,
             dataEncrypted = false,
             networkActivity = false,
-            exportHistory = emptyList()
+            exportHistory = emptyList(),
         )
 
         composeTestRule.setContent {
             PrivacyAuditDialog(
                 onDismiss = {},
-                privacyAuditInfo = auditInfo
+                privacyAuditInfo = auditInfo,
             )
         }
 
         composeTestRule.onNodeWithText(
             "All data is stored locally on your device. No information is transmitted to external servers.",
-            substring = true
+            substring = true,
         ).assertExists()
     }
 
@@ -134,13 +134,13 @@ class PrivacyAuditDialogTest {
             newestConversation = null,
             dataEncrypted = false,
             networkActivity = false,
-            exportHistory = emptyList()
+            exportHistory = emptyList(),
         )
 
         composeTestRule.setContent {
             PrivacyAuditDialog(
                 onDismiss = { dismissed = true },
-                privacyAuditInfo = auditInfo
+                privacyAuditInfo = auditInfo,
             )
         }
 
@@ -158,13 +158,13 @@ class PrivacyAuditDialogTest {
             newestConversation = null,
             dataEncrypted = false,
             networkActivity = false,
-            exportHistory = emptyList()
+            exportHistory = emptyList(),
         )
 
         composeTestRule.setContent {
             PrivacyAuditDialog(
                 onDismiss = {},
-                privacyAuditInfo = auditInfo
+                privacyAuditInfo = auditInfo,
             )
         }
 

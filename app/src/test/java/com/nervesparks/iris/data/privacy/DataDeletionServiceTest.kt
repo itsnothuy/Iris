@@ -30,7 +30,7 @@ class DataDeletionServiceTest {
         mockMessageRepository = mock()
         dataDeletionService = DataDeletionService(
             mockConversationRepository,
-            mockMessageRepository
+            mockMessageRepository,
         )
     }
 
@@ -63,7 +63,7 @@ class DataDeletionServiceTest {
     @Test
     fun deleteConversations_deletesSpecificOnes() = runTest {
         val conversationIds = listOf("conv-1", "conv-2", "conv-3")
-        
+
         whenever(mockMessageRepository.getMessageCountForConversation("conv-1")).thenReturn(5)
         whenever(mockMessageRepository.getMessageCountForConversation("conv-2")).thenReturn(10)
         whenever(mockMessageRepository.getMessageCountForConversation("conv-3")).thenReturn(3)
@@ -92,13 +92,13 @@ class DataDeletionServiceTest {
             id = "old-1",
             content = "Old message",
             role = MessageRole.USER,
-            timestamp = now.minusSeconds(100 * 24 * 60 * 60) // 100 days ago
+            timestamp = now.minusSeconds(100 * 24 * 60 * 60), // 100 days ago
         )
         val recentMessage = Message(
             id = "recent-1",
             content = "Recent message",
             role = MessageRole.USER,
-            timestamp = now.minusSeconds(10 * 24 * 60 * 60) // 10 days ago
+            timestamp = now.minusSeconds(10 * 24 * 60 * 60), // 10 days ago
         )
 
         whenever(mockMessageRepository.getAllMessagesList())
@@ -118,7 +118,7 @@ class DataDeletionServiceTest {
             id = "recent-1",
             content = "Recent",
             role = MessageRole.USER,
-            timestamp = Instant.now().minusSeconds(5 * 24 * 60 * 60)
+            timestamp = Instant.now().minusSeconds(5 * 24 * 60 * 60),
         )
 
         whenever(mockMessageRepository.getAllMessagesList())
@@ -139,7 +139,7 @@ class DataDeletionServiceTest {
                 createdAt = Instant.now(),
                 lastModified = Instant.now(),
                 messageCount = 5,
-                isArchived = true
+                isArchived = true,
             ),
             Conversation(
                 id = "arch-2",
@@ -147,8 +147,8 @@ class DataDeletionServiceTest {
                 createdAt = Instant.now(),
                 lastModified = Instant.now(),
                 messageCount = 3,
-                isArchived = true
-            )
+                isArchived = true,
+            ),
         )
 
         whenever(mockConversationRepository.getArchivedConversations())

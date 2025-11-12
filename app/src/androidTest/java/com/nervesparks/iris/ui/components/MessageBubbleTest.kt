@@ -23,7 +23,7 @@ class MessageBubbleTest {
     fun messageBubble_displays_userMessage_correctly() {
         val testMessage = Message(
             content = "Hello, AI!",
-            role = MessageRole.USER
+            role = MessageRole.USER,
         )
 
         composeTestRule.setContent {
@@ -32,10 +32,10 @@ class MessageBubbleTest {
 
         // Verify message content is displayed
         composeTestRule.onNodeWithText("Hello, AI!").assertExists()
-        
+
         // Verify user icon is displayed
         composeTestRule.onNodeWithContentDescription("User Icon").assertExists()
-        
+
         // Verify assistant icon is NOT displayed for user messages
         composeTestRule.onNodeWithContentDescription("AI Assistant Icon").assertDoesNotExist()
     }
@@ -44,7 +44,7 @@ class MessageBubbleTest {
     fun messageBubble_displays_assistantMessage_correctly() {
         val testMessage = Message(
             content = "Hello, human!",
-            role = MessageRole.ASSISTANT
+            role = MessageRole.ASSISTANT,
         )
 
         composeTestRule.setContent {
@@ -53,10 +53,10 @@ class MessageBubbleTest {
 
         // Verify message content is displayed
         composeTestRule.onNodeWithText("Hello, human!").assertExists()
-        
+
         // Verify assistant icon is displayed
         composeTestRule.onNodeWithContentDescription("AI Assistant Icon").assertExists()
-        
+
         // Verify user icon is NOT displayed for assistant messages
         composeTestRule.onNodeWithContentDescription("User Icon").assertDoesNotExist()
     }
@@ -66,19 +66,19 @@ class MessageBubbleTest {
         val testMessage = Message(
             content = "Test message",
             role = MessageRole.USER,
-            timestamp = Instant.now()
+            timestamp = Instant.now(),
         )
 
         composeTestRule.setContent {
             MessageBubble(
                 message = testMessage,
-                showTimestamp = true
+                showTimestamp = true,
             )
         }
 
         // Verify message content is displayed
         composeTestRule.onNodeWithText("Test message").assertExists()
-        
+
         // Note: We can't easily test the exact timestamp format, but we ensure the component renders
         // The timestamp should be visible in the UI
     }
@@ -87,13 +87,13 @@ class MessageBubbleTest {
     fun messageBubble_hidesTimestamp_whenDisabled() {
         val testMessage = Message(
             content = "Test message",
-            role = MessageRole.USER
+            role = MessageRole.USER,
         )
 
         composeTestRule.setContent {
             MessageBubble(
                 message = testMessage,
-                showTimestamp = false
+                showTimestamp = false,
             )
         }
 
@@ -107,7 +107,7 @@ class MessageBubbleTest {
             content = "AI response",
             role = MessageRole.ASSISTANT,
             processingTimeMs = 1500L,
-            tokenCount = 100
+            tokenCount = 100,
         )
 
         composeTestRule.setContent {
@@ -116,7 +116,7 @@ class MessageBubbleTest {
 
         // Verify message content is displayed
         composeTestRule.onNodeWithText("AI response").assertExists()
-        
+
         // Verify processing metrics are displayed
         composeTestRule.onNodeWithText("1500ms • 100 tokens").assertExists()
     }
@@ -126,7 +126,7 @@ class MessageBubbleTest {
         val testMessage = Message(
             content = "AI response",
             role = MessageRole.ASSISTANT,
-            processingTimeMs = 2000L
+            processingTimeMs = 2000L,
         )
 
         composeTestRule.setContent {
@@ -143,7 +143,7 @@ class MessageBubbleTest {
             content = "User message",
             role = MessageRole.USER,
             processingTimeMs = 1000L,
-            tokenCount = 50
+            tokenCount = 50,
         )
 
         composeTestRule.setContent {
@@ -152,7 +152,7 @@ class MessageBubbleTest {
 
         // Verify message content is displayed
         composeTestRule.onNodeWithText("User message").assertExists()
-        
+
         // Verify metrics are NOT displayed for user messages
         composeTestRule.onNodeWithText("1000ms • 50 tokens").assertDoesNotExist()
     }
@@ -161,15 +161,15 @@ class MessageBubbleTest {
     fun messageBubble_handlesLongClick() {
         val testMessage = Message(
             content = "Long click test",
-            role = MessageRole.USER
+            role = MessageRole.USER,
         )
-        
+
         var longClickCalled = false
 
         composeTestRule.setContent {
             MessageBubble(
                 message = testMessage,
-                onLongClick = { longClickCalled = true }
+                onLongClick = { longClickCalled = true },
             )
         }
 
@@ -186,7 +186,7 @@ class MessageBubbleTest {
     fun messageBubble_displays_emptyContent() {
         val testMessage = Message(
             content = "",
-            role = MessageRole.USER
+            role = MessageRole.USER,
         )
 
         composeTestRule.setContent {
@@ -201,7 +201,7 @@ class MessageBubbleTest {
     fun messageBubble_displays_specialCharacters() {
         val testMessage = Message(
             content = "Hello\nWorld\t!😀",
-            role = MessageRole.ASSISTANT
+            role = MessageRole.ASSISTANT,
         )
 
         composeTestRule.setContent {
@@ -216,7 +216,7 @@ class MessageBubbleTest {
     fun messageBubble_systemMessage_hasCorrectStyling() {
         val testMessage = Message(
             content = "System notification",
-            role = MessageRole.SYSTEM
+            role = MessageRole.SYSTEM,
         )
 
         composeTestRule.setContent {
@@ -225,7 +225,7 @@ class MessageBubbleTest {
 
         // Verify message content is displayed
         composeTestRule.onNodeWithText("System notification").assertExists()
-        
+
         // System messages should not show icons
         composeTestRule.onNodeWithContentDescription("User Icon").assertDoesNotExist()
         composeTestRule.onNodeWithContentDescription("AI Assistant Icon").assertDoesNotExist()

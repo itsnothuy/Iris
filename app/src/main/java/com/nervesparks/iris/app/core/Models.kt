@@ -8,7 +8,7 @@ import com.nervesparks.iris.common.models.GenerationParams
 data class UserInput(
     val text: String,
     val enableRAG: Boolean = false,
-    val params: GenerationParams = GenerationParams()
+    val params: GenerationParams = GenerationParams(),
 )
 
 /**

@@ -46,17 +46,13 @@ data class Downloadable(val name: String, val source: Uri, val destination: File
         data class Error(val message: String) : State
         data object Stopped : State
 
-
-
         @JvmStatic
         @Composable
         fun Button(viewModel: MainViewModel, dm: DownloadManager, item: Downloadable) {
-
-            var status: State by remember  {
+            var status: State by remember {
                 mutableStateOf(
                     when (val downloadId = getActiveDownloadId(dm, item)) {
                         null -> {
-
                             if (item.destination.exists() && item.destination.length() > 0 && !isPartialDownload(item.destination)) {
                                 Downloaded(item)
                             } else {
@@ -64,11 +60,11 @@ data class Downloadable(val name: String, val source: Uri, val destination: File
                             }
                         }
                         else -> Downloading(downloadId, -1L)
-                    }
+                    },
                 )
             }
-            var progress by rememberSaveable  { mutableDoubleStateOf(0.0) }
-            var totalSize by rememberSaveable  { mutableStateOf<Long?>(null) }
+            var progress by rememberSaveable { mutableDoubleStateOf(0.0) }
+            var totalSize by rememberSaveable { mutableStateOf<Long?>(null) }
 
             val coroutineScope = rememberCoroutineScope()
 
@@ -105,7 +101,7 @@ data class Downloadable(val name: String, val source: Uri, val destination: File
                                 val newModel = mapOf(
                                     "name" to item.name,
                                     "source" to item.source.toString(),
-                                    "destination" to item.destination.path
+                                    "destination" to item.destination.path,
                                 )
                                 viewModel.allModels = viewModel.allModels + newModel
                                 Log.d(tag, "Model dynamically added to viewModel: $newModel")
@@ -120,19 +116,19 @@ data class Downloadable(val name: String, val source: Uri, val destination: File
 //                        Log.d(tag, "Model dynamically added to viewModel: $newModel")
 
                         viewModel.currentDownloadable = item
-                        if(viewModel.loadedModelName.value == "") {
+                        if (viewModel.loadedModelName.value == "") {
                             viewModel.load(
                                 item.destination.path,
-                                userThreads = viewModel.user_thread.toInt()
+                                userThreads = viewModel.user_thread.toInt(),
                             )
                         }
 
-                        println(viewModel.allModels.any {it["name"] == item.name})
+                        println(viewModel.allModels.any { it["name"] == item.name })
                         if (!viewModel.allModels.any { it["name"] == item.name }) {
                             val newModel = mapOf(
                                 "name" to item.name,
                                 "source" to item.source.toString(),
-                                "destination" to item.destination.path
+                                "destination" to item.destination.path,
                             )
                             viewModel.allModels += newModel
                             Log.d(tag, "Outer : Model dynamically added to viewModel: $newModel")
@@ -167,7 +163,9 @@ data class Downloadable(val name: String, val source: Uri, val destination: File
                         val request = DownloadManager.Request(item.source).apply {
                             setTitle("Downloading model")
                             setDescription("Downloading model: ${item.name}")
-                            setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
+                            setAllowedNetworkTypes(
+                                DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE,
+                            )
                             setDestinationUri(item.destination.toUri())
                         }
 
@@ -180,7 +178,6 @@ data class Downloadable(val name: String, val source: Uri, val destination: File
                 }
             }
 
-
             fun onStop() {
                 if (status is Downloading) {
                     dm.remove((status as Downloading).id)
@@ -189,13 +186,13 @@ data class Downloadable(val name: String, val source: Uri, val destination: File
             }
 
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Button(
                     onClick = { onClick() },
                     enabled = status !is Downloading && !viewModel.getIsSending(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2563EB) // Navy Blue color
+                        containerColor = Color(0xFF2563EB), // Navy Blue color
                     ),
 
                 ) {
@@ -207,31 +204,30 @@ data class Downloadable(val name: String, val source: Uri, val destination: File
                                     append("${(progress * 100).toInt()}%")
                                 }
                             },
-                            color = Color.White
+                            color = Color.White,
                         )
 
                         is Downloaded -> Text(
                             "Load",
-                            color = Color.White
+                            color = Color.White,
                         )
 
                         is Ready -> Text(
                             "Download",
-                            color = Color.White
+                            color = Color.White,
                         )
 
                         is Error -> Text(
                             "Download}",
-                            color = Color.White
+                            color = Color.White,
                         )
 
                         is Stopped -> Text(
                             "Stopped",
-                            color = Color.White
+                            color = Color.White,
                         )
                     }
                 }
-
 
                 Spacer(Modifier.height(10.dp))
 
@@ -239,8 +235,8 @@ data class Downloadable(val name: String, val source: Uri, val destination: File
                     Button(
                         onClick = { onStop() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White // Red color for stop button
-                        )
+                            containerColor = Color.White, // Red color for stop button
+                        ),
                     ) {
                         Text("Stop Download", color = Color.Black)
                     }
@@ -250,14 +246,13 @@ data class Downloadable(val name: String, val source: Uri, val destination: File
                     Text(
                         text = "File size: ${it / (1024 * 1024)} MB",
                         color = Color.Gray,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
         }
     }
 }
-
 
 fun isAlreadyDownloading(dm: DownloadManager, item: Downloadable): Boolean {
     val query = DownloadManager.Query()
@@ -279,20 +274,19 @@ fun isAlreadyDownloading(dm: DownloadManager, item: Downloadable): Boolean {
 }
 
 private fun isPartialDownload(file: File): Boolean {
-
     return file.name.endsWith(".partial") ||
-            file.name.endsWith(".download") ||
-            file.name.endsWith(".tmp") ||
+        file.name.endsWith(".download") ||
+        file.name.endsWith(".tmp") ||
 
-            file.name.contains(".part")
+        file.name.contains(".part")
 }
 
 fun getActiveDownloadId(dm: DownloadManager, item: Downloadable): Long? {
     val query = DownloadManager.Query()
         .setFilterByStatus(
             DownloadManager.STATUS_RUNNING or
-                    DownloadManager.STATUS_PENDING or
-                    DownloadManager.STATUS_PAUSED
+                DownloadManager.STATUS_PENDING or
+                DownloadManager.STATUS_PAUSED,
         )
 
     dm.query(query)?.use { cursor ->

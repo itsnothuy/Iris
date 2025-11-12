@@ -40,11 +40,11 @@ class ConversationRepositoryTest {
             id = "test-id",
             title = "Test Conversation",
             createdAt = Instant.now(),
-            lastModified = Instant.now()
+            lastModified = Instant.now(),
         )
-        
+
         repository.createConversation(conversation)
-        
+
         verify(mockDao).insertConversation(any())
     }
 
@@ -54,11 +54,11 @@ class ConversationRepositoryTest {
             id = "test-id",
             title = "Updated Conversation",
             createdAt = Instant.now(),
-            lastModified = Instant.now()
+            lastModified = Instant.now(),
         )
-        
+
         repository.updateConversation(conversation)
-        
+
         verify(mockDao).updateConversation(any())
     }
 
@@ -73,14 +73,14 @@ class ConversationRepositoryTest {
                 lastModified = timestamp.toEpochMilli(),
                 messageCount = 5,
                 isPinned = false,
-                isArchived = false
-            )
+                isArchived = false,
+            ),
         )
         val flow: Flow<List<ConversationEntity>> = flowOf(entities)
         whenever(mockDao.getAllConversations()).thenReturn(flow)
-        
+
         val result = repository.getAllConversations()
-        
+
         assertNotNull(result)
         verify(mockDao).getAllConversations()
     }
@@ -95,12 +95,12 @@ class ConversationRepositoryTest {
             lastModified = timestamp.toEpochMilli(),
             messageCount = 3,
             isPinned = false,
-            isArchived = false
+            isArchived = false,
         )
         whenever(mockDao.getConversationById("test-id")).thenReturn(entity)
-        
+
         val result = repository.getConversationById("test-id")
-        
+
         assertNotNull(result)
         assertEquals("test-id", result?.id)
         assertEquals("Test Conversation", result?.title)
@@ -110,9 +110,9 @@ class ConversationRepositoryTest {
     @Test
     fun getConversationById_withNonExistentId_returnsNull() = runTest {
         whenever(mockDao.getConversationById("non-existent")).thenReturn(null)
-        
+
         val result = repository.getConversationById("non-existent")
-        
+
         assertNull(result)
         verify(mockDao).getConversationById("non-existent")
     }
@@ -120,25 +120,25 @@ class ConversationRepositoryTest {
     @Test
     fun deleteConversation_callsDaoDelete() = runTest {
         val conversationId = "test-id-123"
-        
+
         repository.deleteConversation(conversationId)
-        
+
         verify(mockDao).deleteConversation(conversationId)
     }
 
     @Test
     fun deleteConversations_callsDaoDeleteMultiple() = runTest {
         val conversationIds = listOf("id-1", "id-2", "id-3")
-        
+
         repository.deleteConversations(conversationIds)
-        
+
         verify(mockDao).deleteConversations(conversationIds)
     }
 
     @Test
     fun deleteAllConversations_callsDaoDeleteAll() = runTest {
         repository.deleteAllConversations()
-        
+
         verify(mockDao).deleteAllConversations()
     }
 
@@ -146,9 +146,9 @@ class ConversationRepositoryTest {
     fun getConversationCount_returnsDaoCount() = runTest {
         val expectedCount = 10
         whenever(mockDao.getConversationCount()).thenReturn(expectedCount)
-        
+
         val result = repository.getConversationCount()
-        
+
         assertEquals(expectedCount, result)
         verify(mockDao).getConversationCount()
     }
@@ -164,14 +164,14 @@ class ConversationRepositoryTest {
                 lastModified = Instant.now().toEpochMilli(),
                 messageCount = 2,
                 isPinned = false,
-                isArchived = false
-            )
+                isArchived = false,
+            ),
         )
         val flow: Flow<List<ConversationEntity>> = flowOf(entities)
         whenever(mockDao.searchConversations(query)).thenReturn(flow)
-        
+
         val result = repository.searchConversations(query)
-        
+
         assertNotNull(result)
         verify(mockDao).searchConversations(query)
     }
@@ -180,27 +180,27 @@ class ConversationRepositoryTest {
     fun updateConversationMetadata_callsDaoUpdate() = runTest {
         val conversationId = "test-id"
         val messageCount = 15
-        
+
         repository.updateConversationMetadata(conversationId, messageCount)
-        
+
         verify(mockDao).updateConversationMetadata(any(), any(), any())
     }
 
     @Test
     fun togglePin_callsDaoUpdatePinStatus() = runTest {
         val conversationId = "test-id"
-        
+
         repository.togglePin(conversationId, true)
-        
+
         verify(mockDao).updatePinStatus(conversationId, true)
     }
 
     @Test
     fun toggleArchive_callsDaoUpdateArchiveStatus() = runTest {
         val conversationId = "test-id"
-        
+
         repository.toggleArchive(conversationId, true)
-        
+
         verify(mockDao).updateArchiveStatus(conversationId, true)
     }
 
@@ -214,7 +214,7 @@ class ConversationRepositoryTest {
                 lastModified = Instant.now().toEpochMilli(),
                 messageCount = 5,
                 isPinned = false,
-                isArchived = false
+                isArchived = false,
             ),
             ConversationEntity(
                 id = "id-2",
@@ -223,14 +223,14 @@ class ConversationRepositoryTest {
                 lastModified = Instant.now().toEpochMilli(),
                 messageCount = 3,
                 isPinned = false,
-                isArchived = true
-            )
+                isArchived = true,
+            ),
         )
         val flow: Flow<List<ConversationEntity>> = flowOf(entities)
         whenever(mockDao.getAllConversationsIncludingArchived()).thenReturn(flow)
-        
+
         val result = repository.getAllConversationsIncludingArchived()
-        
+
         assertNotNull(result)
         verify(mockDao).getAllConversationsIncludingArchived()
     }
@@ -245,14 +245,14 @@ class ConversationRepositoryTest {
                 lastModified = Instant.now().toEpochMilli(),
                 messageCount = 2,
                 isPinned = false,
-                isArchived = true
-            )
+                isArchived = true,
+            ),
         )
         val flow: Flow<List<ConversationEntity>> = flowOf(entities)
         whenever(mockDao.getArchivedConversations()).thenReturn(flow)
-        
+
         val result = repository.getArchivedConversations()
-        
+
         assertNotNull(result)
         verify(mockDao).getArchivedConversations()
     }

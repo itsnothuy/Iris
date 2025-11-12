@@ -13,12 +13,12 @@ class MessageTest {
     fun message_creation_withDefaultValues() {
         val content = "Hello, world!"
         val role = MessageRole.USER
-        
+
         val message = Message(
             content = content,
-            role = role
+            role = role,
         )
-        
+
         assertNotNull(message.id)
         assertEquals(content, message.content)
         assertEquals(role, message.role)
@@ -35,16 +35,16 @@ class MessageTest {
         val timestamp = Instant.now()
         val processingTime = 1500L
         val tokenCount = 100
-        
+
         val message = Message(
             id = id,
             content = content,
             role = role,
             timestamp = timestamp,
             processingTimeMs = processingTime,
-            tokenCount = tokenCount
+            tokenCount = tokenCount,
         )
-        
+
         assertEquals(id, message.id)
         assertEquals(content, message.content)
         assertEquals(role, message.role)
@@ -57,9 +57,9 @@ class MessageTest {
     fun message_isFromUser_returnsTrue_whenRoleIsUser() {
         val message = Message(
             content = "User message",
-            role = MessageRole.USER
+            role = MessageRole.USER,
         )
-        
+
         assertTrue(message.isFromUser)
     }
 
@@ -67,9 +67,9 @@ class MessageTest {
     fun message_isFromUser_returnsFalse_whenRoleIsAssistant() {
         val message = Message(
             content = "AI response",
-            role = MessageRole.ASSISTANT
+            role = MessageRole.ASSISTANT,
         )
-        
+
         assertFalse(message.isFromUser)
     }
 
@@ -77,9 +77,9 @@ class MessageTest {
     fun message_isFromUser_returnsFalse_whenRoleIsSystem() {
         val message = Message(
             content = "System message",
-            role = MessageRole.SYSTEM
+            role = MessageRole.SYSTEM,
         )
-        
+
         assertFalse(message.isFromUser)
     }
 
@@ -89,21 +89,21 @@ class MessageTest {
         val content = "Same content"
         val role = MessageRole.USER
         val timestamp = Instant.now()
-        
+
         val message1 = Message(
             id = id,
             content = content,
             role = role,
-            timestamp = timestamp
+            timestamp = timestamp,
         )
-        
+
         val message2 = Message(
             id = id,
             content = content,
             role = role,
-            timestamp = timestamp
+            timestamp = timestamp,
         )
-        
+
         assertEquals(message1, message2)
         assertEquals(message1.hashCode(), message2.hashCode())
     }
@@ -112,19 +112,19 @@ class MessageTest {
     fun message_equality_differentIds() {
         val content = "Same content"
         val role = MessageRole.USER
-        
+
         val message1 = Message(
             id = "id-1",
             content = content,
-            role = role
+            role = role,
         )
-        
+
         val message2 = Message(
             id = "id-2",
             content = content,
-            role = role
+            role = role,
         )
-        
+
         assertNotEquals(message1, message2)
     }
 
@@ -132,13 +132,13 @@ class MessageTest {
     fun message_copy_modifiesOnlySpecifiedFields() {
         val original = Message(
             content = "Original content",
-            role = MessageRole.USER
+            role = MessageRole.USER,
         )
-        
+
         val modified = original.copy(
-            content = "Modified content"
+            content = "Modified content",
         )
-        
+
         assertEquals("Modified content", modified.content)
         assertEquals(original.id, modified.id)
         assertEquals(original.role, modified.role)
@@ -148,7 +148,7 @@ class MessageTest {
     @Test
     fun messageRole_enumValues() {
         val roles = MessageRole.values()
-        
+
         assertEquals(3, roles.size)
         assertTrue(roles.contains(MessageRole.USER))
         assertTrue(roles.contains(MessageRole.ASSISTANT))
@@ -161,9 +161,9 @@ class MessageTest {
             content = "Response",
             role = MessageRole.ASSISTANT,
             processingTimeMs = 2500L,
-            tokenCount = 150
+            tokenCount = 150,
         )
-        
+
         assertEquals(2500L, message.processingTimeMs)
         assertEquals(150, message.tokenCount)
     }
@@ -172,9 +172,9 @@ class MessageTest {
     fun message_emptyContent() {
         val message = Message(
             content = "",
-            role = MessageRole.USER
+            role = MessageRole.USER,
         )
-        
+
         assertEquals("", message.content)
     }
 
@@ -183,9 +183,9 @@ class MessageTest {
         val longContent = "A".repeat(10000)
         val message = Message(
             content = longContent,
-            role = MessageRole.ASSISTANT
+            role = MessageRole.ASSISTANT,
         )
-        
+
         assertEquals(longContent, message.content)
         assertEquals(10000, message.content.length)
     }
@@ -195,9 +195,9 @@ class MessageTest {
         val specialContent = "Hello\nWorld\t!\r\n😀"
         val message = Message(
             content = specialContent,
-            role = MessageRole.USER
+            role = MessageRole.USER,
         )
-        
+
         assertEquals(specialContent, message.content)
     }
 }

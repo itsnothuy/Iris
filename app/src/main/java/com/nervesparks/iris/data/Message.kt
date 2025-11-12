@@ -19,7 +19,7 @@ data class Message(
     val role: MessageRole,
     val timestamp: Instant = Instant.now(),
     val processingTimeMs: Long? = null,
-    val tokenCount: Int? = null
+    val tokenCount: Int? = null,
 ) {
     /**
      * Convenience property for backward compatibility with existing code.
@@ -34,10 +34,10 @@ data class Message(
 enum class MessageRole {
     /** Message from the user */
     USER,
-    
+
     /** Message from the AI assistant */
     ASSISTANT,
-    
+
     /** System message (instructions, context, etc.) */
-    SYSTEM
+    SYSTEM,
 }

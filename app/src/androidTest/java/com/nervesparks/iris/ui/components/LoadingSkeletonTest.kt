@@ -25,7 +25,7 @@ class LoadingSkeletonTest {
 
         // Wait for the skeleton to appear (animation takes some time)
         composeTestRule.waitForIdle()
-        
+
         // The skeleton should be rendered and visible
         // We can't test for specific content since it's just placeholders,
         // but we can verify it doesn't crash
@@ -62,7 +62,7 @@ class LoadingSkeletonTest {
         // Wait for animation to start
         composeTestRule.waitForIdle()
         composeTestRule.mainClock.advanceTimeBy(500)
-        
+
         // Skeleton should still be visible and animating
         composeTestRule.waitForIdle()
     }

@@ -25,11 +25,11 @@ fun DownloadModal(viewModel: MainViewModel, dm: DownloadManager, models: List<Do
             modifier = Modifier
                 .padding(10.dp)
                 .height(300.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
             Column(
                 modifier = Modifier.padding(top = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 HeaderText("Download Required")
                 HeaderText("Don't close or minimize the app!")
@@ -38,7 +38,7 @@ fun DownloadModal(viewModel: MainViewModel, dm: DownloadManager, models: List<Do
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     items(models.filter { !it.destination.exists() }) { model ->
                         DownloadCard(viewModel, dm, model)
@@ -54,7 +54,7 @@ private fun HeaderText(text: String) {
     Text(
         text = text,
         fontWeight = FontWeight.Bold,
-        color = Color.White
+        color = Color.White,
     )
 }
 
@@ -66,19 +66,19 @@ private fun DownloadCard(viewModel: MainViewModel, dm: DownloadManager, model: D
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xff0f172a),
-            contentColor = Color.White
+            contentColor = Color.White,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = model.name,
-                color = Color(0xFFbbbdbf)
+                color = Color(0xFFbbbdbf),
             )
             Spacer(modifier = Modifier.height(8.dp))
             Downloadable.Button(viewModel, dm, model)

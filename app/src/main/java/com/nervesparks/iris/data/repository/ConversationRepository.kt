@@ -9,14 +9,14 @@ import java.time.Instant
 
 /**
  * Repository for managing conversation persistence operations.
- * 
+ *
  * Provides a clean abstraction over the database layer, handling
  * conversion between domain models and database entities.
  */
 class ConversationRepository(private val database: AppDatabase) {
-    
+
     private val conversationDao = database.conversationDao()
-    
+
     /**
      * Create a new conversation.
      */
@@ -24,7 +24,7 @@ class ConversationRepository(private val database: AppDatabase) {
         val entity = ConversationMapper.toEntity(conversation)
         conversationDao.insertConversation(entity)
     }
-    
+
     /**
      * Update an existing conversation.
      */
@@ -32,7 +32,7 @@ class ConversationRepository(private val database: AppDatabase) {
         val entity = ConversationMapper.toEntity(conversation)
         conversationDao.updateConversation(entity)
     }
-    
+
     /**
      * Get all non-archived conversations as a Flow for reactive updates.
      * Ordered by pinned status and last modified date.
@@ -42,7 +42,7 @@ class ConversationRepository(private val database: AppDatabase) {
             ConversationMapper.toDomainList(entities)
         }
     }
-    
+
     /**
      * Get all conversations including archived ones.
      */
@@ -51,7 +51,7 @@ class ConversationRepository(private val database: AppDatabase) {
             ConversationMapper.toDomainList(entities)
         }
     }
-    
+
     /**
      * Get archived conversations.
      */
@@ -60,7 +60,7 @@ class ConversationRepository(private val database: AppDatabase) {
             ConversationMapper.toDomainList(entities)
         }
     }
-    
+
     /**
      * Get a specific conversation by ID.
      */
@@ -68,7 +68,7 @@ class ConversationRepository(private val database: AppDatabase) {
         val entity = conversationDao.getConversationById(conversationId)
         return entity?.let { ConversationMapper.toDomain(it) }
     }
-    
+
     /**
      * Search conversations by title.
      */
@@ -77,7 +77,7 @@ class ConversationRepository(private val database: AppDatabase) {
             ConversationMapper.toDomainList(entities)
         }
     }
-    
+
     /**
      * Delete a specific conversation by ID.
      * This will cascade delete all messages in the conversation.
@@ -85,28 +85,28 @@ class ConversationRepository(private val database: AppDatabase) {
     suspend fun deleteConversation(conversationId: String) {
         conversationDao.deleteConversation(conversationId)
     }
-    
+
     /**
      * Delete multiple conversations by IDs.
      */
     suspend fun deleteConversations(conversationIds: List<String>) {
         conversationDao.deleteConversations(conversationIds)
     }
-    
+
     /**
      * Delete all conversations.
      */
     suspend fun deleteAllConversations() {
         conversationDao.deleteAllConversations()
     }
-    
+
     /**
      * Get the count of non-archived conversations.
      */
     suspend fun getConversationCount(): Int {
         return conversationDao.getConversationCount()
     }
-    
+
     /**
      * Update conversation metadata (last modified timestamp and message count).
      */
@@ -114,14 +114,14 @@ class ConversationRepository(private val database: AppDatabase) {
         val timestamp = Instant.now().toEpochMilli()
         conversationDao.updateConversationMetadata(conversationId, timestamp, messageCount)
     }
-    
+
     /**
      * Toggle pin status for a conversation.
      */
     suspend fun togglePin(conversationId: String, isPinned: Boolean) {
         conversationDao.updatePinStatus(conversationId, isPinned)
     }
-    
+
     /**
      * Toggle archive status for a conversation.
      */

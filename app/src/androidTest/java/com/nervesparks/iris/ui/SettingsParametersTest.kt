@@ -25,33 +25,33 @@ class SettingsParametersTest {
     private fun createMockViewModel(): MainViewModel {
         val mockLlamaAndroid: LLamaAndroid = mock()
         val mockUserPreferencesRepository: UserPreferencesRepository = mock()
-        
+
         // Mock repository methods
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("test-model.gguf")
         whenever(mockUserPreferencesRepository.getTemperature()).thenReturn(1.0f)
         whenever(mockUserPreferencesRepository.getTopP()).thenReturn(0.9f)
         whenever(mockUserPreferencesRepository.getTopK()).thenReturn(40)
         whenever(mockUserPreferencesRepository.getContextLength()).thenReturn(2048)
-        
+
         // Mock LlamaAndroid methods
         whenever(mockLlamaAndroid.getIsSending()).thenReturn(false)
         whenever(mockLlamaAndroid.send_eot_str()).thenReturn("")
-        
+
         return MainViewModel(
             llamaAndroid = mockLlamaAndroid,
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
     }
 
     @Test
     fun settingsBottomSheet_displays_modelParametersSection() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -62,26 +62,28 @@ class SettingsParametersTest {
     @Test
     fun settingsBottomSheet_displays_parameterDescription() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
         // Verify parameter description is displayed
-        composeTestRule.onNodeWithText("Adjust model inference parameters. Changes apply on next model load.").assertExists()
+        composeTestRule.onNodeWithText(
+            "Adjust model inference parameters. Changes apply on next model load.",
+        ).assertExists()
     }
 
     @Test
     fun settingsBottomSheet_displays_presetButtons() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -94,59 +96,68 @@ class SettingsParametersTest {
     @Test
     fun settingsBottomSheet_displays_temperatureSlider() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
         // Verify Temperature slider and its help text
         composeTestRule.onNodeWithText("Temperature").assertExists()
-        composeTestRule.onNodeWithText("Controls randomness. Lower values make output more focused and deterministic, higher values make it more creative.", substring = true).assertExists()
+        composeTestRule.onNodeWithText(
+            "Controls randomness. Lower values make output more focused and deterministic, higher values make it more creative.",
+            substring = true,
+        ).assertExists()
     }
 
     @Test
     fun settingsBottomSheet_displays_topPSlider() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
         // Verify Top P slider and its help text
         composeTestRule.onNodeWithText("Top P").assertExists()
-        composeTestRule.onNodeWithText("Nucleus sampling. Considers tokens with cumulative probability up to this value.", substring = true).assertExists()
+        composeTestRule.onNodeWithText(
+            "Nucleus sampling. Considers tokens with cumulative probability up to this value.",
+            substring = true,
+        ).assertExists()
     }
 
     @Test
     fun settingsBottomSheet_displays_topKSlider() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
         // Verify Top K slider and its help text
         composeTestRule.onNodeWithText("Top K").assertExists()
-        composeTestRule.onNodeWithText("Limits sampling to the top K most likely tokens.", substring = true).assertExists()
+        composeTestRule.onNodeWithText(
+            "Limits sampling to the top K most likely tokens.",
+            substring = true,
+        ).assertExists()
     }
 
     @Test
     fun settingsBottomSheet_displays_contextLengthSlider() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -158,11 +169,11 @@ class SettingsParametersTest {
     @Test
     fun settingsBottomSheet_displays_resetButton() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -173,11 +184,11 @@ class SettingsParametersTest {
     @Test
     fun settingsBottomSheet_presetButtons_areClickable() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -185,35 +196,35 @@ class SettingsParametersTest {
         composeTestRule.onNodeWithText("Conservative").performClick()
         composeTestRule.onNodeWithText("Balanced").performClick()
         composeTestRule.onNodeWithText("Creative").performClick()
-        
+
         // If we reach here without exceptions, buttons are clickable
     }
 
     @Test
     fun settingsBottomSheet_resetButton_isClickable() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
         // Click reset button
         composeTestRule.onNodeWithText("Reset to Defaults").performClick()
-        
+
         // If we reach here without exceptions, button is clickable
     }
 
     @Test
     fun settingsBottomSheet_displays_quickPresetsLabel() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -224,11 +235,11 @@ class SettingsParametersTest {
     @Test
     fun settingsBottomSheet_allParameterSliders_areVisible() {
         val viewModel = createMockViewModel()
-        
+
         composeTestRule.setContent {
             SettingsBottomSheet(
                 viewModel = viewModel,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 

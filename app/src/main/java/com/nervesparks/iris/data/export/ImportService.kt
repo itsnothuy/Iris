@@ -8,7 +8,6 @@ import com.nervesparks.iris.data.repository.MessageRepository
 import org.json.JSONObject
 import java.io.File
 import java.time.Instant
-import java.util.UUID
 
 /**
  * Result of an import operation.
@@ -24,7 +23,7 @@ data class ImportResult(
     val conversationsImported: Int = 0,
     val messagesImported: Int = 0,
     val duplicatesSkipped: Int = 0,
-    val error: String? = null
+    val error: String? = null,
 )
 
 /**
@@ -33,9 +32,9 @@ data class ImportResult(
  */
 class ImportService(
     private val conversationRepository: ConversationRepository,
-    private val messageRepository: MessageRepository
+    private val messageRepository: MessageRepository,
 ) {
-    
+
     /**
      * Import conversations from a JSON file.
      *
@@ -48,28 +47,28 @@ class ImportService(
             if (!file.exists()) {
                 return ImportResult(success = false, error = "File does not exist")
             }
-            
+
             if (!file.name.endsWith(".json")) {
                 return ImportResult(success = false, error = "File must be a JSON file")
             }
-            
+
             val content = file.readText()
             val root = JSONObject(content)
-            
+
             // Validate format
             if (!root.has("version") || !root.has("conversations")) {
                 return ImportResult(success = false, error = "Invalid export file format")
             }
-            
+
             val conversations = root.getJSONArray("conversations")
             var conversationsImported = 0
             var messagesImported = 0
             var duplicatesSkipped = 0
-            
+
             for (i in 0 until conversations.length()) {
                 val conversationObj = conversations.getJSONObject(i)
                 val conversationId = conversationObj.getString("id")
-                
+
                 // Check for duplicates
                 if (skipDuplicates) {
                     val existing = conversationRepository.getConversationById(conversationId)
@@ -78,7 +77,7 @@ class ImportService(
                         continue
                     }
                 }
-                
+
                 // Import conversation
                 val conversation = Conversation(
                     id = conversationId,
@@ -87,16 +86,16 @@ class ImportService(
                     lastModified = Instant.parse(conversationObj.getString("lastModified")),
                     messageCount = conversationObj.getInt("messageCount"),
                     isPinned = conversationObj.optBoolean("isPinned", false),
-                    isArchived = conversationObj.optBoolean("isArchived", false)
+                    isArchived = conversationObj.optBoolean("isArchived", false),
                 )
-                
+
                 conversationRepository.createConversation(conversation)
                 conversationsImported++
-                
+
                 // Import messages
                 val messagesArray = conversationObj.getJSONArray("messages")
                 val messages = mutableListOf<Message>()
-                
+
                 for (j in 0 until messagesArray.length()) {
                     val messageObj = messagesArray.getJSONObject(j)
                     val message = Message(
@@ -104,29 +103,35 @@ class ImportService(
                         content = messageObj.getString("content"),
                         role = MessageRole.valueOf(messageObj.getString("role")),
                         timestamp = Instant.parse(messageObj.getString("timestamp")),
-                        processingTimeMs = if (messageObj.has("processingTimeMs")) 
-                            messageObj.getLong("processingTimeMs") else null,
-                        tokenCount = if (messageObj.has("tokenCount")) 
-                            messageObj.getInt("tokenCount") else null
+                        processingTimeMs = if (messageObj.has("processingTimeMs")) {
+                            messageObj.getLong("processingTimeMs")
+                        } else {
+                            null
+                        },
+                        tokenCount = if (messageObj.has("tokenCount")) {
+                            messageObj.getInt("tokenCount")
+                        } else {
+                            null
+                        },
                     )
                     messages.add(message)
                 }
-                
+
                 messageRepository.saveMessages(messages, conversationId)
                 messagesImported += messages.size
             }
-            
+
             ImportResult(
                 success = true,
                 conversationsImported = conversationsImported,
                 messagesImported = messagesImported,
-                duplicatesSkipped = duplicatesSkipped
+                duplicatesSkipped = duplicatesSkipped,
             )
         } catch (e: Exception) {
             ImportResult(success = false, error = e.message ?: "Unknown error during import")
         }
     }
-    
+
     /**
      * Validate an export file without importing it.
      *
@@ -138,26 +143,26 @@ class ImportService(
             if (!file.exists()) {
                 return ValidationResult(valid = false, error = "File does not exist")
             }
-            
+
             if (!file.name.endsWith(".json")) {
                 return ValidationResult(valid = false, error = "Only JSON files are supported for import")
             }
-            
+
             val content = file.readText()
             val root = JSONObject(content)
-            
+
             if (!root.has("version")) {
                 return ValidationResult(valid = false, error = "Missing version field")
             }
-            
+
             if (!root.has("conversations")) {
                 return ValidationResult(valid = false, error = "Missing conversations field")
             }
-            
+
             val conversations = root.getJSONArray("conversations")
             val conversationCount = conversations.length()
             var totalMessages = 0
-            
+
             for (i in 0 until conversationCount) {
                 val conversation = conversations.getJSONObject(i)
                 if (!conversation.has("id") || !conversation.has("title") || !conversation.has("messages")) {
@@ -165,11 +170,11 @@ class ImportService(
                 }
                 totalMessages += conversation.getJSONArray("messages").length()
             }
-            
+
             ValidationResult(
                 valid = true,
                 conversationCount = conversationCount,
-                messageCount = totalMessages
+                messageCount = totalMessages,
             )
         } catch (e: Exception) {
             ValidationResult(valid = false, error = "Failed to parse file: ${e.message}")
@@ -189,5 +194,5 @@ data class ValidationResult(
     val valid: Boolean,
     val conversationCount: Int = 0,
     val messageCount: Int = 0,
-    val error: String? = null
+    val error: String? = null,
 )

@@ -31,15 +31,15 @@ import androidx.compose.ui.unit.sp
 fun ThermalHint(
     isRateLimited: Boolean,
     isThermalThrottled: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val shouldShow = isRateLimited || isThermalThrottled
-    
+
     AnimatedVisibility(
         visible = shouldShow,
         enter = fadeIn(),
         exit = fadeOut(),
-        modifier = modifier
+        modifier = modifier,
     ) {
         Box(
             modifier = Modifier
@@ -52,14 +52,14 @@ fun ThermalHint(
                         isRateLimited -> Color(0xFFFFA500) // Amber for rate-limit
                         else -> Color.Transparent
                     }.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 )
-                .padding(12.dp)
+                .padding(12.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(
                     imageVector = Icons.Default.Warning,
@@ -70,11 +70,11 @@ fun ThermalHint(
                         isRateLimited -> Color(0xFFFFA500)
                         else -> Color.Gray
                     },
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
-                
+
                 Spacer(modifier = Modifier.width(8.dp))
-                
+
                 Column {
                     Text(
                         text = when {
@@ -86,26 +86,26 @@ fun ThermalHint(
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = Color.White,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp
-                        )
+                            fontSize = 13.sp,
+                        ),
                     )
-                    
+
                     Spacer(modifier = Modifier.height(2.dp))
-                    
+
                     Text(
                         text = when {
-                            isThermalThrottled && isRateLimited -> 
+                            isThermalThrottled && isRateLimited ->
                                 "Reducing speed to prevent overheating"
-                            isThermalThrottled -> 
+                            isThermalThrottled ->
                                 "Streaming slowed to cool down device"
-                            isRateLimited -> 
+                            isRateLimited ->
                                 "Streaming slowed to maintain stability"
                             else -> ""
                         },
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 11.sp
-                        )
+                            fontSize = 11.sp,
+                        ),
                     )
                 }
             }

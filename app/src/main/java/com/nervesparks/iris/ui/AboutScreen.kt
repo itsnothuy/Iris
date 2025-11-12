@@ -27,13 +27,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
 @Composable
 fun AboutScreen() {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
     ) {
         item {
             SectionHeader(text = "Welcome to Iris")
@@ -43,7 +42,7 @@ fun AboutScreen() {
                 text = "Iris is an offline Android chat application powered by the llama.cpp framework. Designed to operate entirely offline, it ensures privacy and independence from external servers. Whether you're a developer exploring AI applications or a privacy-conscious user, this app provides a seamless and secure way to experience conversational AI. Please note that the app may occasionally generate inaccurate results.",
                 fontSize = 16.sp,
                 color = Color.White,
-                lineHeight = 24.sp
+                lineHeight = 24.sp,
             )
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -70,14 +69,14 @@ fun AboutScreen() {
 @Composable
 private fun SectionHeader(
     text: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Text(
         text = text,
         fontSize = 20.sp,
         fontWeight = FontWeight.Bold,
         color = Color.White,
-        modifier = modifier.padding(bottom = 12.dp)
+        modifier = modifier.padding(bottom = 12.dp),
     )
 }
 
@@ -87,19 +86,19 @@ private fun FeatureItem(feature: String) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 8.dp),
     ) {
         Box(
             modifier = Modifier
                 .size(20.dp)
                 .background(Color(0xFF4CAF50), shape = CircleShape),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier.size(14.dp),
             )
         }
         Spacer(modifier = Modifier.width(12.dp))
@@ -107,7 +106,7 @@ private fun FeatureItem(feature: String) {
             text = feature,
             fontSize = 16.sp,
             color = Color.White,
-            lineHeight = 24.sp
+            lineHeight = 24.sp,
         )
     }
 }
@@ -115,27 +114,27 @@ private fun FeatureItem(feature: String) {
 @Composable
 private fun FaqItem(
     question: String,
-    answer: String
+    answer: String,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 8.dp),
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 modifier = Modifier
                     .size(20.dp)
                     .background(Color(0xFF1b384f), shape = CircleShape),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(14.dp)
+                    modifier = Modifier.size(14.dp),
                 )
             }
             Spacer(modifier = Modifier.width(12.dp))
@@ -144,7 +143,7 @@ private fun FaqItem(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
-                lineHeight = 24.sp
+                lineHeight = 24.sp,
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
@@ -153,7 +152,7 @@ private fun FaqItem(
             fontSize = 14.sp,
             color = Color.White.copy(alpha = 0.7f),
             lineHeight = 20.sp,
-            modifier = Modifier.padding(start = 32.dp)  // Aligned with question text
+            modifier = Modifier.padding(start = 32.dp), // Aligned with question text
         )
     }
 }
@@ -162,7 +161,7 @@ private val features = listOf(
     "Offline Functionality: Runs without the need for an internet connection.",
     "Privacy First: All data is processed locally on your device.",
     "Customizable Models: Download and use your preferred AI model with ease.",
-    "Open Source: Built on the foundations of the llama.cpp Android example, enabling developers to contribute and modify."
+    "Open Source: Built on the foundations of the llama.cpp Android example, enabling developers to contribute and modify.",
 )
 
 private val faqs = listOf(
@@ -171,16 +170,16 @@ private val faqs = listOf(
     "Which AI models are supported?" to "The app supports GGUF models. You can download and integrate them as needed.",
     "Is my data safe while using this app?" to "Yes, since the app works offline, no data is transmitted to external servers, ensuring complete privacy.",
     "How do I change parameters?" to "You can adjust thread parameters to modify the text generation speed by navigating to:\n" +
-            "Settings > Change Parameters > Modify the parameters > Save changes.",
+        "Settings > Change Parameters > Modify the parameters > Save changes.",
     "How do I download models online?" to "You can download models from Hugging Face by providing the gguf model names:\n" +
-            "\n" +
-            "Go to Settings > Models.\n" +
-            "Click on Search Hugging Face Models.\n" +
-            "Enter the model name and click the search button.\n" +
-            "A list of matching models will appear. Select the model you want to download.",
+        "\n" +
+        "Go to Settings > Models.\n" +
+        "Click on Search Hugging Face Models.\n" +
+        "Enter the model name and click the search button.\n" +
+        "A list of matching models will appear. Select the model you want to download.",
     "How do I delete a model?" to "To free up device storage, you can delete downloaded models:\n" +
-            "\n" +
-            "Go to Settings > Models.\n" +
-            "Select the model you want to delete.\n" +
-            "Click the Delete button."
+        "\n" +
+        "Go to Settings > Models.\n" +
+        "Select the model you want to delete.\n" +
+        "Click the Delete button.",
 )

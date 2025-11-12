@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun LoadingSkeleton(
     isUserMessage: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     // Shimmer animation
     val infiniteTransition = rememberInfiniteTransition(label = "skeleton")
@@ -32,16 +32,16 @@ fun LoadingSkeleton(
         targetValue = 0.7f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "skeleton_alpha"
+        label = "skeleton_alpha",
     )
 
     Row(
         horizontalArrangement = if (isUserMessage) Arrangement.End else Arrangement.Start,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
         // Show assistant icon placeholder for assistant messages
         if (!isUserMessage) {
@@ -49,14 +49,14 @@ fun LoadingSkeleton(
                 modifier = Modifier
                     .size(24.dp)
                     .alpha(alpha)
-                    .background(Color(0xFF3C3C3E), CircleShape)
+                    .background(Color(0xFF3C3C3E), CircleShape),
             )
             Spacer(modifier = Modifier.width(4.dp))
         }
 
         Column(
             horizontalAlignment = if (isUserMessage) Alignment.End else Alignment.Start,
-            modifier = Modifier.weight(1f, fill = false)
+            modifier = Modifier.weight(1f, fill = false),
         ) {
             // Message content placeholder
             Box(
@@ -66,8 +66,8 @@ fun LoadingSkeleton(
                     .alpha(alpha)
                     .background(
                         color = if (isUserMessage) Color(0xFF171E2C) else Color(0xFF2C2C2E),
-                        shape = RoundedCornerShape(12.dp)
-                    )
+                        shape = RoundedCornerShape(12.dp),
+                    ),
             )
         }
 
@@ -78,7 +78,7 @@ fun LoadingSkeleton(
                 modifier = Modifier
                     .size(24.dp)
                     .alpha(alpha)
-                    .background(Color(0xFF3C3C3E), CircleShape)
+                    .background(Color(0xFF3C3C3E), CircleShape),
             )
         }
     }

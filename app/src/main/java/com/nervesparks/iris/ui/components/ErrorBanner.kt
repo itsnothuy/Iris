@@ -1,6 +1,5 @@
 package com.nervesparks.iris.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,7 +26,7 @@ fun ErrorBanner(
     errorMessage: String,
     onRetry: () -> Unit,
     onDismiss: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier
@@ -35,43 +34,43 @@ fun ErrorBanner(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF3D1F1F)
+            containerColor = Color(0xFF3D1F1F),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             // Error icon
             Icon(
                 imageVector = Icons.Default.Warning,
                 contentDescription = "Error",
                 tint = Color(0xFFFF6B6B),
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
             )
 
             Spacer(modifier = Modifier.width(12.dp))
 
             // Error message
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Text(
                     text = "Error",
                     style = MaterialTheme.typography.titleSmall.copy(
                         color = Color(0xFFFF6B6B),
-                        fontWeight = FontWeight.Bold
-                    )
+                        fontWeight = FontWeight.Bold,
+                    ),
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = errorMessage,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color(0xFFFFCCCC)
-                    )
+                        color = Color(0xFFFFCCCC),
+                    ),
                 )
             }
 
@@ -80,14 +79,14 @@ fun ErrorBanner(
             // Action buttons
             Column(
                 horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 // Retry button
                 TextButton(
                     onClick = onRetry,
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor = Color(0xFF88D0FF)
-                    )
+                        contentColor = Color(0xFF88D0FF),
+                    ),
                 ) {
                     Text("Retry")
                 }
@@ -97,8 +96,8 @@ fun ErrorBanner(
                     TextButton(
                         onClick = onDismiss,
                         colors = ButtonDefaults.textButtonColors(
-                            contentColor = Color(0xFFA0A0A5)
-                        )
+                            contentColor = Color(0xFFA0A0A5),
+                        ),
                     ) {
                         Text("Dismiss")
                     }

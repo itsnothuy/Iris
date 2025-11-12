@@ -29,28 +29,28 @@ class AppCoordinator @Inject constructor(
     private val ragEngine: RAGEngine,
     private val safetyEngine: SafetyEngine,
     private val thermalManager: ThermalManager,
-    private val deviceProfileProvider: DeviceProfileProvider
+    private val deviceProfileProvider: DeviceProfileProvider,
 ) {
-    
+
     private val _appState = MutableStateFlow<AppState>(AppState.Initializing)
     val appState: StateFlow<AppState> = _appState.asStateFlow()
-    
+
     /**
      * Initialize the application
      */
     suspend fun initialize(): Result<Unit> {
         return try {
             IrisLogger.info("Initializing application")
-            
+
             // Initialize hardware detection
             val deviceProfile = deviceProfileProvider.getDeviceProfile()
             stateManager.updateDeviceProfile(deviceProfile)
             IrisLogger.info("Device profile: ${deviceProfile.socVendor} ${deviceProfile.socModel}")
-            
+
             // Initialize thermal monitoring
             thermalManager.startMonitoring()
             IrisLogger.info("Thermal monitoring started")
-            
+
             _appState.value = AppState.Ready
             IrisLogger.info("Application ready")
             Result.success(Unit)
@@ -60,14 +60,14 @@ class AppCoordinator @Inject constructor(
             Result.failure(e)
         }
     }
-    
+
     /**
      * Process user input through the AI pipeline
      */
     suspend fun processUserInput(input: UserInput): Flow<ProcessingResult> = flow {
         try {
             emit(ProcessingResult.Started)
-            
+
             // Safety check on input
             val safetyResult = safetyEngine.checkInput(input.text)
             if (!safetyResult.isAllowed) {
@@ -75,7 +75,7 @@ class AppCoordinator @Inject constructor(
                 eventBus.emit(IrisEvent.SafetyViolation(input.text, safetyResult.reason ?: "Unknown"))
                 return@flow
             }
-            
+
             // RAG retrieval if enabled
             val context = if (input.enableRAG) {
                 val chunks = ragEngine.search(input.text)
@@ -83,16 +83,16 @@ class AppCoordinator @Inject constructor(
             } else {
                 ""
             }
-            
+
             // Build prompt with context
             val prompt = buildPrompt(input.text, context)
-            
+
             // LLM generation
             llmEngine.generateText(prompt, input.params)
                 .collect { token ->
                     emit(ProcessingResult.TokenGenerated(token))
                 }
-            
+
             emit(ProcessingResult.Completed)
         } catch (e: Exception) {
             IrisLogger.error("Error processing user input", e)
@@ -101,7 +101,7 @@ class AppCoordinator @Inject constructor(
     }.catch { e ->
         emit(ProcessingResult.Error(e as? Exception ?: Exception(e)))
     }
-    
+
     /**
      * Build prompt with optional RAG context
      */
@@ -112,7 +112,7 @@ class AppCoordinator @Inject constructor(
             "User: $userText\n\nAssistant:"
         }
     }
-    
+
     /**
      * Shutdown the application gracefully
      */

@@ -21,5 +21,5 @@ data class Conversation(
     val lastModified: Instant = Instant.now(),
     val messageCount: Int = 0,
     val isPinned: Boolean = false,
-    val isArchived: Boolean = false
+    val isArchived: Boolean = false,
 )

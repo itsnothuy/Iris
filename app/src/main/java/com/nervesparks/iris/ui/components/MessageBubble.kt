@@ -38,16 +38,16 @@ fun MessageBubble(
     message: Message,
     onLongClick: (() -> Unit)? = null,
     showTimestamp: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val isUserMessage = message.role == MessageRole.USER
-    
+
     Row(
         horizontalArrangement = if (isUserMessage) Arrangement.End else Arrangement.Start,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
         // Show assistant icon on the left for assistant messages
         if (message.role == MessageRole.ASSISTANT) {
@@ -57,7 +57,7 @@ fun MessageBubble(
 
         Column(
             horizontalAlignment = if (isUserMessage) Alignment.End else Alignment.Start,
-            modifier = Modifier.weight(1f, fill = false)
+            modifier = Modifier.weight(1f, fill = false),
         ) {
             // Message bubble
             Box(
@@ -68,38 +68,38 @@ fun MessageBubble(
                             MessageRole.ASSISTANT -> Color.Transparent
                             MessageRole.SYSTEM -> Color(0xFF2C2C2E)
                         },
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
                     )
                     .combinedClickable(
                         onLongClick = {
                             copyMessageToClipboard(context, message.content)
                             onLongClick?.invoke()
                         },
-                        onClick = {}
+                        onClick = {},
                     )
-                    .padding(12.dp)
+                    .padding(12.dp),
             ) {
                 Text(
                     text = message.content,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color(0xFFA0A0A5)
+                        color = Color(0xFFA0A0A5),
                     ),
-                    overflow = TextOverflow.Clip
+                    overflow = TextOverflow.Clip,
                 )
             }
-            
+
             // Timestamp
             if (showTimestamp) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = formatTimestamp(message.timestamp),
                     style = MaterialTheme.typography.labelSmall.copy(
-                        color = Color(0xFF6C6C70)
+                        color = Color(0xFF6C6C70),
                     ),
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                    modifier = Modifier.padding(horizontal = 4.dp),
                 )
             }
-            
+
             // Processing metrics for assistant messages
             if (message.role == MessageRole.ASSISTANT && message.processingTimeMs != null) {
                 Spacer(modifier = Modifier.height(2.dp))
@@ -111,9 +111,9 @@ fun MessageBubble(
                         }
                     },
                     style = MaterialTheme.typography.labelSmall.copy(
-                        color = Color(0xFF6C6C70)
+                        color = Color(0xFF6C6C70),
                     ),
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                    modifier = Modifier.padding(horizontal = 4.dp),
                 )
             }
         }
@@ -153,6 +153,6 @@ private fun MessageIcon(iconRes: Int, description: String) {
     androidx.compose.foundation.Image(
         painter = androidx.compose.ui.res.painterResource(id = iconRes),
         contentDescription = description,
-        modifier = Modifier.size(24.dp)
+        modifier = Modifier.size(24.dp),
     )
 }

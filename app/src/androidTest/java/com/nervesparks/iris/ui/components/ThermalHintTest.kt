@@ -22,7 +22,7 @@ class ThermalHintTest {
         composeTestRule.setContent {
             ThermalHint(
                 isRateLimited = false,
-                isThermalThrottled = false
+                isThermalThrottled = false,
             )
         }
 
@@ -35,13 +35,13 @@ class ThermalHintTest {
         composeTestRule.setContent {
             ThermalHint(
                 isRateLimited = true,
-                isThermalThrottled = false
+                isThermalThrottled = false,
             )
         }
 
         // Verify hint is displayed
         composeTestRule.onNodeWithContentDescription("Performance hint").assertIsDisplayed()
-        
+
         // Verify correct message for rate-limited state
         composeTestRule.onNodeWithText("High activity detected").assertExists()
         composeTestRule.onNodeWithText("Streaming slowed to maintain stability").assertExists()
@@ -52,13 +52,13 @@ class ThermalHintTest {
         composeTestRule.setContent {
             ThermalHint(
                 isRateLimited = false,
-                isThermalThrottled = true
+                isThermalThrottled = true,
             )
         }
 
         // Verify hint is displayed
         composeTestRule.onNodeWithContentDescription("Performance hint").assertIsDisplayed()
-        
+
         // Verify correct message for thermal throttle state
         composeTestRule.onNodeWithText("Device warming up").assertExists()
         composeTestRule.onNodeWithText("Streaming slowed to cool down device").assertExists()
@@ -69,13 +69,13 @@ class ThermalHintTest {
         composeTestRule.setContent {
             ThermalHint(
                 isRateLimited = true,
-                isThermalThrottled = true
+                isThermalThrottled = true,
             )
         }
 
         // Verify hint is displayed
         composeTestRule.onNodeWithContentDescription("Performance hint").assertIsDisplayed()
-        
+
         // Verify correct message for both conditions
         composeTestRule.onNodeWithText("Device warming up • Slowing down").assertExists()
         composeTestRule.onNodeWithText("Reducing speed to prevent overheating").assertExists()
@@ -86,7 +86,7 @@ class ThermalHintTest {
         composeTestRule.setContent {
             ThermalHint(
                 isRateLimited = true,
-                isThermalThrottled = false
+                isThermalThrottled = false,
             )
         }
 
@@ -98,28 +98,28 @@ class ThermalHintTest {
     fun thermalHint_hidesWhenStateChanges_toAllFalse() {
         var isRateLimited = true
         var isThermalThrottled = false
-        
+
         composeTestRule.setContent {
             ThermalHint(
                 isRateLimited = isRateLimited,
-                isThermalThrottled = isThermalThrottled
+                isThermalThrottled = isThermalThrottled,
             )
         }
 
         // Initially visible
         composeTestRule.onNodeWithContentDescription("Performance hint").assertIsDisplayed()
-        
+
         // Change state to all false
         isRateLimited = false
         isThermalThrottled = false
-        
+
         composeTestRule.setContent {
             ThermalHint(
                 isRateLimited = isRateLimited,
-                isThermalThrottled = isThermalThrottled
+                isThermalThrottled = isThermalThrottled,
             )
         }
-        
+
         // Should no longer be visible
         composeTestRule.onNodeWithContentDescription("Performance hint").assertDoesNotExist()
     }
@@ -128,28 +128,28 @@ class ThermalHintTest {
     fun thermalHint_transitionsFromRateLimited_toThermalThrottled() {
         var isRateLimited = true
         var isThermalThrottled = false
-        
+
         composeTestRule.setContent {
             ThermalHint(
                 isRateLimited = isRateLimited,
-                isThermalThrottled = isThermalThrottled
+                isThermalThrottled = isThermalThrottled,
             )
         }
 
         // Initially shows rate-limited message
         composeTestRule.onNodeWithText("High activity detected").assertExists()
-        
+
         // Change to thermal throttle
         isRateLimited = false
         isThermalThrottled = true
-        
+
         composeTestRule.setContent {
             ThermalHint(
                 isRateLimited = isRateLimited,
-                isThermalThrottled = isThermalThrottled
+                isThermalThrottled = isThermalThrottled,
             )
         }
-        
+
         // Now shows thermal throttle message
         composeTestRule.onNodeWithText("Device warming up").assertExists()
         composeTestRule.onNodeWithText("High activity detected").assertDoesNotExist()
@@ -159,28 +159,28 @@ class ThermalHintTest {
     fun thermalHint_messageChanges_whenBothBecomesTrue() {
         var isRateLimited = true
         var isThermalThrottled = false
-        
+
         composeTestRule.setContent {
             ThermalHint(
                 isRateLimited = isRateLimited,
-                isThermalThrottled = isThermalThrottled
+                isThermalThrottled = isThermalThrottled,
             )
         }
 
         // Initially shows rate-limited message
         composeTestRule.onNodeWithText("High activity detected").assertExists()
-        
+
         // Change to both true
         isRateLimited = true
         isThermalThrottled = true
-        
+
         composeTestRule.setContent {
             ThermalHint(
                 isRateLimited = isRateLimited,
-                isThermalThrottled = isThermalThrottled
+                isThermalThrottled = isThermalThrottled,
             )
         }
-        
+
         // Now shows combined message
         composeTestRule.onNodeWithText("Device warming up • Slowing down").assertExists()
         composeTestRule.onNodeWithText("High activity detected").assertDoesNotExist()

@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 fun RedactionBanner(
     redactionCount: Int,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier
@@ -32,36 +32,36 @@ fun RedactionBanner(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2C3E50)
+            containerColor = Color(0xFF2C3E50),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             // Info icon
             Icon(
                 imageVector = Icons.Default.Info,
                 contentDescription = "Privacy Info",
                 tint = Color(0xFF64B5F6),
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
             )
 
             Spacer(modifier = Modifier.width(12.dp))
 
             // Message content
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Text(
                     text = "Privacy Protected",
                     style = MaterialTheme.typography.titleSmall.copy(
                         color = Color(0xFF64B5F6),
-                        fontWeight = FontWeight.Bold
-                    )
+                        fontWeight = FontWeight.Bold,
+                    ),
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -71,8 +71,8 @@ fun RedactionBanner(
                         append(" (emails, phones, or IDs)")
                     },
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color(0xFFB3E5FC)
-                    )
+                        color = Color(0xFFB3E5FC),
+                    ),
                 )
             }
 
@@ -82,8 +82,8 @@ fun RedactionBanner(
             TextButton(
                 onClick = onDismiss,
                 colors = ButtonDefaults.textButtonColors(
-                    contentColor = Color(0xFFA0A0A5)
-                )
+                    contentColor = Color(0xFFA0A0A5),
+                ),
             ) {
                 Text("Dismiss")
             }

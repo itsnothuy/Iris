@@ -19,7 +19,7 @@ class MessageEntityTest {
         val processingTimeMs = 1500L
         val tokenCount = 100
         val conversationId = "test-conversation"
-        
+
         val entity = MessageEntity(
             id = id,
             content = content,
@@ -27,9 +27,9 @@ class MessageEntityTest {
             timestamp = timestamp,
             processingTimeMs = processingTimeMs,
             tokenCount = tokenCount,
-            conversationId = conversationId
+            conversationId = conversationId,
         )
-        
+
         assertEquals(id, entity.id)
         assertEquals(content, entity.content)
         assertEquals(role, entity.role)
@@ -38,23 +38,23 @@ class MessageEntityTest {
         assertEquals(tokenCount, entity.tokenCount)
         assertEquals(conversationId, entity.conversationId)
     }
-    
+
     @Test
     fun messageEntity_creation_withDefaultConversationId() {
         val id = "test-id"
         val content = "Message"
         val role = "ASSISTANT"
         val timestamp = Instant.now().toEpochMilli()
-        
+
         val entity = MessageEntity(
             id = id,
             content = content,
             role = role,
             timestamp = timestamp,
             processingTimeMs = null,
-            tokenCount = null
+            tokenCount = null,
         )
-        
+
         assertEquals("default", entity.conversationId)
     }
 
@@ -64,16 +64,16 @@ class MessageEntityTest {
         val content = "Message"
         val role = "ASSISTANT"
         val timestamp = Instant.now().toEpochMilli()
-        
+
         val entity = MessageEntity(
             id = id,
             content = content,
             role = role,
             timestamp = timestamp,
             processingTimeMs = null,
-            tokenCount = null
+            tokenCount = null,
         )
-        
+
         assertEquals(id, entity.id)
         assertEquals(content, entity.content)
         assertEquals(role, entity.role)
@@ -88,25 +88,25 @@ class MessageEntityTest {
         val content = "Same content"
         val role = "USER"
         val timestamp = 1234567890L
-        
+
         val entity1 = MessageEntity(
             id = id,
             content = content,
             role = role,
             timestamp = timestamp,
             processingTimeMs = null,
-            tokenCount = null
+            tokenCount = null,
         )
-        
+
         val entity2 = MessageEntity(
             id = id,
             content = content,
             role = role,
             timestamp = timestamp,
             processingTimeMs = null,
-            tokenCount = null
+            tokenCount = null,
         )
-        
+
         assertEquals(entity1, entity2)
         assertEquals(entity1.hashCode(), entity2.hashCode())
     }
@@ -116,25 +116,25 @@ class MessageEntityTest {
         val content = "Same content"
         val role = "USER"
         val timestamp = Instant.now().toEpochMilli()
-        
+
         val entity1 = MessageEntity(
             id = "id-1",
             content = content,
             role = role,
             timestamp = timestamp,
             processingTimeMs = null,
-            tokenCount = null
+            tokenCount = null,
         )
-        
+
         val entity2 = MessageEntity(
             id = "id-2",
             content = content,
             role = role,
             timestamp = timestamp,
             processingTimeMs = null,
-            tokenCount = null
+            tokenCount = null,
         )
-        
+
         assertNotEquals(entity1, entity2)
     }
 
@@ -146,11 +146,11 @@ class MessageEntityTest {
             role = "USER",
             timestamp = Instant.now().toEpochMilli(),
             processingTimeMs = 1000L,
-            tokenCount = 50
+            tokenCount = 50,
         )
-        
+
         val modified = original.copy(content = "Modified content")
-        
+
         assertEquals("Modified content", modified.content)
         assertEquals(original.id, modified.id)
         assertEquals(original.role, modified.role)
@@ -167,9 +167,9 @@ class MessageEntityTest {
             role = "USER",
             timestamp = Instant.now().toEpochMilli(),
             processingTimeMs = null,
-            tokenCount = null
+            tokenCount = null,
         )
-        
+
         assertEquals("", entity.content)
     }
 
@@ -182,9 +182,9 @@ class MessageEntityTest {
             role = "ASSISTANT",
             timestamp = Instant.now().toEpochMilli(),
             processingTimeMs = null,
-            tokenCount = null
+            tokenCount = null,
         )
-        
+
         assertEquals(longContent, entity.content)
         assertEquals(10000, entity.content.length)
     }
@@ -198,20 +198,20 @@ class MessageEntityTest {
             role = "USER",
             timestamp = Instant.now().toEpochMilli(),
             processingTimeMs = null,
-            tokenCount = null
+            tokenCount = null,
         )
-        
+
         assertEquals(specialContent, entity.content)
     }
 
     @Test
     fun messageEntity_withAllRoleTypes() {
         val timestamp = Instant.now().toEpochMilli()
-        
+
         val userEntity = MessageEntity("1", "User msg", "USER", timestamp, null, null)
         val assistantEntity = MessageEntity("2", "Assistant msg", "ASSISTANT", timestamp, null, null)
         val systemEntity = MessageEntity("3", "System msg", "SYSTEM", timestamp, null, null)
-        
+
         assertEquals("USER", userEntity.role)
         assertEquals("ASSISTANT", assistantEntity.role)
         assertEquals("SYSTEM", systemEntity.role)
@@ -225,9 +225,9 @@ class MessageEntityTest {
             role = "USER",
             timestamp = 0L,
             processingTimeMs = null,
-            tokenCount = null
+            tokenCount = null,
         )
-        
+
         assertEquals(0L, entity.timestamp)
     }
 
@@ -239,9 +239,9 @@ class MessageEntityTest {
             role = "ASSISTANT",
             timestamp = Instant.now().toEpochMilli(),
             processingTimeMs = -1L,
-            tokenCount = null
+            tokenCount = null,
         )
-        
+
         assertEquals(-1L, entity.processingTimeMs)
     }
 
@@ -253,9 +253,9 @@ class MessageEntityTest {
             role = "ASSISTANT",
             timestamp = Instant.now().toEpochMilli(),
             processingTimeMs = 100L,
-            tokenCount = 0
+            tokenCount = 0,
         )
-        
+
         assertEquals(0, entity.tokenCount)
     }
 
@@ -267,11 +267,11 @@ class MessageEntityTest {
             role = "USER",
             timestamp = 1234567890L,
             processingTimeMs = 500L,
-            tokenCount = 25
+            tokenCount = 25,
         )
-        
+
         val result = entity.toString()
-        
+
         assertTrue(result.contains("test-id"))
         assertTrue(result.contains("Test content"))
         assertTrue(result.contains("USER"))

@@ -12,7 +12,7 @@ class ChatScreenTest {
     @Test
     fun chatScreen_enumValues() {
         val screens = ChatScreen.values()
-        
+
         assertEquals(7, screens.size)
         assertTrue(screens.contains(ChatScreen.Start))
         assertTrue(screens.contains(ChatScreen.Settings))
@@ -78,7 +78,7 @@ class ChatScreenTest {
     fun chatScreen_allScreensHaveUniqueTitles() {
         val screens = ChatScreen.values()
         val titles = screens.map { it.title }.toSet()
-        
+
         // All screens should have unique title resource IDs
         assertEquals(screens.size, titles.size)
     }
@@ -86,7 +86,7 @@ class ChatScreenTest {
     @Test
     fun chatScreen_enumOrder() {
         val screens = ChatScreen.values()
-        
+
         assertEquals(ChatScreen.Start, screens[0])
         assertEquals(ChatScreen.Settings, screens[1])
         assertEquals(ChatScreen.SearchResults, screens[2])
@@ -100,7 +100,7 @@ class ChatScreenTest {
     fun chatScreen_equality() {
         val screen1 = ChatScreen.Start
         val screen2 = ChatScreen.Start
-        
+
         assertSame(screen1, screen2)
         assertEquals(screen1, screen2)
     }

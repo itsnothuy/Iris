@@ -25,7 +25,7 @@ data class PrivacyAuditInfo(
     val newestConversation: Instant?,
     val dataEncrypted: Boolean,
     val networkActivity: Boolean,
-    val exportHistory: List<ExportEvent>
+    val exportHistory: List<ExportEvent>,
 )
 
 /**
@@ -38,7 +38,7 @@ data class PrivacyAuditInfo(
 data class ExportEvent(
     val timestamp: Instant,
     val format: String,
-    val conversationCount: Int
+    val conversationCount: Int,
 )
 
 /**
@@ -48,9 +48,9 @@ data class ExportEvent(
 class PrivacyAuditService(
     private val conversationRepository: ConversationRepository,
     private val messageRepository: MessageRepository,
-    private val databasePath: String
+    private val databasePath: String,
 ) {
-    
+
     /**
      * Generate a comprehensive privacy audit report.
      *
@@ -59,18 +59,18 @@ class PrivacyAuditService(
     suspend fun generateAuditReport(): PrivacyAuditInfo {
         val conversationCount = conversationRepository.getConversationCount()
         val messageCount = messageRepository.getMessageCount()
-        
+
         // Get conversation dates
         var oldestDate: Instant? = null
         var newestDate: Instant? = null
-        
+
         conversationRepository.getAllConversationsIncludingArchived().collect { conversations ->
             if (conversations.isNotEmpty()) {
                 oldestDate = conversations.minByOrNull { it.createdAt }?.createdAt
                 newestDate = conversations.maxByOrNull { it.lastModified }?.lastModified
             }
         }
-        
+
         // Calculate storage size
         val databaseFile = File(databasePath)
         val storageBytes = if (databaseFile.exists()) {
@@ -78,16 +78,16 @@ class PrivacyAuditService(
         } else {
             0L
         }
-        
+
         // Check encryption status (Room database uses SQLCipher if configured)
         val dataEncrypted = isDataEncrypted()
-        
+
         // Network activity is always false for this on-device app
         val networkActivity = false
-        
+
         // Export history (empty for now, could be tracked in preferences later)
         val exportHistory = emptyList<ExportEvent>()
-        
+
         return PrivacyAuditInfo(
             totalConversations = conversationCount,
             totalMessages = messageCount,
@@ -96,10 +96,10 @@ class PrivacyAuditService(
             newestConversation = newestDate,
             dataEncrypted = dataEncrypted,
             networkActivity = networkActivity,
-            exportHistory = exportHistory
+            exportHistory = exportHistory,
         )
     }
-    
+
     /**
      * Get storage breakdown by type.
      *
@@ -107,26 +107,26 @@ class PrivacyAuditService(
      */
     suspend fun getStorageBreakdown(): Map<String, Long> {
         val breakdown = mutableMapOf<String, Long>()
-        
+
         val databaseFile = File(databasePath)
         if (databaseFile.exists()) {
             breakdown["Database"] = databaseFile.length()
-            
+
             // Check for additional database files (WAL, SHM)
             val walFile = File("$databasePath-wal")
             if (walFile.exists()) {
                 breakdown["Database WAL"] = walFile.length()
             }
-            
+
             val shmFile = File("$databasePath-shm")
             if (shmFile.exists()) {
                 breakdown["Database SHM"] = shmFile.length()
             }
         }
-        
+
         return breakdown
     }
-    
+
     /**
      * Verify data integrity.
      *
@@ -136,7 +136,7 @@ class PrivacyAuditService(
         return try {
             // Check that conversation counts match
             val conversationCount = conversationRepository.getConversationCount()
-            
+
             // Verify messages exist for conversations
             var allValid = true
             conversationRepository.getAllConversations().collect { conversations ->
@@ -148,19 +148,19 @@ class PrivacyAuditService(
                     }
                 }
             }
-            
+
             allValid
         } catch (e: Exception) {
             false
         }
     }
-    
+
     /**
      * Calculate total size of a directory recursively.
      */
     private fun calculateDirectorySize(directory: File?): Long {
         if (directory == null || !directory.exists()) return 0L
-        
+
         var size = 0L
         directory.listFiles()?.forEach { file ->
             size += if (file.isDirectory) {
@@ -171,7 +171,7 @@ class PrivacyAuditService(
         }
         return size
     }
-    
+
     /**
      * Check if data is encrypted at rest.
      * For this implementation, we check if SQLCipher is being used.
@@ -181,7 +181,7 @@ class PrivacyAuditService(
         // For now, we return false as the basic Room setup doesn't include encryption by default
         return false
     }
-    
+
     /**
      * Format bytes to human-readable string.
      */
@@ -189,12 +189,12 @@ class PrivacyAuditService(
         val units = arrayOf("B", "KB", "MB", "GB")
         var value = bytes.toDouble()
         var unitIndex = 0
-        
+
         while (value >= 1024 && unitIndex < units.size - 1) {
             value /= 1024
             unitIndex++
         }
-        
+
         return "%.2f %s".format(value, units[unitIndex])
     }
 }

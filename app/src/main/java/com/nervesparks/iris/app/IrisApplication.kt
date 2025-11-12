@@ -10,12 +10,12 @@ import dagger.hilt.android.HiltAndroidApp
  */
 @HiltAndroidApp
 class IrisApplication : Application() {
-    
+
     override fun onCreate() {
         super.onCreate()
         initializeLogging()
     }
-    
+
     private fun initializeLogging() {
         // Set log level based on debug build
         IrisLogger.setLogLevel(LogLevel.INFO)

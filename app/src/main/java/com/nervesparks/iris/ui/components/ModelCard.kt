@@ -27,7 +27,7 @@ fun ModelCard(
     dm: DownloadManager,
     extFilesDir: File,
     downloadLink: String,
-    showDeleteButton: Boolean
+    showDeleteButton: Boolean,
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var isDeleted by remember { mutableStateOf(false) }
@@ -49,24 +49,24 @@ fun ModelCard(
             .padding(vertical = 4.dp)
             .shadow(
                 elevation = 8.dp,
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(8.dp),
             ),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xff0f172a),
-            contentColor = Color.White
+            contentColor = Color.White,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
-            Row (horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()){
+            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 if (modelName == viewModel.loadedModelName.value) {
                     Text(color = Color.Green, text = "Active Model", fontSize = 12.sp)
                 }
-                if(modelName == viewModel.defaultModelName.value){
+                if (modelName == viewModel.defaultModelName.value) {
                     Text(color = Color.LightGray, text = "Default", fontSize = 12.sp)
                 }
             }
@@ -74,19 +74,19 @@ fun ModelCard(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = modelName,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 val coroutineScope = rememberCoroutineScope()
                 val context = LocalContext.current
                 val fullUrl = if (downloadLink != "") {
                     downloadLink
                 } else {
-                    "https://huggingface.co/${viewModel.userGivenModel}/resolve/main/${modelName}?download=true"
+                    "https://huggingface.co/${viewModel.userGivenModel}/resolve/main/$modelName?download=true"
                 }
 
                 if (!showDeletedMessage) {
@@ -96,8 +96,8 @@ fun ModelCard(
                         Downloadable(
                             modelName,
                             source = Uri.parse(fullUrl),
-                            destination = File(extFilesDir, modelName)
-                        )
+                            destination = File(extFilesDir, modelName),
+                        ),
                     )
                 }
 
@@ -116,11 +116,18 @@ fun ModelCard(
                             if (showDeleteConfirmation) {
                                 AlertDialog(
                                     textContentColor = Color.LightGray,
-                                    containerColor =  Color(0xFF233340),
-                                    modifier = Modifier.background(shape = RoundedCornerShape(8.dp), color = Color(0xFF233340)),
+                                    containerColor = Color(0xFF233340),
+                                    modifier = Modifier.background(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = Color(0xFF233340),
+                                    ),
                                     onDismissRequest = { showDeleteConfirmation = false },
                                     title = { Text("Confirm Deletion", color = Color.White) },
-                                    text = { Text("Are you sure you want to delete this model? The app will restart after deletion.") },
+                                    text = {
+                                        Text(
+                                            "Are you sure you want to delete this model? The app will restart after deletion.",
+                                        )
+                                    },
                                     confirmButton = {
                                         Button(
                                             onClick = {
@@ -140,7 +147,7 @@ fun ModelCard(
                                                 isDeleted = true
                                                 viewModel.refresh = true
                                             },
-                                            colors = ButtonDefaults.buttonColors(Color(0xFFb91c1c))
+                                            colors = ButtonDefaults.buttonColors(Color(0xFFb91c1c)),
                                         ) {
                                             Text("Delete")
                                         }
@@ -148,11 +155,11 @@ fun ModelCard(
                                     dismissButton = {
                                         Button(
                                             colors = ButtonDefaults.buttonColors(Color.Black),
-                                            onClick = { showDeleteConfirmation = false }
+                                            onClick = { showDeleteConfirmation = false },
                                         ) {
                                             Text("Cancel")
                                         }
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -165,34 +172,34 @@ fun ModelCard(
                 Text(
                     text = "Model Deleted",
                     color = Color.Red,
-                    fontSize = 15.sp
+                    fontSize = 15.sp,
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            if (modelName == viewModel.loadedModelName.value){
+            if (modelName == viewModel.loadedModelName.value) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val context = LocalContext.current
                     RadioButton(
-                        selected = (modelName==viewModel.defaultModelName.value),
+                        selected = (modelName == viewModel.defaultModelName.value),
                         onClick = {
                             viewModel.setDefaultModelName(modelName)
                             Toast.makeText(
                                 context,
                                 "$modelName set as default model",
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_SHORT,
                             ).show()
                         },
                         colors = RadioButtonDefaults.colors(
                             selectedColor = Color.Green,
-                            unselectedColor = Color.Gray
-                        )
+                            unselectedColor = Color.Gray,
+                        ),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Set as Default Model",
                         color = Color.White,
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
                     )
                 }
             }
@@ -206,7 +213,7 @@ fun ModelCard(
                         "Not Downloaded"
                     },
                     color = Color.Gray,
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
                 )
             }
         }

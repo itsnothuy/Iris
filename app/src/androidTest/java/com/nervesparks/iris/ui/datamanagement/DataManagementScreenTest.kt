@@ -25,7 +25,7 @@ class DataManagementScreenTest {
                 onExportClicked = {},
                 onImportClicked = {},
                 onPrivacyAuditClicked = {},
-                onDeleteDataClicked = {}
+                onDeleteDataClicked = {},
             )
         }
 
@@ -39,17 +39,17 @@ class DataManagementScreenTest {
                 onExportClicked = {},
                 onImportClicked = {},
                 onPrivacyAuditClicked = {},
-                onDeleteDataClicked = {}
+                onDeleteDataClicked = {},
             )
         }
 
         // Verify export/import options
         composeTestRule.onNodeWithText("Export Conversations").assertExists()
         composeTestRule.onNodeWithText("Import Conversations").assertExists()
-        
+
         // Verify privacy option
         composeTestRule.onNodeWithText("Privacy Audit").assertExists()
-        
+
         // Verify delete option
         composeTestRule.onNodeWithText("Clear All Data").assertExists()
     }
@@ -61,7 +61,7 @@ class DataManagementScreenTest {
                 onExportClicked = {},
                 onImportClicked = {},
                 onPrivacyAuditClicked = {},
-                onDeleteDataClicked = {}
+                onDeleteDataClicked = {},
             )
         }
 
@@ -80,7 +80,7 @@ class DataManagementScreenTest {
                 onExportClicked = { clicked = true },
                 onImportClicked = {},
                 onPrivacyAuditClicked = {},
-                onDeleteDataClicked = {}
+                onDeleteDataClicked = {},
             )
         }
 
@@ -97,7 +97,7 @@ class DataManagementScreenTest {
                 onExportClicked = {},
                 onImportClicked = { clicked = true },
                 onPrivacyAuditClicked = {},
-                onDeleteDataClicked = {}
+                onDeleteDataClicked = {},
             )
         }
 
@@ -112,7 +112,7 @@ class DataManagementScreenTest {
                 onExportClicked = {},
                 onImportClicked = {},
                 onPrivacyAuditClicked = {},
-                onDeleteDataClicked = {}
+                onDeleteDataClicked = {},
             )
         }
 

@@ -21,7 +21,7 @@ import com.nervesparks.iris.data.export.ExportFormat
 @Composable
 fun ExportDialog(
     onDismiss: () -> Unit,
-    onExport: (ExportFormat) -> Unit
+    onExport: (ExportFormat) -> Unit,
 ) {
     var selectedFormat by remember { mutableStateOf(ExportFormat.JSON) }
     var exportAll by remember { mutableStateOf(true) }
@@ -33,19 +33,19 @@ fun ExportDialog(
                 .padding(16.dp),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xff1e293b)
-            )
+                containerColor = Color(0xff1e293b),
+            ),
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
+                    .padding(24.dp),
             ) {
                 Text(
                     text = "Export Conversations",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -54,7 +54,7 @@ fun ExportDialog(
                     text = "Select Format",
                     fontSize = 14.sp,
                     color = Color(0xff94a3b8),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
                 )
 
                 // Format options
@@ -62,7 +62,7 @@ fun ExportDialog(
                     title = "JSON",
                     description = "Machine-readable with full metadata",
                     isSelected = selectedFormat == ExportFormat.JSON,
-                    onClick = { selectedFormat = ExportFormat.JSON }
+                    onClick = { selectedFormat = ExportFormat.JSON },
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -71,7 +71,7 @@ fun ExportDialog(
                     title = "Markdown",
                     description = "Human-readable with formatting",
                     isSelected = selectedFormat == ExportFormat.MARKDOWN,
-                    onClick = { selectedFormat = ExportFormat.MARKDOWN }
+                    onClick = { selectedFormat = ExportFormat.MARKDOWN },
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -80,7 +80,7 @@ fun ExportDialog(
                     title = "Plain Text",
                     description = "Simple text for universal compatibility",
                     isSelected = selectedFormat == ExportFormat.PLAIN_TEXT,
-                    onClick = { selectedFormat = ExportFormat.PLAIN_TEXT }
+                    onClick = { selectedFormat = ExportFormat.PLAIN_TEXT },
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -88,7 +88,7 @@ fun ExportDialog(
                 // Action buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.End,
                 ) {
                     TextButton(onClick = onDismiss) {
                         Text("Cancel", color = Color(0xff94a3b8))
@@ -97,8 +97,8 @@ fun ExportDialog(
                     Button(
                         onClick = { onExport(selectedFormat) },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xff3b82f6)
-                        )
+                            containerColor = Color(0xff3b82f6),
+                        ),
                     ) {
                         Text("Export", color = Color.White)
                     }
@@ -113,26 +113,26 @@ private fun FormatOption(
     title: String,
     description: String,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(
                 color = if (isSelected) Color(0xff3b82f6).copy(alpha = 0.1f) else Color.Transparent,
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(8.dp),
             )
             .clickable(onClick = onClick)
             .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(
             selected = isSelected,
             onClick = onClick,
             colors = RadioButtonDefaults.colors(
                 selectedColor = Color(0xff3b82f6),
-                unselectedColor = Color(0xff64748b)
-            )
+                unselectedColor = Color(0xff64748b),
+            ),
         )
         Spacer(modifier = Modifier.width(12.dp))
         Column {
@@ -140,12 +140,12 @@ private fun FormatOption(
                 text = title,
                 color = Color.White,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
             )
             Text(
                 text = description,
                 color = Color(0xff94a3b8),
-                fontSize = 14.sp
+                fontSize = 14.sp,
             )
         }
     }

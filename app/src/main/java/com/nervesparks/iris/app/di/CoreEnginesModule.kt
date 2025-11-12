@@ -18,15 +18,15 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class CoreEnginesModule {
-    
+
     @Binds
     @Singleton
     abstract fun bindLLMEngine(impl: LLMEngineImpl): LLMEngine
-    
+
     @Binds
     @Singleton
     abstract fun bindRAGEngine(impl: RAGEngineImpl): RAGEngine
-    
+
     @Binds
     @Singleton
     abstract fun bindSafetyEngine(impl: SafetyEngineImpl): SafetyEngine

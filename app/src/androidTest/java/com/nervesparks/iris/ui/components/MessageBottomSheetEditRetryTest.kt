@@ -14,7 +14,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 /**
@@ -35,10 +34,10 @@ class MessageBottomSheetEditRetryTest {
     fun messageBottomSheet_showsEditAndRetryButtons_forLastUserMessage() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         composeTestRule.setContent {
@@ -50,7 +49,7 @@ class MessageBottomSheetEditRetryTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                isLastUserMessage = true
+                isLastUserMessage = true,
             )
         }
 
@@ -64,10 +63,10 @@ class MessageBottomSheetEditRetryTest {
     fun messageBottomSheet_hidesEditAndRetryButtons_forNonLastUserMessage() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         composeTestRule.setContent {
@@ -79,7 +78,7 @@ class MessageBottomSheetEditRetryTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                isLastUserMessage = false
+                isLastUserMessage = false,
             )
         }
 
@@ -93,15 +92,15 @@ class MessageBottomSheetEditRetryTest {
     fun messageBottomSheet_retryButton_callsRetryLastMessage() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
-        
+
         // Add some messages to the view model
         viewModel.messages = listOf(
-            mapOf("role" to "user", "content" to "Test message")
+            mapOf("role" to "user", "content" to "Test message"),
         )
 
         var dismissCalled = false
@@ -115,7 +114,7 @@ class MessageBottomSheetEditRetryTest {
                 viewModel = viewModel,
                 onDismiss = { dismissCalled = true },
                 sheetState = sheetState,
-                isLastUserMessage = true
+                isLastUserMessage = true,
             )
         }
 
@@ -124,7 +123,7 @@ class MessageBottomSheetEditRetryTest {
 
         // Then: onDismiss should be called
         assert(dismissCalled)
-        
+
         // And: The message should be set in viewModel (retryLastMessage called)
         assert(viewModel.message == "Test message")
     }
@@ -134,10 +133,10 @@ class MessageBottomSheetEditRetryTest {
     fun messageBottomSheet_editButton_showsEditDialog() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         composeTestRule.setContent {
@@ -149,7 +148,7 @@ class MessageBottomSheetEditRetryTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                isLastUserMessage = true
+                isLastUserMessage = true,
             )
         }
 
@@ -167,10 +166,10 @@ class MessageBottomSheetEditRetryTest {
     fun editDialog_cancelButton_closesDialog() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         composeTestRule.setContent {
@@ -182,13 +181,13 @@ class MessageBottomSheetEditRetryTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                isLastUserMessage = true
+                isLastUserMessage = true,
             )
         }
 
         // When: Edit & Resend button is clicked to open dialog
         composeTestRule.onNodeWithText("Edit & Resend").performClick()
-        
+
         // And: Cancel button is clicked
         composeTestRule.onNodeWithText("Cancel").performClick()
 
@@ -201,14 +200,14 @@ class MessageBottomSheetEditRetryTest {
     fun editDialog_sendButton_callsEditAndResend() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
-        
+
         viewModel.messages = listOf(
-            mapOf("role" to "user", "content" to "Original message")
+            mapOf("role" to "user", "content" to "Original message"),
         )
 
         var dismissCalled = false
@@ -222,13 +221,13 @@ class MessageBottomSheetEditRetryTest {
                 viewModel = viewModel,
                 onDismiss = { dismissCalled = true },
                 sheetState = sheetState,
-                isLastUserMessage = true
+                isLastUserMessage = true,
             )
         }
 
         // When: Edit & Resend is clicked to open dialog
         composeTestRule.onNodeWithText("Edit & Resend").performClick()
-        
+
         // And: Text is edited (we'll just use the existing text for this test)
         // And: Send button is clicked
         composeTestRule.onNodeWithText("Send").performClick()
@@ -242,10 +241,10 @@ class MessageBottomSheetEditRetryTest {
     fun messageBottomSheet_alwaysShowsCopyButton() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         // Test with isLastUserMessage = true
@@ -258,7 +257,7 @@ class MessageBottomSheetEditRetryTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                isLastUserMessage = true
+                isLastUserMessage = true,
             )
         }
 
@@ -271,12 +270,12 @@ class MessageBottomSheetEditRetryTest {
     fun messageBottomSheet_buttonsDisabled_whenAIGenerating() {
         // Given: Mock preferences repository and AI is generating
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
-        
+
         // Note: In a real scenario, we'd mock getIsSending() to return true
         // For this test, we just verify the buttons exist and their enabled state
         // is controlled by viewModel.getIsSending()
@@ -290,7 +289,7 @@ class MessageBottomSheetEditRetryTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                isLastUserMessage = true
+                isLastUserMessage = true,
             )
         }
 

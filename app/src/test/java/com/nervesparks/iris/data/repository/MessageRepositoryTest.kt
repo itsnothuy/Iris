@@ -41,11 +41,11 @@ class MessageRepositoryTest {
             id = "test-id",
             content = "Test message",
             role = MessageRole.USER,
-            timestamp = Instant.now()
+            timestamp = Instant.now(),
         )
-        
+
         repository.saveMessage(message)
-        
+
         verify(mockDao).insertMessage(any())
     }
 
@@ -55,17 +55,17 @@ class MessageRepositoryTest {
             Message(
                 id = "id-1",
                 content = "Message 1",
-                role = MessageRole.USER
+                role = MessageRole.USER,
             ),
             Message(
                 id = "id-2",
                 content = "Message 2",
-                role = MessageRole.ASSISTANT
-            )
+                role = MessageRole.ASSISTANT,
+            ),
         )
-        
+
         repository.saveMessages(messages)
-        
+
         verify(mockDao).insertMessages(any())
     }
 
@@ -76,14 +76,14 @@ class MessageRepositoryTest {
                 id = "id-1",
                 content = "Message 1",
                 role = "USER",
-                timestamp = Instant.now().toEpochMilli()
-            )
+                timestamp = Instant.now().toEpochMilli(),
+            ),
         )
         val flow: Flow<List<MessageEntity>> = flowOf(entities)
         whenever(mockDao.getAllMessages()).thenReturn(flow)
-        
+
         val result = repository.getAllMessages()
-        
+
         assertNotNull(result)
         verify(mockDao).getAllMessages()
     }
@@ -96,19 +96,19 @@ class MessageRepositoryTest {
                 id = "id-1",
                 content = "Message 1",
                 role = "USER",
-                timestamp = timestamp.toEpochMilli()
+                timestamp = timestamp.toEpochMilli(),
             ),
             MessageEntity(
                 id = "id-2",
                 content = "Message 2",
                 role = "ASSISTANT",
-                timestamp = timestamp.plusSeconds(1).toEpochMilli()
-            )
+                timestamp = timestamp.plusSeconds(1).toEpochMilli(),
+            ),
         )
         whenever(mockDao.getAllMessagesList()).thenReturn(entities)
-        
+
         val result = repository.getAllMessagesList()
-        
+
         assertEquals(2, result.size)
         assertEquals("id-1", result[0].id)
         assertEquals("Message 1", result[0].content)
@@ -119,16 +119,16 @@ class MessageRepositoryTest {
     @Test
     fun deleteAllMessages_callsDaoDelete() = runTest {
         repository.deleteAllMessages()
-        
+
         verify(mockDao).deleteAllMessages()
     }
 
     @Test
     fun deleteMessage_callsDaoDeleteWithId() = runTest {
         val messageId = "test-id-123"
-        
+
         repository.deleteMessage(messageId)
-        
+
         verify(mockDao).deleteMessage(messageId)
     }
 
@@ -136,9 +136,9 @@ class MessageRepositoryTest {
     fun getMessageCount_returnsDaoCount() = runTest {
         val expectedCount = 42
         whenever(mockDao.getMessageCount()).thenReturn(expectedCount)
-        
+
         val result = repository.getMessageCount()
-        
+
         assertEquals(expectedCount, result)
         verify(mockDao).getMessageCount()
     }
@@ -150,29 +150,29 @@ class MessageRepositoryTest {
             content = "Response",
             role = MessageRole.ASSISTANT,
             processingTimeMs = 1500L,
-            tokenCount = 100
+            tokenCount = 100,
         )
-        
+
         repository.saveMessage(message)
-        
+
         verify(mockDao).insertMessage(any())
     }
 
     @Test
     fun saveMessages_withEmptyList_callsDao() = runTest {
         val emptyList = emptyList<Message>()
-        
+
         repository.saveMessages(emptyList)
-        
+
         verify(mockDao).insertMessages(emptyList())
     }
 
     @Test
     fun getAllMessagesList_withEmptyDatabase_returnsEmptyList() = runTest {
         whenever(mockDao.getAllMessagesList()).thenReturn(emptyList())
-        
+
         val result = repository.getAllMessagesList()
-        
+
         assertTrue(result.isEmpty())
         verify(mockDao).getAllMessagesList()
     }
@@ -182,20 +182,20 @@ class MessageRepositoryTest {
         val message = Message(
             id = "system-id",
             content = "System message",
-            role = MessageRole.SYSTEM
+            role = MessageRole.SYSTEM,
         )
-        
+
         repository.saveMessage(message)
-        
+
         verify(mockDao).insertMessage(any())
     }
 
     @Test
     fun deleteMessage_withNonExistentId_callsDao() = runTest {
         val nonExistentId = "non-existent-id"
-        
+
         repository.deleteMessage(nonExistentId)
-        
+
         verify(mockDao).deleteMessage(nonExistentId)
     }
 
@@ -203,9 +203,9 @@ class MessageRepositoryTest {
     fun getMessageCount_withNoMessages_returnsZero() = runTest {
         val expectedCount = 0
         whenever(mockDao.getMessageCount()).thenReturn(expectedCount)
-        
+
         val result = repository.getMessageCount()
-        
+
         assertEquals(0, result)
         verify(mockDao).getMessageCount()
     }
@@ -215,11 +215,11 @@ class MessageRepositoryTest {
         val messages = listOf(
             Message(content = "User msg", role = MessageRole.USER),
             Message(content = "System msg", role = MessageRole.SYSTEM),
-            Message(content = "Assistant msg", role = MessageRole.ASSISTANT)
+            Message(content = "Assistant msg", role = MessageRole.ASSISTANT),
         )
-        
+
         repository.saveMessages(messages)
-        
+
         verify(mockDao).insertMessages(any())
     }
 }

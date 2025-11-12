@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
@@ -100,7 +99,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -111,27 +109,22 @@ import androidx.compose.ui.window.Dialog
 import com.nervesparks.iris.Downloadable
 import com.nervesparks.iris.LinearGradient
 import com.nervesparks.iris.MainViewModel
-
 import com.nervesparks.iris.R
-import com.nervesparks.iris.ui.components.ChatMessageList
 import com.nervesparks.iris.ui.components.DownloadModal
-import com.nervesparks.iris.ui.components.LoadingModal
 import com.nervesparks.iris.ui.components.EmptyState
 import com.nervesparks.iris.ui.components.ErrorBanner
-import com.nervesparks.iris.ui.components.LoadingSkeleton
+import com.nervesparks.iris.ui.components.LoadingModal
 import com.nervesparks.iris.ui.components.ProcessingIndicator
 import com.nervesparks.iris.ui.components.QueueStateIndicator
 import com.nervesparks.iris.ui.components.RateLimitIndicator
 import com.nervesparks.iris.ui.components.ThermalHint
-
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
-
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun MainChatScreen (
+fun MainChatScreen(
     onNextButtonClicked: () -> Unit,
     viewModel: MainViewModel,
     clipboard: ClipboardManager,
@@ -139,7 +132,7 @@ fun MainChatScreen (
     models: List<Downloadable>,
     extFileDir: File?,
 
-){
+) {
     val kc = LocalSoftwareKeyboardController.current
     val windowInsets = WindowInsets.ime
     val focusManager = LocalFocusManager.current
@@ -154,28 +147,24 @@ fun MainChatScreen (
         "Recommend a targeted 15-minute daily routine to improve posture and reduce back pain",
         "List the top 5 science fiction novels that have most influenced modern technological thinking",
         "Provide a precise Spanish translation of 'Innovation drives progress' with grammatical explanations",
-        "Analyze the impact of artificial intelligence on global economic and social landscapes in 2024"
+        "Analyze the impact of artificial intelligence on global economic and social landscapes in 2024",
     )
 
     val allModelsExist = models.all { model -> model.destination.exists() }
     val Prompts_Home = listOf(
         "Explains complex topics simply.",
         "Remembers previous inputs.",
-        "May sometimes be inaccurate."
+        "May sometimes be inaccurate.",
     )
     var recognizedText by remember { mutableStateOf("") }
-    val speechRecognizerLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
-            result ->
-        val data = result.data
-        val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-        recognizedText = results?.get(0)?:""
-        viewModel.updateMessage(recognizedText)
-
-    }
-
-
-
-
+    val speechRecognizerLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+                result ->
+            val data = result.data
+            val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            recognizedText = results?.get(0) ?: ""
+            viewModel.updateMessage(recognizedText)
+        }
 
     val focusRequester = FocusRequester()
     var isFocused by remember { mutableStateOf(false) }
@@ -184,113 +173,107 @@ fun MainChatScreen (
         viewModel.showModal = false
     }
     Box(
-        modifier = Modifier.fillMaxSize()
-
+        modifier = Modifier.fillMaxSize(),
 
     ) {
         LinearGradient()
 
+        // Screen content
+        Column() {
+            // Show modal if required
+            if (viewModel.showModal) {
+                // Modal dialog to show download options
+                DownloadModal(viewModel = viewModel, dm = dm, models = models)
+            }
 
+            if (viewModel.showAlert) {
+                // Modal dialog to show download options
+                LoadingModal(viewModel)
+            }
 
-            // Screen content
-            Column() {
-
-
-                // Show modal if required
-                if (viewModel.showModal) {
-                    // Modal dialog to show download options
-                    DownloadModal(viewModel = viewModel, dm = dm, models = models)
-
-                }
-
-                if (viewModel.showAlert) {
-                    // Modal dialog to show download options
-                    LoadingModal(viewModel)
-                }
-
-                Column {
-
-                    // Active model chip at top
-                    if (viewModel.loadedModelName.value.isNotEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color(0xFF050B16))
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
+            Column {
+                // Active model chip at top
+                if (viewModel.loadedModelName.value.isNotEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF050B16))
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                            // Model status chip
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color(0xFF1a1f2e),
                             ) {
-                                // Model status chip
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    // Model icon indicator
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .background(
+                                                color = if (viewModel.isSwitchingModel.value) {
+                                                    Color(0xFFFFA500) // Orange when switching
+                                                } else {
+                                                    Color(0xFF6200EE)
+                                                }, // Purple when active
+                                                shape = CircleShape,
+                                            ),
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = viewModel.loadedModelName.value.take(30) +
+                                            if (viewModel.loadedModelName.value.length > 30) "..." else "",
+                                        color = Color.White,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Medium,
+                                    )
+                                }
+                            }
+
+                            // Queue status chip (when active)
+                            if (viewModel.isMessageQueued && viewModel.queueSize > 0) {
                                 Surface(
                                     shape = RoundedCornerShape(16.dp),
-                                    color = Color(0xFF1a1f2e)
+                                    color = Color(0xFF1a1f2e).copy(alpha = 0.8f),
                                 ) {
                                     Row(
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                        verticalAlignment = Alignment.CenterVertically
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        // Model icon indicator
                                         Box(
                                             modifier = Modifier
-                                                .size(8.dp)
+                                                .size(6.dp)
                                                 .background(
-                                                    color = if (viewModel.isSwitchingModel.value) 
-                                                        Color(0xFFFFA500) // Orange when switching
-                                                    else 
-                                                        Color(0xFF6200EE), // Purple when active
-                                                    shape = CircleShape
-                                                )
+                                                    color = Color(0xFF00BCD4), // Cyan for queue
+                                                    shape = CircleShape,
+                                                ),
                                         )
-                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
                                         Text(
-                                            text = viewModel.loadedModelName.value.take(30) + 
-                                                   if (viewModel.loadedModelName.value.length > 30) "..." else "",
-                                            color = Color.White,
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Medium
+                                            text = "${viewModel.queueSize} queued",
+                                            color = Color.White.copy(alpha = 0.9f),
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Medium,
                                         )
-                                    }
-                                }
-                                
-                                // Queue status chip (when active)
-                                if (viewModel.isMessageQueued && viewModel.queueSize > 0) {
-                                    Surface(
-                                        shape = RoundedCornerShape(16.dp),
-                                        color = Color(0xFF1a1f2e).copy(alpha = 0.8f)
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(6.dp)
-                                                    .background(
-                                                        color = Color(0xFF00BCD4), // Cyan for queue
-                                                        shape = CircleShape
-                                                    )
-                                            )
-                                            Spacer(modifier = Modifier.width(6.dp))
-                                            Text(
-                                                text = "${viewModel.queueSize} queued",
-                                                color = Color.White.copy(alpha = 0.9f),
-                                                fontSize = 11.sp,
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                        }
                                     }
                                 }
                             }
                         }
                     }
+                }
 
-                    val scrollState = rememberLazyListState()
+                val scrollState = rememberLazyListState()
 
-
-                    Box(modifier = Modifier
+                Box(
+                    modifier = Modifier
                         .weight(1f)
                         .pointerInput(Unit) {
                             detectTapGestures(
@@ -301,91 +284,95 @@ fun MainChatScreen (
                                 onLongPress = { kc?.hide() },
                                 onPress = { kc?.hide() },
 
-
-                                )
-                        }) {
-
-                        if (viewModel.messages.isEmpty() && !viewModel.showModal && !viewModel.showAlert) {
-                            EmptyState(
-                                onStarterClick = { starter ->
-                                    // Optional: could populate input field or send directly
-                                }
                             )
-                        }
-                        else {
+                        },
+                ) {
+                    if (viewModel.messages.isEmpty() && !viewModel.showModal && !viewModel.showAlert) {
+                        EmptyState(
+                            onStarterClick = { starter ->
+                                // Optional: could populate input field or send directly
+                            },
+                        )
+                    } else {
+                        LazyColumn(state = scrollState) {
+                            // Track the first user and assistant messages
 
-                            LazyColumn(state = scrollState) {
-                                // Track the first user and assistant messages
+                            var length = viewModel.messages.size
 
-                                var length = viewModel.messages.size
+                            itemsIndexed(
+                                viewModel.messages.slice(3..<length) as? List<Map<String, String>> ?: emptyList(),
+                            ) { index, messageMap ->
+                                val role = messageMap["role"] ?: ""
+                                val content = messageMap["content"] ?: ""
+                                val trimmedMessage = if (content.endsWith("\n")) {
+                                    content.substring(startIndex = 0, endIndex = content.length - 1)
+                                } else {
+                                    content
+                                }
 
-                                itemsIndexed(viewModel.messages.slice(3..< length) as? List<Map<String, String>> ?: emptyList()) { index, messageMap ->
-                                    val role = messageMap["role"] ?: ""
-                                    val content = messageMap["content"] ?: ""
-                                    val trimmedMessage = if (content.endsWith("\n")) {
-                                        content.substring(startIndex = 0, endIndex = content.length - 1)
-                                    } else {
-                                        content
-                                    }
-                                    
-                                    // Check if this is the last user message in the entire conversation
-                                    val allMessages = viewModel.messages
-                                    val lastUserMessageIndex = allMessages.indexOfLast { it["role"] == "user" }
-                                    val currentMessageIndex = index + 3 // Account for skipped first 3 messages
-                                    val isLastUserMessage = role == "user" && currentMessageIndex == lastUserMessageIndex
+                                // Check if this is the last user message in the entire conversation
+                                val allMessages = viewModel.messages
+                                val lastUserMessageIndex = allMessages.indexOfLast { it["role"] == "user" }
+                                val currentMessageIndex = index + 3 // Account for skipped first 3 messages
+                                val isLastUserMessage = role == "user" && currentMessageIndex == lastUserMessageIndex
 
-                                    // Skip rendering first user and first assistant messages
+                                // Skip rendering first user and first assistant messages
 
-                                    if (role != "system") {
-                                        if (role != "codeBlock") {
-                                            Box {
-                                                val context = LocalContext.current
-                                                val interactionSource = remember { MutableInteractionSource() }
-                                                val sheetState = rememberModalBottomSheetState()
-                                                var isSheetOpen by rememberSaveable {
-                                                    mutableStateOf(false)
-                                                }
-                                                if(isSheetOpen){
-                                                    MessageBottomSheet(
-                                                        message = trimmedMessage,
-                                                        clipboard = clipboard,
-                                                        context = context,
-                                                        viewModel = viewModel,
-                                                        onDismiss = {
-                                                            isSheetOpen = false
-                                                            viewModel.toggler = false
-                                                        },
-                                                        sheetState = sheetState,
-                                                        isLastUserMessage = isLastUserMessage,
-                                                        messageIndex = currentMessageIndex
+                                if (role != "system") {
+                                    if (role != "codeBlock") {
+                                        Box {
+                                            val context = LocalContext.current
+                                            val interactionSource = remember { MutableInteractionSource() }
+                                            val sheetState = rememberModalBottomSheetState()
+                                            var isSheetOpen by rememberSaveable {
+                                                mutableStateOf(false)
+                                            }
+                                            if (isSheetOpen) {
+                                                MessageBottomSheet(
+                                                    message = trimmedMessage,
+                                                    clipboard = clipboard,
+                                                    context = context,
+                                                    viewModel = viewModel,
+                                                    onDismiss = {
+                                                        isSheetOpen = false
+                                                        viewModel.toggler = false
+                                                    },
+                                                    sheetState = sheetState,
+                                                    isLastUserMessage = isLastUserMessage,
+                                                    messageIndex = currentMessageIndex,
+                                                )
+                                            }
+                                            Row(
+                                                horizontalArrangement = if (role == "user") Arrangement.End else Arrangement.Start,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(
+                                                        start = 8.dp,
+                                                        top = 8.dp,
+                                                        end = 8.dp,
+                                                        bottom = 0.dp,
+                                                    ),
+                                            ) {
+                                                if (role == "assistant") {
+                                                    Image(
+                                                        painter = painterResource(
+                                                            id = R.drawable.logo,
+                                                        ),
+                                                        contentDescription = "Bot Icon",
+                                                        modifier = Modifier.size(20.dp),
                                                     )
                                                 }
-                                                Row(
-                                                    horizontalArrangement = if (role == "user") Arrangement.End else Arrangement.Start,
+                                                Box(
                                                     modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(
-                                                            start = 8.dp,
-                                                            top = 8.dp,
-                                                            end = 8.dp,
-                                                            bottom = 0.dp
-                                                        ),
-                                                ) {
-                                                    if(role == "assistant") {
-                                                        Image(
-                                                            painter = painterResource(
-                                                                id = R.drawable.logo
-                                                            ),
-                                                            contentDescription =  "Bot Icon",
-                                                            modifier = Modifier.size(20.dp)
-                                                        )
-                                                    }
-                                                    Box(modifier = Modifier
                                                         .padding(horizontal = 2.dp)
                                                         .background(
-                                                            color = if (role == "user") Color(
-                                                                0xFF171E2C
-                                                            ) else Color.Transparent,
+                                                            color = if (role == "user") {
+                                                                Color(
+                                                                    0xFF171E2C,
+                                                                )
+                                                            } else {
+                                                                Color.Transparent
+                                                            },
                                                             shape = RoundedCornerShape(12.dp),
                                                         )
                                                         .combinedClickable(
@@ -397,7 +384,7 @@ fun MainChatScreen (
                                                                         .makeText(
                                                                             context,
                                                                             " Wait till generation is done! ",
-                                                                            Toast.LENGTH_SHORT
+                                                                            Toast.LENGTH_SHORT,
                                                                         )
                                                                         .show()
                                                                 } else {
@@ -406,405 +393,399 @@ fun MainChatScreen (
                                                             },
                                                             onClick = {
                                                                 kc?.hide()
-                                                            }
-                                                        )
+                                                            },
+                                                        ),
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .padding(5.dp),
                                                     ) {
-                                                        Row(
+                                                        Box(
                                                             modifier = Modifier
-                                                                .padding(5.dp)
+                                                                .widthIn(max = 300.dp)
+                                                                .padding(3.dp),
                                                         ) {
-                                                            Box(
+                                                            Text(
+                                                                text = if (trimmedMessage.startsWith("```")) {
+                                                                    trimmedMessage.substring(3)
+                                                                } else {
+                                                                    trimmedMessage
+                                                                },
+                                                                style = MaterialTheme.typography.bodyLarge.copy(
+                                                                    color = Color(0xFFA0A0A5),
+                                                                ),
                                                                 modifier = Modifier
-                                                                    .widthIn(max = 300.dp)
-                                                                    .padding(3.dp)
-                                                            ){
-                                                                Text(
-                                                                    text = if (trimmedMessage.startsWith("```")) {
-                                                                        trimmedMessage.substring(3)
-                                                                    } else {
-                                                                        trimmedMessage
-                                                                    },
-                                                                    style = MaterialTheme.typography.bodyLarge.copy(color = Color(0xFFA0A0A5)),
-                                                                    modifier = Modifier
-                                                                        .padding(start = 1.dp, end = 1.dp)
-                                                                )
-                                                            }
+                                                                    .padding(start = 1.dp, end = 1.dp),
+                                                            )
                                                         }
                                                     }
-                                                    if(role == "user") {
-                                                        Image(
-                                                            painter = painterResource(
-                                                                id = R.drawable.user_icon
-                                                            ),
-                                                            contentDescription = "Human Icon",
-                                                            modifier = Modifier.size(20.dp)
-                                                        )
-                                                    }
                                                 }
-                                            }
-                                        } else {
-                                            val context = LocalContext.current
-                                            val interactionSource = remember { MutableInteractionSource() }
-                                            val sheetState = rememberModalBottomSheetState()
-                                            var isSheetOpen by rememberSaveable {
-                                                mutableStateOf(false)
-                                            }
-                                            // Code block rendering remains the same
-                                            Box(
-                                                modifier = Modifier
-                                                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                                                    .background(
-                                                        Color.Black,
-                                                        shape = RoundedCornerShape(8.dp)
-                                                    )
-                                                    .fillMaxWidth()
-                                            ) {
-                                                if(isSheetOpen){
-                                                    MessageBottomSheet(
-                                                        message = trimmedMessage,
-                                                        clipboard = clipboard,
-                                                        context = context,
-                                                        viewModel = viewModel,
-                                                        onDismiss = {
-                                                            isSheetOpen = false
-                                                            viewModel.toggler = false
-                                                        },
-                                                        sheetState = sheetState,
-                                                        isLastUserMessage = isLastUserMessage,
-                                                        messageIndex = currentMessageIndex
-                                                    )
-                                                }
-                                                Column(modifier = Modifier.combinedClickable(
-                                                        interactionSource = interactionSource,
-                                                indication = ripple(color = Color.LightGray),
-                                                onLongClick = {
-                                                    if (viewModel.getIsSending()) {
-                                                        Toast
-                                                            .makeText(
-                                                                context,
-                                                                " Wait till generation is done! ",
-                                                                Toast.LENGTH_SHORT
-                                                            )
-                                                            .show()
-                                                    } else {
-                                                        isSheetOpen = true
-                                                    }
-                                                },
-                                                onClick = {
-                                                    kc?.hide()
-                                                }
-                                                )) {
-                                                    Row(
-                                                        horizontalArrangement = Arrangement.End,
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .padding(
-                                                                top = 8.dp,
-                                                                bottom = 8.dp,
-                                                                start = 6.dp,
-                                                                end = 6.dp
-                                                            )
-                                                    ) {
-                                                        // Previous content here
-                                                    }
-                                                    Text(
-                                                        text = if (trimmedMessage.startsWith("```")) {
-                                                            trimmedMessage.substring(3)
-                                                        } else {
-                                                            trimmedMessage
-                                                        },
-                                                        style = MaterialTheme.typography.bodyLarge.copy(
-                                                            color = Color(0xFFA0A0A5)
+                                                if (role == "user") {
+                                                    Image(
+                                                        painter = painterResource(
+                                                            id = R.drawable.user_icon,
                                                         ),
-                                                        modifier = Modifier.padding(16.dp)
+                                                        contentDescription = "Human Icon",
+                                                        modifier = Modifier.size(20.dp),
                                                     )
                                                 }
                                             }
                                         }
-                                    }
-                                }
-                                
-                                // Show processing indicator when AI is generating response
-                                if (viewModel.getIsSending()) {
-                                    item {
-                                        // Get the last assistant message content if currently streaming
-                                        val streamingText = if (viewModel.messages.isNotEmpty() && 
-                                                                viewModel.messages.last()["role"] == "assistant") {
-                                            viewModel.messages.last()["content"]
-                                        } else {
-                                            null
+                                    } else {
+                                        val context = LocalContext.current
+                                        val interactionSource = remember { MutableInteractionSource() }
+                                        val sheetState = rememberModalBottomSheetState()
+                                        var isSheetOpen by rememberSaveable {
+                                            mutableStateOf(false)
                                         }
-                                        ProcessingIndicator(
-                                            showMetrics = true,
-                                            streamingText = streamingText
-                                        )
+                                        // Code block rendering remains the same
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                                                .background(
+                                                    Color.Black,
+                                                    shape = RoundedCornerShape(8.dp),
+                                                )
+                                                .fillMaxWidth(),
+                                        ) {
+                                            if (isSheetOpen) {
+                                                MessageBottomSheet(
+                                                    message = trimmedMessage,
+                                                    clipboard = clipboard,
+                                                    context = context,
+                                                    viewModel = viewModel,
+                                                    onDismiss = {
+                                                        isSheetOpen = false
+                                                        viewModel.toggler = false
+                                                    },
+                                                    sheetState = sheetState,
+                                                    isLastUserMessage = isLastUserMessage,
+                                                    messageIndex = currentMessageIndex,
+                                                )
+                                            }
+                                            Column(
+                                                modifier = Modifier.combinedClickable(
+                                                    interactionSource = interactionSource,
+                                                    indication = ripple(color = Color.LightGray),
+                                                    onLongClick = {
+                                                        if (viewModel.getIsSending()) {
+                                                            Toast
+                                                                .makeText(
+                                                                    context,
+                                                                    " Wait till generation is done! ",
+                                                                    Toast.LENGTH_SHORT,
+                                                                )
+                                                                .show()
+                                                        } else {
+                                                            isSheetOpen = true
+                                                        }
+                                                    },
+                                                    onClick = {
+                                                        kc?.hide()
+                                                    },
+                                                ),
+                                            ) {
+                                                Row(
+                                                    horizontalArrangement = Arrangement.End,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(
+                                                            top = 8.dp,
+                                                            bottom = 8.dp,
+                                                            start = 6.dp,
+                                                            end = 6.dp,
+                                                        ),
+                                                ) {
+                                                    // Previous content here
+                                                }
+                                                Text(
+                                                    text = if (trimmedMessage.startsWith("```")) {
+                                                        trimmedMessage.substring(3)
+                                                    } else {
+                                                        trimmedMessage
+                                                    },
+                                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                                        color = Color(0xFFA0A0A5),
+                                                    ),
+                                                    modifier = Modifier.padding(16.dp),
+                                                )
+                                            }
+                                        }
                                     }
                                 }
-                                
+                            }
+
+                            // Show processing indicator when AI is generating response
+                            if (viewModel.getIsSending()) {
                                 item {
-                                    Spacer(modifier = Modifier
-                                        .height(1.dp)
-                                        .fillMaxWidth())
-                                }
-                            }
-                            
-                            // Show error banner if there's an error
-                            viewModel.errorMessage?.let { error ->
-                                ErrorBanner(
-                                    errorMessage = error,
-                                    onRetry = {
-                                        viewModel.clearError()
-                                        viewModel.send()
-                                    },
-                                    onDismiss = {
-                                        viewModel.clearError()
+                                    // Get the last assistant message content if currently streaming
+                                    val streamingText = if (viewModel.messages.isNotEmpty() &&
+                                        viewModel.messages.last()["role"] == "assistant"
+                                    ) {
+                                        viewModel.messages.last()["content"]
+                                    } else {
+                                        null
                                     }
-                                )
-                            }
-                            
-                            // Show redaction banner if PII was redacted
-                            if (viewModel.wasLastMessageRedacted) {
-                                com.nervesparks.iris.ui.components.RedactionBanner(
-                                    redactionCount = viewModel.lastRedactionCount,
-                                    onDismiss = {
-                                        viewModel.clearRedactionBanner()
-                                    }
-                                )
-                            }
-                            
-                            // Show queue state indicator if messages are queued
-                            QueueStateIndicator(
-                                isQueued = viewModel.isMessageQueued,
-                                queueSize = viewModel.queueSize
-                            )
-                            
-                            // Show rate limit cooldown indicator
-                            RateLimitIndicator(
-                                isRateLimited = viewModel.isRateLimited,
-                                initialCooldownSeconds = viewModel.rateLimitCooldownSeconds
-                            )
-                            
-                            // Show thermal/rate-limit hint if throttled
-                            ThermalHint(
-                                isRateLimited = viewModel.isRateLimited,
-                                isThermalThrottled = viewModel.isThermalThrottled
-                            )
-
-                            ScrollToBottomButton(
-                                scrollState = scrollState,
-                                messages = viewModel.messages,
-                                viewModel = viewModel
-                            )
-
-                        }
-
-                        //chat section ends here
-                    }
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp), // Reduced space between cards
-                        contentPadding = PaddingValues(vertical = 8.dp)
-                    ) {
-                        items(Prompts.size) { index ->
-                            if(viewModel.messages.size <= 1){
-                                Card(
-                                    modifier = Modifier
-                                        .height(100.dp)
-                                        .clickable {
-                                            viewModel.updateMessage(Prompts[index])
-                                            focusRequester.requestFocus()
-                                        }
-                                        .padding(horizontal = 8.dp),
-                                    shape = MaterialTheme.shapes.medium,
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF030815))
-                                ) {
-
-                                    Text(
-                                        text = Prompts[index],
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            color = Color(0xFFA0A0A5),
-                                            fontSize = 12.sp,
-                                        ),
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier
-                                            .width(200.dp)
-                                            .height(100.dp)
-                                            .padding(horizontal = 15.dp, vertical = 12.dp)
-//                                                .align(Alignment.Center)
+                                    ProcessingIndicator(
+                                        showMetrics = true,
+                                        streamingText = streamingText,
                                     )
-
                                 }
+                            }
+
+                            item {
+                                Spacer(
+                                    modifier = Modifier
+                                        .height(1.dp)
+                                        .fillMaxWidth(),
+                                )
+                            }
+                        }
+
+                        // Show error banner if there's an error
+                        viewModel.errorMessage?.let { error ->
+                            ErrorBanner(
+                                errorMessage = error,
+                                onRetry = {
+                                    viewModel.clearError()
+                                    viewModel.send()
+                                },
+                                onDismiss = {
+                                    viewModel.clearError()
+                                },
+                            )
+                        }
+
+                        // Show redaction banner if PII was redacted
+                        if (viewModel.wasLastMessageRedacted) {
+                            com.nervesparks.iris.ui.components.RedactionBanner(
+                                redactionCount = viewModel.lastRedactionCount,
+                                onDismiss = {
+                                    viewModel.clearRedactionBanner()
+                                },
+                            )
+                        }
+
+                        // Show queue state indicator if messages are queued
+                        QueueStateIndicator(
+                            isQueued = viewModel.isMessageQueued,
+                            queueSize = viewModel.queueSize,
+                        )
+
+                        // Show rate limit cooldown indicator
+                        RateLimitIndicator(
+                            isRateLimited = viewModel.isRateLimited,
+                            initialCooldownSeconds = viewModel.rateLimitCooldownSeconds,
+                        )
+
+                        // Show thermal/rate-limit hint if throttled
+                        ThermalHint(
+                            isRateLimited = viewModel.isRateLimited,
+                            isThermalThrottled = viewModel.isThermalThrottled,
+                        )
+
+                        ScrollToBottomButton(
+                            scrollState = scrollState,
+                            messages = viewModel.messages,
+                            viewModel = viewModel,
+                        )
+                    }
+
+                    // chat section ends here
+                }
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp), // Reduced space between cards
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                ) {
+                    items(Prompts.size) { index ->
+                        if (viewModel.messages.size <= 1) {
+                            Card(
+                                modifier = Modifier
+                                    .height(100.dp)
+                                    .clickable {
+                                        viewModel.updateMessage(Prompts[index])
+                                        focusRequester.requestFocus()
+                                    }
+                                    .padding(horizontal = 8.dp),
+                                shape = MaterialTheme.shapes.medium,
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF030815)),
+                            ) {
+                                Text(
+                                    text = Prompts[index],
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = Color(0xFFA0A0A5),
+                                        fontSize = 12.sp,
+                                    ),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .width(200.dp)
+                                        .height(100.dp)
+                                        .padding(horizontal = 15.dp, vertical = 12.dp),
+//                                                .align(Alignment.Center)
+                                )
                             }
                         }
                     }
-                    //Prompt input field
-                    Box(
+                }
+                // Prompt input field
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF050B16)),
+
+                ) {
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color(0xFF050B16))
-
+                            .padding(start = 5.dp, top = 8.dp, bottom = 12.dp, end = 5.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
 
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 5.dp, top = 8.dp, bottom = 12.dp, end = 5.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-
-                            ) {
-
-
-                            IconButton(onClick = {
-                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                    putExtra(
-                                        RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                                        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM,
-                                    )
-                                    putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now")
-                                }
-                                speechRecognizerLauncher.launch(intent)
-                                focusManager.clearFocus()
-
-                            }) {
-                                Icon(
+                        IconButton(onClick = {
+                            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                putExtra(
+                                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM,
+                                )
+                                putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now")
+                            }
+                            speechRecognizerLauncher.launch(intent)
+                            focusManager.clearFocus()
+                        }) {
+                            Icon(
 //                                imageVector = Icons.Default.Send,
-                                    modifier = Modifier
-                                        .size(25.dp)
-                                        .weight(1f),
-                                    painter = painterResource(id = R.drawable.microphone_new_svgrepo_com),
-                                    contentDescription = "Mic",
-                                    tint = Color(0xFFDDDDE4) // Optional: set the color of the icon
-                                )
-                            }
-
-
-
-                            val dragSelection = remember { mutableStateOf<TextRange?>(null) }
-                            val lastKnownText = remember { mutableStateOf(viewModel.message) }
-
-                            val textFieldValue = remember {
-                                mutableStateOf(
-                                    TextFieldValue(
-                                        text = viewModel.message,
-                                        selection = TextRange(viewModel.message.length) // Ensure cursor starts at the end
-                                    )
-                                )
-                            }
-
-                            TextField(
-
-                                value = textFieldValue.value.copy(
-                                    text = viewModel.message,
-                                    selection = when {
-                                        viewModel.message != lastKnownText.value -> {
-                                            // If the message has changed programmatically,
-                                            // preserve the current cursor/selection position
-                                            textFieldValue.value.selection
-                                        }
-                                        else -> {
-                                            // Otherwise, use the drag selection or current selection
-                                            dragSelection.value ?: textFieldValue.value.selection
-                                        }
-                                    }
-                                ),
-                                onValueChange = { newValue ->
-                                    // Update drag selection when the user drags or selects
-                                    dragSelection.value = if (newValue.text == textFieldValue.value.text) {
-                                        newValue.selection
-                                    } else {
-                                        null // Reset drag selection if the text changes programmatically
-                                    }
-
-
-                                    // Update the local state
-                                    textFieldValue.value = newValue
-
-                                    // Save the last known text and update ViewModel
-                                    lastKnownText.value = newValue.text
-                                    viewModel.updateMessage(newValue.text)
-                                },
-                                placeholder = { Text("Message") },
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .onGloballyPositioned { coordinates ->
-                                        textFieldBounds = coordinates.boundsInRoot()
-                                    }
-                                    .focusRequester(focusRequester)
-                                    .onFocusChanged { focusState ->
-                                        isFocused = focusState.isFocused
-                                    },
-                                shape = RoundedCornerShape(size = 18.dp),
-                                colors = TextFieldDefaults.colors(
-                                    focusedTextColor = Color(0xFFBECBD1),
-                                    unfocusedTextColor = Color(0xFFBECBD1),
-                                    focusedIndicatorColor = Color.Transparent,
-                                    unfocusedIndicatorColor = Color.Transparent, // Optional, makes the indicator disappear
-                                    focusedLabelColor = Color(0xFF626568),
-                                    cursorColor = Color(0xFF626568),
-                                    unfocusedContainerColor = Color(0xFF171E2C),
-                                    focusedContainerColor = Color(0xFF22314A)
-                                )
+                                    .size(25.dp)
+                                    .weight(1f),
+                                painter = painterResource(id = R.drawable.microphone_new_svgrepo_com),
+                                contentDescription = "Mic",
+                                tint = Color(0xFFDDDDE4), // Optional: set the color of the icon
                             )
+                        }
 
+                        val dragSelection = remember { mutableStateOf<TextRange?>(null) }
+                        val lastKnownText = remember { mutableStateOf(viewModel.message) }
 
+                        val textFieldValue = remember {
+                            mutableStateOf(
+                                TextFieldValue(
+                                    text = viewModel.message,
+                                    selection = TextRange(
+                                        viewModel.message.length,
+                                    ), // Ensure cursor starts at the end
+                                ),
+                            )
+                        }
 
+                        TextField(
 
-                            if (!viewModel.getIsSending()) {
-                                val context = LocalContext.current
+                            value = textFieldValue.value.copy(
+                                text = viewModel.message,
+                                selection = when {
+                                    viewModel.message != lastKnownText.value -> {
+                                        // If the message has changed programmatically,
+                                        // preserve the current cursor/selection position
+                                        textFieldValue.value.selection
+                                    }
+                                    else -> {
+                                        // Otherwise, use the drag selection or current selection
+                                        dragSelection.value ?: textFieldValue.value.selection
+                                    }
+                                },
+                            ),
+                            onValueChange = { newValue ->
+                                // Update drag selection when the user drags or selects
+                                dragSelection.value = if (newValue.text == textFieldValue.value.text) {
+                                    newValue.selection
+                                } else {
+                                    null // Reset drag selection if the text changes programmatically
+                                }
 
-                                IconButton(onClick = {
-                                    if(viewModel.loadedModelName.value == ""){
+                                // Update the local state
+                                textFieldValue.value = newValue
+
+                                // Save the last known text and update ViewModel
+                                lastKnownText.value = newValue.text
+                                viewModel.updateMessage(newValue.text)
+                            },
+                            placeholder = { Text("Message") },
+                            modifier = Modifier
+                                .weight(1f)
+                                .onGloballyPositioned { coordinates ->
+                                    textFieldBounds = coordinates.boundsInRoot()
+                                }
+                                .focusRequester(focusRequester)
+                                .onFocusChanged { focusState ->
+                                    isFocused = focusState.isFocused
+                                },
+                            shape = RoundedCornerShape(size = 18.dp),
+                            colors = TextFieldDefaults.colors(
+                                focusedTextColor = Color(0xFFBECBD1),
+                                unfocusedTextColor = Color(0xFFBECBD1),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent, // Optional, makes the indicator disappear
+                                focusedLabelColor = Color(0xFF626568),
+                                cursorColor = Color(0xFF626568),
+                                unfocusedContainerColor = Color(0xFF171E2C),
+                                focusedContainerColor = Color(0xFF22314A),
+                            ),
+                        )
+
+                        if (!viewModel.getIsSending()) {
+                            val context = LocalContext.current
+
+                            IconButton(
+                                onClick = {
+                                    if (viewModel.loadedModelName.value == "") {
                                         focusManager.clearFocus()
                                         Toast.makeText(context, "Load A Model First", Toast.LENGTH_SHORT).show()
-                                    }
-                                    else {
+                                    } else {
                                         viewModel.send()
                                         focusManager.clearFocus()
                                     }
-                                }
-                                ) {
-                                    Icon(
-                                        modifier = Modifier
-                                            .size(30.dp)
-                                            .weight(1f),
-                                        painter = painterResource(id = R.drawable.send_2_svgrepo_com),
-                                        contentDescription = "Send",
-                                        tint = Color(0xFFDDDDE4)
-                                    )
-                                }
-                            } else if (viewModel.getIsSending()) {
-                                IconButton(onClick = {
-                                    viewModel.stop() }) {
-                                    Icon(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .size(28.dp),
-                                        painter = painterResource(id = R.drawable.square_svgrepo_com),
-                                        contentDescription = "Stop",
-                                        tint = Color(0xFFDDDDE4)
-                                    )
-                                }
+                                },
+                            ) {
+                                Icon(
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .weight(1f),
+                                    painter = painterResource(id = R.drawable.send_2_svgrepo_com),
+                                    contentDescription = "Send",
+                                    tint = Color(0xFFDDDDE4),
+                                )
                             }
-
+                        } else if (viewModel.getIsSending()) {
+                            IconButton(onClick = {
+                                viewModel.stop()
+                            }) {
+                                Icon(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .size(28.dp),
+                                    painter = painterResource(id = R.drawable.square_svgrepo_com),
+                                    contentDescription = "Stop",
+                                    tint = Color(0xFFDDDDE4),
+                                )
+                            }
                         }
                     }
-
-
                 }
             }
-
+        }
     }
-
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsBottomSheet(
     viewModel: MainViewModel,
-    onDismiss: () -> Unit) {
+    onDismiss: () -> Unit,
+) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val sheetScrollState = rememberLazyListState()
     val context = LocalContext.current
-    
+
     ModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = onDismiss,
@@ -812,8 +793,8 @@ fun SettingsBottomSheet(
     ) {
         Column(
             modifier = Modifier
-                .padding(10.dp)
-        ){
+                .padding(10.dp),
+        ) {
             Text(
                 text = "Settings",
                 color = Color.White,
@@ -821,13 +802,13 @@ fun SettingsBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             LazyColumn(state = sheetScrollState) {
                 // Model Selection Section
                 item {
                     var mExpanded by remember { mutableStateOf(false) }
-                    
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -839,35 +820,35 @@ fun SettingsBottomSheet(
                             .border(
                                 border = BorderStroke(
                                     width = 1.dp,
-                                    color = Color.LightGray.copy(alpha = 0.5f)
+                                    color = Color.LightGray.copy(alpha = 0.5f),
                                 ),
-                                shape = RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(8.dp),
                             )
-                            .padding(16.dp)
+                            .padding(16.dp),
                     ) {
                         Column {
                             Text(
                                 text = "Model Selection",
                                 color = Color.White,
                                 style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                modifier = Modifier.padding(bottom = 8.dp),
                             )
-                            
+
                             Text(
                                 text = "Select which AI model to use",
                                 color = Color.Gray,
                                 fontSize = 14.sp,
-                                modifier = Modifier.padding(bottom = 12.dp)
+                                modifier = Modifier.padding(bottom = 12.dp),
                             )
-                            
+
                             // Current active model
                             Text(
                                 text = "Active: ${viewModel.loadedModelName.value}",
                                 color = Color(0xFF6200EE),
                                 fontSize = 14.sp,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                modifier = Modifier.padding(bottom = 8.dp),
                             )
-                            
+
                             // Model dropdown
                             Box {
                                 OutlinedTextField(
@@ -882,7 +863,7 @@ fun SettingsBottomSheet(
                                             if (mExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                                             contentDescription = "Toggle dropdown",
                                             Modifier.clickable { mExpanded = !mExpanded },
-                                            tint = Color(0xFFcfcfd1)
+                                            tint = Color(0xFFcfcfd1),
                                         )
                                     },
                                     readOnly = true,
@@ -892,16 +873,16 @@ fun SettingsBottomSheet(
                                         unfocusedLabelColor = Color(0xFF666666),
                                         focusedLabelColor = Color(0xFFcfcfd1),
                                         unfocusedTextColor = Color(0xFFf5f5f5),
-                                        focusedTextColor = Color(0xFFf5f5f5)
-                                    )
+                                        focusedTextColor = Color(0xFFf5f5f5),
+                                    ),
                                 )
-                                
+
                                 DropdownMenu(
                                     expanded = mExpanded,
                                     onDismissRequest = { mExpanded = false },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(Color(0xFF14161f))
+                                        .background(Color(0xFF14161f)),
                                 ) {
                                     // Filter to only show downloaded models
                                     val extFilesDir = context.getExternalFilesDir(null)
@@ -909,53 +890,57 @@ fun SettingsBottomSheet(
                                         val destFile = extFilesDir?.let { File(it, model["destination"].toString()) }
                                         destFile?.exists() == true
                                     }
-                                    
+
                                     if (downloadedModels.isEmpty()) {
                                         DropdownMenuItem(
                                             onClick = { },
-                                            modifier = Modifier.background(Color(0xFF14161f))
+                                            modifier = Modifier.background(Color(0xFF14161f)),
                                         ) {
                                             Text(
                                                 "No models downloaded",
-                                                color = Color.Gray
+                                                color = Color.Gray,
                                             )
                                         }
                                     } else {
                                         downloadedModels.forEach { model ->
                                             val modelName = model["name"].toString()
                                             val isCurrentModel = modelName == viewModel.loadedModelName.value
-                                            
+
                                             DropdownMenuItem(
                                                 onClick = {
                                                     if (!isCurrentModel && !viewModel.isSwitchingModel.value) {
-                                                        val destFile = File(extFilesDir, model["destination"].toString())
+                                                        val destFile =
+                                                            File(extFilesDir, model["destination"].toString())
                                                         viewModel.switchModel(
                                                             destFile.path,
-                                                            viewModel.user_thread.toInt()
+                                                            viewModel.user_thread.toInt(),
                                                         )
                                                     }
                                                     mExpanded = false
                                                 },
                                                 modifier = Modifier.background(
-                                                    if (isCurrentModel) Color(0xFF6200EE).copy(alpha = 0.2f)
-                                                    else Color(0xFF14161f)
-                                                )
+                                                    if (isCurrentModel) {
+                                                        Color(0xFF6200EE).copy(alpha = 0.2f)
+                                                    } else {
+                                                        Color(0xFF14161f)
+                                                    },
+                                                ),
                                             ) {
                                                 Row(
                                                     modifier = Modifier.fillMaxWidth(),
                                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                                    verticalAlignment = Alignment.CenterVertically
+                                                    verticalAlignment = Alignment.CenterVertically,
                                                 ) {
                                                     Text(
                                                         modelName,
                                                         color = if (isCurrentModel) Color(0xFF6200EE) else Color.White,
-                                                        modifier = Modifier.weight(1f)
+                                                        modifier = Modifier.weight(1f),
                                                     )
                                                     if (isCurrentModel) {
                                                         Text(
                                                             "✓",
                                                             color = Color(0xFF6200EE),
-                                                            fontSize = 18.sp
+                                                            fontSize = 18.sp,
                                                         )
                                                     }
                                                 }
@@ -964,25 +949,25 @@ fun SettingsBottomSheet(
                                     }
                                 }
                             }
-                            
+
                             // Show switching indicator
                             if (viewModel.isSwitchingModel.value) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
                                         text = "Switching model...",
                                         color = Color(0xFF6200EE),
-                                        fontSize = 14.sp
+                                        fontSize = 14.sp,
                                     )
                                 }
                             }
                         }
                     }
                 }
-                
-                item{
+
+                item {
                     Box(
                         modifier = Modifier
                             .background(
@@ -992,11 +977,11 @@ fun SettingsBottomSheet(
                             .border(
                                 border = BorderStroke(
                                     width = 1.dp,
-                                    color = Color.LightGray.copy(alpha = 0.5f)
+                                    color = Color.LightGray.copy(alpha = 0.5f),
                                 ),
-                                shape = RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(8.dp),
                             )
-                            .padding(16.dp)
+                            .padding(16.dp),
                     ) {
                         Column {
                             Text(
@@ -1007,12 +992,11 @@ fun SettingsBottomSheet(
 
                             Text(
                                 text = "${viewModel.user_thread.toInt()}",
-                                color = Color.White
+                                color = Color.White,
                             )
                             Slider(
                                 value = viewModel.user_thread,
                                 onValueChange = {
-
                                     viewModel.user_thread = it
                                 },
                                 valueRange = 0f..8f,
@@ -1020,7 +1004,7 @@ fun SettingsBottomSheet(
                                 colors = SliderDefaults.colors(
                                     thumbColor = Color(0xFF6200EE),
                                     activeTrackColor = Color(0xFF6200EE),
-                                    inactiveTrackColor = Color.Gray
+                                    inactiveTrackColor = Color.Gray,
                                 ),
                             )
                             Spacer(modifier = Modifier.height(15.dp))
@@ -1034,36 +1018,38 @@ fun SettingsBottomSheet(
                                     .fillMaxWidth(),
 
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.DarkGray.copy(alpha = 1.0f), // Set the containerColor to transparent
+                                    containerColor = Color.DarkGray.copy(
+                                        alpha = 1.0f,
+                                    ), // Set the containerColor to transparent
                                     contentColor = Color.White,
                                 ),
                                 shape = RoundedCornerShape(8.dp), // Slightly more rounded corners
                                 elevation = ButtonDefaults.buttonElevation(
                                     defaultElevation = 6.dp,
-                                    pressedElevation = 3.dp
+                                    pressedElevation = 3.dp,
                                 ),
                                 onClick = {
                                     viewModel.currentDownloadable?.destination?.path?.let {
                                         viewModel.load(
-                                            it, viewModel.user_thread.toInt())
+                                            it,
+                                            viewModel.user_thread.toInt(),
+                                        )
                                     }
-                                }
+                                },
                             ) {
-
                                 Text("Save")
                             }
                         }
                     }
-
                 }
-                
+
                 // Model Parameters Section
                 item {
                     var temperature by remember { mutableStateOf(viewModel.getTemperature()) }
-                    var topP by remember { mutableStateOf(viewModel.getTopP()) }
-                    var topK by remember { mutableStateOf(viewModel.getTopK()) }
+                    var topP by remember { mutableStateOf(viewModel.topP) }
+                    var topK by remember { mutableStateOf(viewModel.topK) }
                     var contextLength by remember { mutableStateOf(viewModel.getContextLength()) }
-                    
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1075,88 +1061,90 @@ fun SettingsBottomSheet(
                             .border(
                                 border = BorderStroke(
                                     width = 1.dp,
-                                    color = Color.LightGray.copy(alpha = 0.5f)
+                                    color = Color.LightGray.copy(alpha = 0.5f),
                                 ),
-                                shape = RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(8.dp),
                             )
-                            .padding(16.dp)
+                            .padding(16.dp),
                     ) {
                         Column {
                             Text(
                                 text = "Model Parameters",
                                 color = Color.White,
                                 style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                modifier = Modifier.padding(bottom = 8.dp),
                             )
-                            
+
                             Text(
                                 text = "Adjust model inference parameters. Changes apply on next model load.",
                                 color = Color.Gray,
                                 fontSize = 14.sp,
-                                modifier = Modifier.padding(bottom = 16.dp)
+                                modifier = Modifier.padding(bottom = 16.dp),
                             )
-                            
+
                             // Parameter Presets
                             Text(
                                 text = "Quick Presets",
                                 color = Color.White,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                modifier = Modifier.padding(bottom = 8.dp),
                             )
-                            
+
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(bottom = 16.dp)
+                                    .padding(bottom = 16.dp),
                             ) {
                                 Button(
                                     onClick = {
-                                        viewModel.applyParameterPreset(com.nervesparks.iris.ParameterPreset.CONSERVATIVE)
+                                        viewModel.applyParameterPreset(
+                                            com.nervesparks.iris.ParameterPreset.CONSERVATIVE,
+                                        )
                                         temperature = viewModel.getTemperature()
-                                        topP = viewModel.getTopP()
-                                        topK = viewModel.getTopK()
+                                        topP = viewModel.topP
+                                        topK = viewModel.topK
                                     },
                                     modifier = Modifier.weight(1f),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFF2a2d3a)
-                                    )
+                                        containerColor = Color(0xFF2a2d3a),
+                                    ),
                                 ) {
                                     Text("Conservative", fontSize = 12.sp)
                                 }
-                                
+
                                 Button(
                                     onClick = {
                                         viewModel.applyParameterPreset(com.nervesparks.iris.ParameterPreset.BALANCED)
                                         temperature = viewModel.getTemperature()
-                                        topP = viewModel.getTopP()
-                                        topK = viewModel.getTopK()
+                                        topP = viewModel.topP
+                                        topK = viewModel.topK
                                     },
                                     modifier = Modifier.weight(1f),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFF2a2d3a)
-                                    )
+                                        containerColor = Color(0xFF2a2d3a),
+                                    ),
                                 ) {
                                     Text("Balanced", fontSize = 12.sp)
                                 }
-                                
+
                                 Button(
                                     onClick = {
                                         viewModel.applyParameterPreset(com.nervesparks.iris.ParameterPreset.CREATIVE)
                                         temperature = viewModel.getTemperature()
-                                        topP = viewModel.getTopP()
-                                        topK = viewModel.getTopK()
+                                        topP = viewModel.topP
+                                        topK = viewModel.topK
                                     },
                                     modifier = Modifier.weight(1f),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFF2a2d3a)
-                                    )
+                                        containerColor = Color(0xFF2a2d3a),
+                                    ),
                                 ) {
                                     Text("Creative", fontSize = 12.sp)
                                 }
                             }
-                            
+
                             // Temperature Slider
                             com.nervesparks.iris.ui.components.ParameterSlider(
                                 label = "Temperature",
@@ -1166,39 +1154,39 @@ fun SettingsBottomSheet(
                                     viewModel.setTemperature(it)
                                 },
                                 valueRange = 0.1f..2.0f,
-                                helpText = "Controls randomness. Lower values make output more focused and deterministic, higher values make it more creative."
+                                helpText = "Controls randomness. Lower values make output more focused and deterministic, higher values make it more creative.",
                             )
-                            
+
                             Spacer(modifier = Modifier.height(8.dp))
-                            
+
                             // Top P Slider
                             com.nervesparks.iris.ui.components.ParameterSlider(
                                 label = "Top P",
                                 value = topP,
                                 onValueChange = {
                                     topP = it
-                                    viewModel.setTopP(it)
+                                                                                viewModel.topP = it
                                 },
                                 valueRange = 0.1f..1.0f,
-                                helpText = "Nucleus sampling. Considers tokens with cumulative probability up to this value. Lower values focus on more likely tokens."
+                                helpText = "Nucleus sampling. Considers tokens with cumulative probability up to this value. Lower values focus on more likely tokens.",
                             )
-                            
+
                             Spacer(modifier = Modifier.height(8.dp))
-                            
+
                             // Top K Slider
                             com.nervesparks.iris.ui.components.ParameterSliderInt(
                                 label = "Top K",
                                 value = topK,
                                 onValueChange = {
                                     topK = it
-                                    viewModel.setTopK(it)
+                                    viewModel.topK = it
                                 },
                                 valueRange = 1..100,
-                                helpText = "Limits sampling to the top K most likely tokens. Lower values reduce randomness."
+                                helpText = "Limits sampling to the top K most likely tokens. Lower values reduce randomness.",
                             )
-                            
+
                             Spacer(modifier = Modifier.height(8.dp))
-                            
+
                             // Context Length Slider
                             com.nervesparks.iris.ui.components.ParameterSliderInt(
                                 label = "Context Length",
@@ -1208,25 +1196,25 @@ fun SettingsBottomSheet(
                                     viewModel.setContextLength(it)
                                 },
                                 valueRange = 512..4096,
-                                helpText = "Maximum conversation context length. Higher values use more memory. (Note: Currently fixed at 4096)"
+                                helpText = "Maximum conversation context length. Higher values use more memory. (Note: Currently fixed at 4096)",
                             )
-                            
+
                             Spacer(modifier = Modifier.height(16.dp))
-                            
+
                             // Reset to Defaults Button
                             TextButton(
                                 onClick = {
                                     viewModel.resetParametersToDefaults()
                                     temperature = viewModel.getTemperature()
-                                    topP = viewModel.getTopP()
-                                    topK = viewModel.getTopK()
+                                    topP = viewModel.topP
+                                    topK = viewModel.topK
                                     contextLength = viewModel.getContextLength()
                                 },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
                                 Text(
                                     "Reset to Defaults",
-                                    color = Color(0xFF6200EE)
+                                    color = Color(0xFF6200EE),
                                 )
                             }
                         }
@@ -1241,7 +1229,7 @@ fun SettingsBottomSheet(
 fun ScrollToBottomButton(
     viewModel: MainViewModel,
     scrollState: LazyListState,
-    messages: List<Any>
+    messages: List<Any>,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -1277,14 +1265,14 @@ fun ScrollToBottomButton(
     val lastMessageContent = remember(messages.lastOrNull()) {
         (messages.lastOrNull() as? Map<*, *>)?.get("content")?.toString() ?: ""
     }
-    
+
     LaunchedEffect(lastMessageContent, viewModel.getIsSending()) {
         // Auto-scroll during streaming if we're already at/near the bottom
         if (viewModel.getIsSending() && messages.isNotEmpty()) {
             // Only auto-scroll if we're near the bottom (within last few items)
-            val isNearBottom = scrollState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 >= 
-                              scrollState.layoutInfo.totalItemsCount - 3
-            
+            val isNearBottom = scrollState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 >=
+                scrollState.layoutInfo.totalItemsCount - 3
+
             if (isNearBottom || isAutoScrolling) {
                 // Debounce: delay slightly to batch rapid updates
                 delay(100)
@@ -1297,12 +1285,12 @@ fun ScrollToBottomButton(
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.BottomCenter
+        contentAlignment = Alignment.BottomCenter,
     ) {
         AnimatedVisibility(
             visible = (canScrollDown || isAutoScrolling) && isButtonVisible, // Show button if needed
             enter = fadeIn(),
-            exit = fadeOut()
+            exit = fadeOut(),
         ) {
             FloatingActionButton(
                 onClick = {
@@ -1318,27 +1306,24 @@ fun ScrollToBottomButton(
                 // Ensures a circular shape
                 shape = RoundedCornerShape(percent = 50),
                 containerColor = Color.White.copy(alpha = 0.5f),
-                contentColor = Color.Black
+                contentColor = Color.Black,
             ) {
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowDown,
                     contentDescription = "Scroll to bottom",
-                    tint = Color.White // White icon for better visibility
+                    tint = Color.White, // White icon for better visibility
                 )
             }
         }
     }
 }
 
-
 @Composable
 fun ModelSelectorWithDownloadModal(
     viewModel: MainViewModel,
     downloadManager: DownloadManager,
-    extFileDir: File?
+    extFileDir: File?,
 ) {
-
-
     val context = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
 
@@ -1347,10 +1332,11 @@ fun ModelSelectorWithDownloadModal(
     var mTextFieldSize by remember { mutableStateOf(Size.Zero) }
     var selectedModel by remember { mutableStateOf<Map<String, Any>?>(null) }
 
-    val icon = if (mExpanded)
+    val icon = if (mExpanded) {
         Icons.Filled.KeyboardArrowUp
-    else
+    } else {
         Icons.Filled.KeyboardArrowDown
+    }
 
     // Search for local .gguf models
     val localModels = remember(extFileDir) {
@@ -1359,7 +1345,7 @@ fun ModelSelectorWithDownloadModal(
                 mapOf(
                     "name" to file.nameWithoutExtension,
                     "source" to file.toURI().toString(),
-                    "destination" to file.name
+                    "destination" to file.name,
                 )
             } ?: emptyList()
     }
@@ -1369,11 +1355,9 @@ fun ModelSelectorWithDownloadModal(
     }
     viewModel.allModels = combinedModels
 
-
     Column(Modifier.padding(20.dp)) {
-
         OutlinedTextField(
-            value= viewModel.loadedModelName.value,
+            value = viewModel.loadedModelName.value,
             onValueChange = { mSelectedText = it },
             modifier = Modifier
                 .fillMaxWidth()
@@ -1387,7 +1371,7 @@ fun ModelSelectorWithDownloadModal(
                         },
                         onPress = {
                             mExpanded = !mExpanded
-                        }
+                        },
                     )
                 }
                 .clickable {
@@ -1399,7 +1383,7 @@ fun ModelSelectorWithDownloadModal(
                     icon,
                     contentDescription = "Toggle dropdown",
                     Modifier.clickable { mExpanded = !mExpanded },
-                    tint =Color(0xFFcfcfd1)
+                    tint = Color(0xFFcfcfd1),
                 )
             },
             textStyle = TextStyle(color = Color(0xFFf5f5f5)),
@@ -1411,10 +1395,8 @@ fun ModelSelectorWithDownloadModal(
                 focusedLabelColor = Color(0xFFcfcfd1),
                 unfocusedTextColor = Color(0xFFf5f5f5),
                 focusedTextColor = Color(0xFFf7f5f5),
-            )
+            ),
         )
-
-
 
         DropdownMenu(
             modifier = Modifier
@@ -1425,7 +1407,7 @@ fun ModelSelectorWithDownloadModal(
             expanded = mExpanded,
             onDismissRequest = {
                 mExpanded = false
-            }
+            },
         ) {
             viewModel.allModels.forEach { model ->
                 DropdownMenuItem(
@@ -1441,12 +1423,12 @@ fun ModelSelectorWithDownloadModal(
                         val downloadable = Downloadable(
                             name = model["name"].toString(),
                             source = Uri.parse(model["source"].toString()),
-                            destination = File(extFileDir, model["destination"].toString())
+                            destination = File(extFileDir, model["destination"].toString()),
                         )
 
                         viewModel.showModal = true
                         viewModel.currentDownloadable = downloadable
-                    }
+                    },
                 ) {
                     model["name"]?.let { Text(text = it, color = Color.White) }
                 }
@@ -1454,7 +1436,6 @@ fun ModelSelectorWithDownloadModal(
         }
 
         // Use showModal instead of switchModal
-
     }
 }
 
@@ -1468,20 +1449,18 @@ fun MessageBottomSheet(
     onDismiss: () -> Unit,
     sheetState: SheetState,
     isLastUserMessage: Boolean = false,
-    messageIndex: Int = -1
+    messageIndex: Int = -1,
 ) {
-
-
     ModalBottomSheet(
         sheetState = sheetState,
         containerColor = Color(0xFF01081a),
-        onDismissRequest = onDismiss
+        onDismissRequest = onDismiss,
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(20.dp)
-                .background(color = Color(0xFF01081a))
+                .background(color = Color(0xFF01081a)),
         ) {
             var sheetScrollState = rememberLazyListState()
             var showEditDialog by remember { mutableStateOf(false) }
@@ -1491,7 +1470,7 @@ fun MessageBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxWidth()
-                    .padding(vertical = 5.dp)
+                    .padding(vertical = 5.dp),
 
             ) {
                 // Edit & Resend Button (only for last user message)
@@ -1504,11 +1483,11 @@ fun MessageBottomSheet(
                         enabled = !viewModel.getIsSending(),
                         onClick = {
                             showEditDialog = true
-                        }
+                        },
                     ) {
                         Text(text = "Edit & Resend", color = Color(0xFFA0A0A5))
                     }
-                    
+
                     // Retry Button (only for last user message)
                     TextButton(
                         colors = ButtonDefaults.buttonColors(Color(0xFF171E2C)),
@@ -1519,12 +1498,12 @@ fun MessageBottomSheet(
                         onClick = {
                             viewModel.retryLastMessage()
                             onDismiss()
-                        }
+                        },
                     ) {
                         Text(text = "Retry", color = Color(0xFFA0A0A5))
                     }
                 }
-                
+
                 // Copy Text Button
                 TextButton(
                     colors = ButtonDefaults.buttonColors(Color(0xFF171E2C)),
@@ -1535,11 +1514,11 @@ fun MessageBottomSheet(
                         clipboard.setText(AnnotatedString(message))
                         Toast.makeText(context, "Text copied!", Toast.LENGTH_SHORT).show()
                         onDismiss()
-                    }
+                    },
                 ) {
                     Text(text = "Copy Text", color = Color(0xFFA0A0A5))
                 }
-                
+
                 // Share Button
                 TextButton(
                     colors = ButtonDefaults.buttonColors(Color(0xFF171E2C)),
@@ -1554,11 +1533,11 @@ fun MessageBottomSheet(
                         }
                         context.startActivity(Intent.createChooser(shareIntent, "Share message"))
                         onDismiss()
-                    }
+                    },
                 ) {
                     Text(text = "Share", color = Color(0xFFA0A0A5))
                 }
-                
+
                 // Delete Button
                 if (messageIndex >= 0) {
                     TextButton(
@@ -1569,7 +1548,7 @@ fun MessageBottomSheet(
                         enabled = !viewModel.getIsSending(),
                         onClick = {
                             showDeleteDialog = true
-                        }
+                        },
                     ) {
                         Text(text = "Delete", color = Color.White)
                     }
@@ -1584,7 +1563,7 @@ fun MessageBottomSheet(
                     enabled = !viewModel.getIsSending(),
                     onClick = {
                         viewModel.toggler = !viewModel.toggler
-                    }
+                    },
                 ) {
                     Text(text = "Select Text To Copy", color = Color(0xFFA0A0A5))
                 }
@@ -1604,11 +1583,11 @@ fun MessageBottomSheet(
                             viewModel.stopTextToSpeech()
                         }
                         onDismiss()
-                    }
+                    },
                 ) {
                     Text(
                         text = if (viewModel.stateForTextToSpeech) "Text To Speech" else "Stop",
-                        color = Color(0xFFA0A0A5)
+                        color = Color(0xFFA0A0A5),
                     )
                 }
 
@@ -1622,11 +1601,11 @@ fun MessageBottomSheet(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .background(color = Color.Black)
-                                        .padding(25.dp)
+                                        .padding(25.dp),
                                 ) {
                                     Text(
                                         text = AnnotatedString(message),
-                                        color = Color.White
+                                        color = Color.White,
                                     )
                                 }
                             }
@@ -1634,29 +1613,29 @@ fun MessageBottomSheet(
                     }
                 }
             }
-            
+
             // Edit Dialog
             if (showEditDialog) {
                 Dialog(onDismissRequest = { showEditDialog = false }) {
                     var editedText by remember { mutableStateOf(message) }
-                    
+
                     Surface(
                         shape = RoundedCornerShape(16.dp),
                         color = Color(0xFF01081a),
-                        border = BorderStroke(1.dp, Color(0xFF171E2C))
+                        border = BorderStroke(1.dp, Color(0xFF171E2C)),
                     ) {
                         Column(
                             modifier = Modifier
                                 .padding(24.dp)
-                                .fillMaxWidth()
+                                .fillMaxWidth(),
                         ) {
                             Text(
                                 text = "Edit Message",
                                 style = MaterialTheme.typography.titleLarge,
                                 color = Color.White,
-                                modifier = Modifier.padding(bottom = 16.dp)
+                                modifier = Modifier.padding(bottom = 16.dp),
                             )
-                            
+
                             OutlinedTextField(
                                 value = editedText,
                                 onValueChange = { editedText = it },
@@ -1670,25 +1649,25 @@ fun MessageBottomSheet(
                                     unfocusedBorderColor = Color(0xFF626568),
                                     cursorColor = Color(0xFF626568),
                                     unfocusedContainerColor = Color(0xFF171E2C),
-                                    focusedContainerColor = Color(0xFF22314A)
+                                    focusedContainerColor = Color(0xFF22314A),
                                 ),
-                                maxLines = 6
+                                maxLines = 6,
                             )
-                            
+
                             Row(
                                 horizontalArrangement = Arrangement.End,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 16.dp)
+                                    .padding(top = 16.dp),
                             ) {
                                 TextButton(
-                                    onClick = { showEditDialog = false }
+                                    onClick = { showEditDialog = false },
                                 ) {
                                     Text("Cancel", color = Color(0xFFA0A0A5))
                                 }
-                                
+
                                 Spacer(modifier = Modifier.width(8.dp))
-                                
+
                                 Button(
                                     onClick = {
                                         viewModel.editAndResend(editedText)
@@ -1696,8 +1675,8 @@ fun MessageBottomSheet(
                                         onDismiss()
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFF171E2C)
-                                    )
+                                        containerColor = Color(0xFF171E2C),
+                                    ),
                                 ) {
                                     Text("Send", color = Color(0xFFA0A0A5))
                                 }
@@ -1706,44 +1685,44 @@ fun MessageBottomSheet(
                     }
                 }
             }
-            
+
             // Delete Confirmation Dialog
             if (showDeleteDialog) {
                 Dialog(onDismissRequest = { showDeleteDialog = false }) {
                     Surface(
                         shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFF233340)
+                        color = Color(0xFF233340),
                     ) {
                         Column(
                             modifier = Modifier
                                 .padding(24.dp)
-                                .fillMaxWidth()
+                                .fillMaxWidth(),
                         ) {
                             Text(
                                 text = "Delete Message",
                                 style = MaterialTheme.typography.titleLarge,
                                 color = Color.White,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                modifier = Modifier.padding(bottom = 8.dp),
                             )
-                            
+
                             Text(
                                 text = "Are you sure you want to delete this message? This action cannot be undone.",
                                 color = Color.LightGray,
-                                modifier = Modifier.padding(bottom = 16.dp)
+                                modifier = Modifier.padding(bottom = 16.dp),
                             )
-                            
+
                             Row(
                                 horizontalArrangement = Arrangement.End,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
                                 TextButton(
-                                    onClick = { showDeleteDialog = false }
+                                    onClick = { showDeleteDialog = false },
                                 ) {
                                     Text("Cancel", color = Color(0xFFA0A0A5))
                                 }
-                                
+
                                 Spacer(modifier = Modifier.width(8.dp))
-                                
+
                                 Button(
                                     onClick = {
                                         if (messageIndex >= 0) {
@@ -1754,8 +1733,8 @@ fun MessageBottomSheet(
                                         onDismiss()
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFb91c1c)
-                                    )
+                                        containerColor = Color(0xFFb91c1c),
+                                    ),
                                 ) {
                                     Text("Delete", color = Color.White)
                                 }
@@ -1766,5 +1745,4 @@ fun MessageBottomSheet(
             }
         }
     }
-
 }

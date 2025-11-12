@@ -73,14 +73,13 @@ fun SearchResultScreen(viewModel: MainViewModel, dm: DownloadManager, extFilesDi
         mutableStateOf(
             TextFieldValue(
                 text = viewModel.userGivenModel,
-                selection = TextRange(viewModel.userGivenModel.length)
-            )
+                selection = TextRange(viewModel.userGivenModel.length),
+            ),
         )
     }
     if (viewModel.showAlert) {
         // Modal dialog to show download options
         LoadingModal(viewModel)
-
     }
     Column(
         modifier = Modifier
@@ -89,19 +88,19 @@ fun SearchResultScreen(viewModel: MainViewModel, dm: DownloadManager, extFilesDi
     ) {
         InfoModal(
             showDialog = viewModel.showDownloadInfoModal,
-            onDismiss = { viewModel.showDownloadInfoModal = false }
+            onDismiss = { viewModel.showDownloadInfoModal = false },
         )
         // Search Input and Button Row
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
-            modifier = Modifier.wrapContentSize()
+            modifier = Modifier.wrapContentSize(),
         ) {
             Text(
                 text = "Example: bartowski/Llama-3.2-1B-Instruct-GGUF",
                 modifier = Modifier.padding(4.dp),
                 color = Color.White,
-                fontSize = 10.sp
+                fontSize = 10.sp,
             )
 
             IconButton(
@@ -109,13 +108,13 @@ fun SearchResultScreen(viewModel: MainViewModel, dm: DownloadManager, extFilesDi
                     clipboardManager.setText(AnnotatedString("bartowski/Llama-3.2-1B-Instruct-GGUF"))
                     Toast.makeText(context, "Text copied", Toast.LENGTH_SHORT).show()
                 },
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.copy1),
                     contentDescription = "Copy text",
                     tint = Color.White.copy(alpha = 0.7f),
-                    modifier = Modifier.size(14.dp)
+                    modifier = Modifier.size(14.dp),
                 )
             }
         }
@@ -139,11 +138,10 @@ fun SearchResultScreen(viewModel: MainViewModel, dm: DownloadManager, extFilesDi
                 focusedLabelColor = Color(0xFFcfcfd1),
                 unfocusedTextColor = Color(0xFFf5f5f5),
                 focusedTextColor = Color(0xFFf7f5f5),
-            )
+            ),
         )
 
         Spacer(Modifier.height(16.dp))
-
 
         Button(
             onClick = {
@@ -168,7 +166,7 @@ fun SearchResultScreen(viewModel: MainViewModel, dm: DownloadManager, extFilesDi
                                 val errorStream = connection.errorStream?.bufferedReader()
                                     ?.use { it.readText() }
                                 throw Exception(
-                                    "HTTP error code: $responseCode - ${errorStream ?: "No additional error details"}"
+                                    "HTTP error code: $responseCode - ${errorStream ?: "No additional error details"}",
                                 )
                             }
                         }
@@ -206,9 +204,9 @@ fun SearchResultScreen(viewModel: MainViewModel, dm: DownloadManager, extFilesDi
                 containerColor = Color(0xFF171E24),
                 contentColor = Color.White,
                 disabledContainerColor = Color(0xFF171E2C),
-                disabledContentColor = Color.White.copy(alpha = 0.5f)
+                disabledContentColor = Color.White.copy(alpha = 0.5f),
             ),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(8.dp),
         ) {
             Text(
                 text = when {
@@ -226,15 +224,15 @@ fun SearchResultScreen(viewModel: MainViewModel, dm: DownloadManager, extFilesDi
                 color = Color.Red,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = 8.dp),
             )
         }
-        
+
         // Model Results
         modelData?.let { models ->
             LazyColumn(
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 val filteredModels = models.filter { model -> model["rfilename"]?.endsWith("gguf") == true }
                 items(filteredModels) { model ->
@@ -244,7 +242,7 @@ fun SearchResultScreen(viewModel: MainViewModel, dm: DownloadManager, extFilesDi
                         viewModel = viewModel,
                         extFilesDir = extFilesDir,
                         downloadLink = "",
-                        showDeleteButton = false
+                        showDeleteButton = false,
                     )
                 }
             }
@@ -257,9 +255,8 @@ fun SearchResultScreen(viewModel: MainViewModel, dm: DownloadManager, extFilesDi
                 color = Color.White,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = 8.dp),
             )
         }
     }
 }
-

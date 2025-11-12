@@ -2,8 +2,6 @@ package com.nervesparks.iris.core.multimodal.voice
 
 import android.content.Context
 import android.util.Log
-import com.nervesparks.iris.app.events.EventBus
-import com.nervesparks.iris.app.events.IrisEvent
 import com.nervesparks.iris.common.error.VoiceException
 import com.nervesparks.iris.core.hw.DeviceProfileProvider
 import com.nervesparks.iris.core.multimodal.audio.AudioChunk
@@ -30,7 +28,6 @@ import kotlin.math.sin
 class TextToSpeechEngineImpl @Inject constructor(
     private val audioProcessor: AudioProcessor,
     private val deviceProfileProvider: DeviceProfileProvider,
-    private val eventBus: EventBus,
     @ApplicationContext private val context: Context
 ) : TextToSpeechEngine {
     
@@ -66,13 +63,13 @@ class TextToSpeechEngineImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 Log.i(TAG, "Loading TTS model: ${model.id}")
-                eventBus.emit(IrisEvent.TTSModelLoadStarted(model.id))
+                Log.d(TAG, "TTS model load started: ${model.id}")
                 
                 // Validate model compatibility
                 val validation = validateTTSModel(model)
                 if (!validation.isValid) {
                     val error = VoiceException("TTS model validation failed: ${validation.reason}")
-                    eventBus.emit(IrisEvent.TTSModelLoadFailed(model.id, validation.reason))
+                    Log.e(TAG, "TTS model load failed: ${model.id} - ${validation.reason}")
                     return@withContext Result.failure(error)
                 }
                 
@@ -97,12 +94,12 @@ class TextToSpeechEngineImpl @Inject constructor(
                 isTTSModelLoaded = true
                 
                 Log.i(TAG, "TTS model loaded successfully: ${model.id}")
-                eventBus.emit(IrisEvent.TTSModelLoadCompleted(model.id))
+                Log.d(TAG, "TTS model load completed: ${model.id}")
                 Result.success(Unit)
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Exception during TTS model loading", e)
-                eventBus.emit(IrisEvent.TTSModelLoadFailed(model.id, e.message ?: "Exception"))
+                Log.e(TAG, "TTS model load failed: ${model.id} - ${e.message ?: "Exception"}")
                 Result.failure(VoiceException("TTS model loading exception", e))
             }
         }
@@ -280,7 +277,7 @@ class TextToSpeechEngineImpl @Inject constructor(
                 // Current: Set paused state and emit event
                 
                 isPaused = true
-                eventBus.emit(IrisEvent.TTSSpeechPaused)
+                Log.d(TAG, "TTS speech paused")
                 
                 Log.d(TAG, "Speech paused (session: ${currentSpeechSession?.sessionId})")
                 true
@@ -302,7 +299,7 @@ class TextToSpeechEngineImpl @Inject constructor(
                 // Current: Clear paused state and emit event
                 
                 isPaused = false
-                eventBus.emit(IrisEvent.TTSSpeechResumed)
+                Log.d(TAG, "TTS speech resumed")
                 
                 Log.d(TAG, "Speech resumed (session: ${currentSpeechSession?.sessionId})")
                 true

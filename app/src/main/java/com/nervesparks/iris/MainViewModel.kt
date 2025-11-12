@@ -1,20 +1,20 @@
 package com.nervesparks.iris
 
 import android.content.Context
-import android.llama.cpp.LLamaAndroid
+// import android.llama.cpp.LLamaAndroid  // Temporarily disabled for MVP
+import com.nervesparks.iris.mock.MockLLamaAndroid  // Mock for MVP
 import android.net.Uri
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.annotation.VisibleForTesting
+import androidx.lifecycle.viewModelScope
 import com.nervesparks.iris.data.Message
 import com.nervesparks.iris.data.MessageRole
 import com.nervesparks.iris.data.UserPreferencesRepository
@@ -23,26 +23,26 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
 import java.io.File
 import java.time.Instant
 import java.util.Locale
 import java.util.UUID
 
 class MainViewModel(
-    private val llamaAndroid: LLamaAndroid = LLamaAndroid.instance(), 
+    private val llamaAndroid: MockLLamaAndroid = MockLLamaAndroid.instance(),
     private val userPreferencesRepository: UserPreferencesRepository,
     private val messageRepository: MessageRepository? = null,
-    private val conversationRepository: com.nervesparks.iris.data.repository.ConversationRepository? = null
-): ViewModel() {
+    private val conversationRepository: com.nervesparks.iris.data.repository.ConversationRepository? = null,
+) : ViewModel() {
     companion object {
 //        @JvmStatic
 //        private val NanosPerSecond = 1_000_000_000.0
     }
 
-
     private val _defaultModelName = mutableStateOf("")
     val defaultModelName: State<String> = _defaultModelName
-    
+
     // Current conversation ID - defaults to "default" for backward compatibility
     var currentConversationId by mutableStateOf("default")
         private set
@@ -52,11 +52,11 @@ class MainViewModel(
         ensureDefaultConversationExists()
         restoreMessagesFromDatabase()
     }
-    
-    private fun loadDefaultModelName(){
+
+    private fun loadDefaultModelName() {
         _defaultModelName.value = userPreferencesRepository.getDefaultModelName()
     }
-    
+
     /**
      * Ensure the default conversation exists in the database.
      * This provides backward compatibility for existing installations.
@@ -72,7 +72,7 @@ class MainViewModel(
                             id = "default",
                             title = "Conversation",
                             createdAt = Instant.now(),
-                            lastModified = Instant.now()
+                            lastModified = Instant.now(),
                         )
                         repo.createConversation(defaultConversation)
                         Log.i(tag, "Created default conversation")
@@ -83,7 +83,7 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Restore messages from database at startup.
      */
@@ -97,7 +97,7 @@ class MainViewModel(
                         messages = savedMessages.map { msg ->
                             mapOf(
                                 "role" to msg.role.name.lowercase(),
-                                "content" to msg.content
+                                "content" to msg.content,
                             )
                         }
                         first = false // Already have conversation history
@@ -109,7 +109,7 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Switch to a different conversation.
      * Loads messages for the specified conversation.
@@ -123,7 +123,7 @@ class MainViewModel(
                     messages = savedMessages.map { msg ->
                         mapOf(
                             "role" to msg.role.name.lowercase(),
-                            "content" to msg.content
+                            "content" to msg.content,
                         )
                     }
                     first = messages.isEmpty()
@@ -134,7 +134,7 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Create a new conversation and switch to it.
      */
@@ -145,7 +145,7 @@ class MainViewModel(
                     val newConversation = com.nervesparks.iris.data.Conversation(
                         title = "New Conversation",
                         createdAt = Instant.now(),
-                        lastModified = Instant.now()
+                        lastModified = Instant.now(),
                     )
                     repo.createConversation(newConversation)
                     switchConversation(newConversation.id)
@@ -156,7 +156,7 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Delete a conversation by ID.
      * If deleting the current conversation, switches to default.
@@ -167,7 +167,7 @@ class MainViewModel(
                 try {
                     repo.deleteConversation(conversationId)
                     Log.i(tag, "Deleted conversation $conversationId")
-                    
+
                     // If we deleted the current conversation, switch to default
                     if (conversationId == currentConversationId) {
                         switchConversation("default")
@@ -178,7 +178,7 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Delete all conversations and messages.
      * This is a destructive operation that cannot be undone.
@@ -189,16 +189,16 @@ class MainViewModel(
                 viewModelScope.launch {
                     try {
                         // Clear messages
-                        messages.clear()
-                        
+                        messages = mutableListOf()
+
                         // Delete all data from repositories
                         convRepo.deleteAllConversations()
                         msgRepo.deleteAllMessages()
-                        
+
                         // Reset to default state
                         currentConversationId = "default"
-                        createDefaultConversation()
-                        
+                        ensureDefaultConversationExists()
+
                         Log.i(tag, "Deleted all conversations and messages")
                     } catch (e: Exception) {
                         Log.e(tag, "Failed to delete all data", e)
@@ -207,7 +207,7 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Toggle pin status for a conversation.
      */
@@ -223,7 +223,7 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Toggle archive status for a conversation.
      */
@@ -239,18 +239,18 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Get all conversations as a Flow.
      */
     fun getAllConversations() = conversationRepository?.getAllConversations()
-    
+
     /**
      * Search conversations by query.
      */
     fun searchConversations(query: String) = conversationRepository?.searchConversations(query)
 
-    fun setDefaultModelName(modelName: String){
+    fun setDefaultModelName(modelName: String) {
         userPreferencesRepository.setDefaultModelName(modelName)
         _defaultModelName.value = modelName
     }
@@ -261,8 +261,8 @@ class MainViewModel(
     @set:VisibleForTesting
     var messages by mutableStateOf(
 
-            listOf<Map<String, String>>(),
-        )
+        listOf<Map<String, String>>(),
+    )
         private set
     var newShowModal by mutableStateOf(false)
     var showDownloadInfoModal by mutableStateOf(false)
@@ -276,24 +276,24 @@ class MainViewModel(
             mapOf(
                 "name" to "Llama-3.2-1B-Instruct-Q6_K_L.gguf",
                 "source" to "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q6_K_L.gguf?download=true",
-                "destination" to "Llama-3.2-1B-Instruct-Q6_K_L.gguf"
+                "destination" to "Llama-3.2-1B-Instruct-Q6_K_L.gguf",
             ),
             mapOf(
                 "name" to "Llama-3.2-3B-Instruct-Q4_K_L.gguf",
                 "source" to "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_L.gguf?download=true",
-                "destination" to "Llama-3.2-3B-Instruct-Q4_K_L.gguf"
+                "destination" to "Llama-3.2-3B-Instruct-Q4_K_L.gguf",
             ),
             mapOf(
                 "name" to "stablelm-2-1_6b-chat.Q4_K_M.imx.gguf",
                 "source" to "https://huggingface.co/Crataco/stablelm-2-1_6b-chat-imatrix-GGUF/resolve/main/stablelm-2-1_6b-chat.Q4_K_M.imx.gguf?download=true",
-                "destination" to "stablelm-2-1_6b-chat.Q4_K_M.imx.gguf"
+                "destination" to "stablelm-2-1_6b-chat.Q4_K_M.imx.gguf",
             ),
 
-        )
+        ),
     )
 
     private var first by mutableStateOf(
-        true
+        true,
     )
     var userSpecifiedThreads by mutableIntStateOf(2)
     var message by mutableStateOf("")
@@ -302,14 +302,13 @@ class MainViewModel(
     var userGivenModel by mutableStateOf("")
     var SearchedName by mutableStateOf("")
 
-    private var textToSpeech:TextToSpeech? = null
+    private var textToSpeech: TextToSpeech? = null
 
     var textForTextToSpeech = ""
     var stateForTextToSpeech by mutableStateOf(true)
         private set
 
     var eot_str = ""
-
 
     var refresh by mutableStateOf(false)
 
@@ -322,7 +321,7 @@ class MainViewModel(
                 allModels += mapOf(
                     "name" to modelName,
                     "source" to "local",
-                    "destination" to file.name
+                    "destination" to file.name,
                 )
             }
         }
@@ -332,13 +331,13 @@ class MainViewModel(
 
             if (loadedDefaultModel != null) {
                 val destinationPath = File(directory, loadedDefaultModel["destination"].toString())
-                if(loadedModelName.value == "") {
+                if (loadedModelName.value == "") {
                     load(destinationPath.path, userThreads = user_thread.toInt())
                 }
                 currentDownloadable = Downloadable(
                     loadedDefaultModel["name"].toString(),
                     Uri.parse(loadedDefaultModel["source"].toString()),
-                    destinationPath
+                    destinationPath,
                 )
             } else {
                 // Handle case where the model is not found
@@ -347,37 +346,34 @@ class MainViewModel(
                     destinationPath.exists()
                 }?.let { model ->
                     val destinationPath = File(directory, model["destination"].toString())
-                    if(loadedModelName.value == "") {
+                    if (loadedModelName.value == "") {
                         load(destinationPath.path, userThreads = user_thread.toInt())
                     }
                     currentDownloadable = Downloadable(
                         model["name"].toString(),
                         Uri.parse(model["source"].toString()),
-                        destinationPath
+                        destinationPath,
                     )
                 }
             }
-        } else{
+        } else {
             allModels.find { model ->
                 val destinationPath = File(directory, model["destination"].toString())
                 destinationPath.exists()
             }?.let { model ->
                 val destinationPath = File(directory, model["destination"].toString())
-                if(loadedModelName.value == "") {
+                if (loadedModelName.value == "") {
                     load(destinationPath.path, userThreads = user_thread.toInt())
                 }
                 currentDownloadable = Downloadable(
                     model["name"].toString(),
                     Uri.parse(model["source"].toString()),
-                    destinationPath
+                    destinationPath,
                 )
             }
-        // Attempt to find and load the first model that exists in the combined logic
-
-         }
+            // Attempt to find and load the first model that exists in the combined logic
+        }
     }
-
-
 
     fun textToSpeech(context: Context) {
         if (!getIsSending()) {
@@ -419,7 +415,7 @@ class MainViewModel(
                             textForTextToSpeech,
                             TextToSpeech.QUEUE_FLUSH,
                             null,
-                            utteranceId
+                            utteranceId,
                         )
                     }
                 }
@@ -427,12 +423,10 @@ class MainViewModel(
         }
     }
 
-
-
     fun stopTextToSpeech() {
         textToSpeech?.apply {
-            stop()  // Stops current speech
-            shutdown()  // Releases the resources
+            stop() // Stops current speech
+            shutdown() // Releases the resources
         }
         textToSpeech = null
 
@@ -440,30 +434,28 @@ class MainViewModel(
         stateForTextToSpeech = true
     }
 
-
-
     var toggler by mutableStateOf(false)
-    var showModal by  mutableStateOf(true)
+    var showModal by mutableStateOf(true)
     var showAlert by mutableStateOf(false)
     var switchModal by mutableStateOf(false)
     var currentDownloadable: Downloadable? by mutableStateOf(null)
-    
+
     // Error state for UI
     var errorMessage by mutableStateOf<String?>(null)
         private set
-    
+
     // Queue state for UI
     var isMessageQueued by mutableStateOf(false)
         private set
     var queueSize by mutableStateOf(0)
         private set
-    
+
     // Redaction state for UI
     var wasLastMessageRedacted by mutableStateOf(false)
         private set
     var lastRedactionCount by mutableIntStateOf(0)
         private set
-    
+
     // Rate-limit and thermal state for UI
     var isRateLimited by mutableStateOf(false)
         private set
@@ -478,9 +470,7 @@ class MainViewModel(
 
         viewModelScope.launch {
             try {
-
                 llamaAndroid.unload()
-
             } catch (exc: IllegalStateException) {
                 addMessage("error", exc.message ?: "")
             }
@@ -490,18 +480,21 @@ class MainViewModel(
     fun send() {
         val userMessage = removeExtraWhiteSpaces(message)
         message = ""
-        
+
         // Clear any previous errors when sending a new message
         clearError()
-        
+
         // Reset redaction state
         wasLastMessageRedacted = false
         lastRedactionCount = 0
 
         // Add to messages console.
         if (userMessage != "" && userMessage != " ") {
-            if(first){
-                addMessage("system", "This is a conversation between User and Iris, a friendly chatbot. Iris is helpful, kind, honest, good at writing, and never fails to answer any requests immediately and with precision.")
+            if (first) {
+                addMessage(
+                    "system",
+                    "This is a conversation between User and Iris, a friendly chatbot. Iris is helpful, kind, honest, good at writing, and never fails to answer any requests immediately and with precision.",
+                )
                 addMessage("user", "Hi")
                 persistInitialMessage("user", "Hi")
                 addMessage("assistant", "How may I help You?")
@@ -524,14 +517,13 @@ class MainViewModel(
 
             addMessage("user", finalMessage)
 
-
             viewModelScope.launch {
                 try {
                     val messageToSend = llamaAndroid.getTemplate(messages)
-                    
+
                     // Try to enqueue the message
                     val canSend = llamaAndroid.tryEnqueue(messageToSend)
-                    
+
                     if (!canSend) {
                         // Queue is full, reject the message
                         setError("Too many requests in queue. Please wait and try again.")
@@ -543,10 +535,10 @@ class MainViewModel(
                         updateQueueState()
                         return@launch
                     }
-                    
+
                     // Update queue state for UI
                     updateQueueState()
-                    
+
                     // Process the message
                     llamaAndroid.send(messageToSend)
                         .catch {
@@ -558,37 +550,28 @@ class MainViewModel(
                             // Create a new assistant message with the response
                             if (getIsMarked()) {
                                 addMessage("codeBlock", response)
-
                             } else {
                                 addMessage("assistant", response)
                             }
                         }
-                }
-                catch (e: Exception) {
+                } catch (e: Exception) {
                     Log.e(tag, "send() failed with exception", e)
                     setError(e.message ?: "An unexpected error occurred")
-                }
-                finally {
+                } finally {
                     if (!getIsCompleteEOT()) {
                         trimEOT()
                     }
                     // Persist the complete assistant message after streaming is done
                     persistLastAssistantMessage()
-                    
+
                     // Update queue state after completion
                     updateQueueState()
-                    
+
                     // Check if there's a pending model switch to execute
                     checkAndExecutePendingModelSwitch()
                 }
-
-
-
             }
         }
-
-
-
     }
 
 //    fun bench(pp: Int, tg: Int, pl: Int, nr: Int = 1) {
@@ -616,7 +599,7 @@ class MainViewModel(
 //        }
 //    }
 
-    suspend fun unload(){
+    suspend fun unload() {
         llamaAndroid.unload()
     }
 
@@ -673,40 +656,35 @@ class MainViewModel(
         }
     }
 
+    var loadedModelName = mutableStateOf("")
 
-
-
-
-    var loadedModelName = mutableStateOf("");
-    
     // State for model switching
     private var _isSwitchingModel = mutableStateOf(false)
     val isSwitchingModel: State<Boolean> = _isSwitchingModel
-    
+
     private var _pendingModelSwitch: Pair<String, Int>? = null
 
-    fun load(pathToModel: String, userThreads: Int)  {
+    fun load(pathToModel: String, userThreads: Int) {
         viewModelScope.launch {
-            try{
+            try {
                 llamaAndroid.unload()
-            } catch (exc: IllegalStateException){
+            } catch (exc: IllegalStateException) {
                 Log.e(tag, "load() failed", exc)
             }
             try {
                 var modelName = pathToModel.split("/")
                 loadedModelName.value = modelName.last()
                 newShowModal = false
-                showModal= false
+                showModal = false
                 showAlert = true
-                
+
                 // Get parameters from preferences
                 val temperature = getTemperature()
-                val topP = getTopP()
-                val topK = getTopK()
-                
-                llamaAndroid.load(pathToModel, userThreads = userThreads, topK = topK, topP = topP, temp = temperature)
-                showAlert = false
+                val currentTopP = topP
+                val currentTopK = topK
 
+                llamaAndroid.load(pathToModel, userThreads = userThreads, topK = currentTopK, topP = currentTopP, temp = temperature)
+                showAlert = false
             } catch (exc: IllegalStateException) {
                 Log.e(tag, "load() failed", exc)
 //                addMessage("error", exc.message ?: "")
@@ -716,7 +694,7 @@ class MainViewModel(
             eot_str = llamaAndroid.send_eot_str()
         }
     }
-    
+
     /**
      * Request a model switch. If a request is in-flight, the switch will be deferred
      * until the current request completes.
@@ -733,7 +711,7 @@ class MainViewModel(
             performModelSwitch(pathToModel, userThreads)
         }
     }
-    
+
     /**
      * Perform the actual model switch operation.
      */
@@ -755,7 +733,7 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Check if there's a pending model switch and execute it.
      * Should be called after completing a send operation.
@@ -780,7 +758,7 @@ class MainViewModel(
         } else {
             messages + listOf(newMessage)
         }
-        
+
         // Persist complete messages to database (skip system, error, codeBlock, and log messages)
         // For user messages, persist immediately. For assistant messages, we'll persist on completion
         // via a dedicated method since they stream in chunks.
@@ -790,10 +768,10 @@ class MainViewModel(
                     val domainMessage = Message(
                         content = content,
                         role = MessageRole.USER,
-                        timestamp = Instant.now()
+                        timestamp = Instant.now(),
                     )
                     messageRepository.saveMessage(domainMessage, currentConversationId)
-                    
+
                     // Update conversation metadata
                     updateConversationMetadata()
                 } catch (e: Exception) {
@@ -802,14 +780,14 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Persist the last assistant message to database.
      * Should be called after streaming is complete.
      */
     private fun persistLastAssistantMessage() {
         if (messages.isEmpty() || messageRepository == null) return
-        
+
         val lastMessage = messages.last()
         if (lastMessage["role"] == "assistant") {
             viewModelScope.launch {
@@ -818,11 +796,11 @@ class MainViewModel(
                     val domainMessage = Message(
                         content = content,
                         role = MessageRole.ASSISTANT,
-                        timestamp = Instant.now()
+                        timestamp = Instant.now(),
                     )
                     messageRepository.saveMessage(domainMessage, currentConversationId)
                     Log.i(tag, "Persisted assistant message to database")
-                    
+
                     // Update conversation metadata
                     updateConversationMetadata()
                 } catch (e: Exception) {
@@ -831,13 +809,13 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Persist initial conversation messages (for the auto-generated greeting).
      */
     private fun persistInitialMessage(role: String, content: String) {
         if (messageRepository == null) return
-        
+
         viewModelScope.launch {
             try {
                 val messageRole = when (role) {
@@ -848,10 +826,10 @@ class MainViewModel(
                 val domainMessage = Message(
                     content = content,
                     role = messageRole,
-                    timestamp = Instant.now()
+                    timestamp = Instant.now(),
                 )
                 messageRepository.saveMessage(domainMessage, currentConversationId)
-                
+
                 // Update conversation metadata
                 updateConversationMetadata()
             } catch (e: Exception) {
@@ -859,7 +837,7 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Update conversation metadata (message count and last modified time).
      */
@@ -875,7 +853,7 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Delete a message at the specified index.
      * @param messageIndex The index of the message in the messages list (0-based)
@@ -885,14 +863,14 @@ class MainViewModel(
             Log.e(tag, "Invalid message index: $messageIndex")
             return
         }
-        
+
         val messageToDelete = messages[messageIndex]
-        
+
         // Remove from in-memory list
         messages = messages.toMutableList().apply {
             removeAt(messageIndex)
         }
-        
+
         // Remove from database if messageRepository is available
         // Note: Since messages in ViewModel are Map<String,String> without IDs,
         // we'll need to delete by content matching or regenerate all messages in DB
@@ -910,13 +888,13 @@ class MainViewModel(
                             val domainMessage = Message(
                                 content = content,
                                 role = messageRole,
-                                timestamp = Instant.now()
+                                timestamp = Instant.now(),
                             )
                             repo.saveMessage(domainMessage, currentConversationId)
                         }
                     }
                     Log.i(tag, "Deleted message at index $messageIndex")
-                    
+
                     // Update conversation metadata
                     updateConversationMetadata()
                 } catch (e: Exception) {
@@ -932,7 +910,7 @@ class MainViewModel(
         // Only slice if the content is longer than the EOT string
         if (lastMessageContent.length < eot_str.length) return
 
-        val updatedContent = lastMessageContent.slice(0..(lastMessageContent.length-eot_str.length))
+        val updatedContent = lastMessageContent.slice(0..(lastMessageContent.length - eot_str.length))
         val updatedLastMessage = messages.last() + ("content" to updatedContent)
         messages = messages.toMutableList().apply {
             set(messages.lastIndex, updatedLastMessage)
@@ -945,15 +923,14 @@ class MainViewModel(
         return input.replace("\\s+".toRegex(), " ")
     }
 
-    private fun parseTemplateJson(chatData: List<Map<String, String>> ):String{
+    private fun parseTemplateJson(chatData: List<Map<String, String>>): String {
         var chatStr = ""
-        for (data in chatData){
+        for (data in chatData) {
             val role = data["role"]
             val content = data["content"]
-            if (role != "log"){
+            if (role != "log") {
                 chatStr += "$role \n$content \n"
             }
-
         }
         return chatStr
     }
@@ -962,18 +939,16 @@ class MainViewModel(
     }
 
     fun clear() {
-        messages = listOf(
-
-        )
+        messages = listOf()
         first = true
-        
+
         // Clear database for current conversation
         messageRepository?.let { repo ->
             viewModelScope.launch {
                 try {
                     repo.deleteMessagesForConversation(currentConversationId)
                     Log.i(tag, "Cleared all messages from conversation $currentConversationId")
-                    
+
                     // Update conversation metadata
                     updateConversationMetadata()
                 } catch (e: Exception) {
@@ -982,31 +957,31 @@ class MainViewModel(
             }
         }
     }
-    
+
     /**
      * Get the last user message from the conversation.
      */
     private fun getLastUserMessage(): String? {
         return messages.lastOrNull { it["role"] == "user" }?.get("content")
     }
-    
+
     /**
      * Retry the last user message by resending it verbatim.
      * Removes the last assistant response if it exists before retrying.
      */
     fun retryLastMessage() {
         val lastUserMessage = getLastUserMessage() ?: return
-        
+
         // Remove the last assistant response if it exists
         if (messages.isNotEmpty() && messages.last()["role"] == "assistant") {
             messages = messages.dropLast(1)
         }
-        
+
         // Resend the last user message
         message = lastUserMessage
         send()
     }
-    
+
     /**
      * Edit and resend a user message.
      * Removes the last user message and its corresponding assistant response (if any),
@@ -1014,17 +989,17 @@ class MainViewModel(
      */
     fun editAndResend(editedMessage: String) {
         if (editedMessage.isBlank()) return
-        
+
         // Remove the last assistant response if it exists
         if (messages.isNotEmpty() && messages.last()["role"] == "assistant") {
             messages = messages.dropLast(1)
         }
-        
+
         // Remove the last user message
         if (messages.isNotEmpty() && messages.last()["role"] == "user") {
             messages = messages.dropLast(1)
         }
-        
+
         // Send the edited message
         message = editedMessage
         send()
@@ -1042,28 +1017,28 @@ class MainViewModel(
         return llamaAndroid.getIsMarked()
     }
 
-    fun getIsCompleteEOT(): Boolean{
+    fun getIsCompleteEOT(): Boolean {
         return llamaAndroid.getIsCompleteEOT()
     }
 
     fun stop() {
         llamaAndroid.stopTextGeneration()
     }
-    
+
     /**
      * Set an error message to be displayed in the UI.
      */
     fun setError(error: String) {
         errorMessage = error
     }
-    
+
     /**
      * Clear the current error message.
      */
     fun clearError() {
         errorMessage = null
     }
-    
+
     /**
      * Update the queue state from LLamaAndroid.
      */
@@ -1074,49 +1049,49 @@ class MainViewModel(
         isThermalThrottled = llamaAndroid.isThermalThrottled()
         rateLimitCooldownSeconds = llamaAndroid.getRateLimitCooldownSeconds()
     }
-    
+
     /**
      * Get the privacy redaction enabled status.
      */
     fun getPrivacyRedactionEnabled(): Boolean {
         return userPreferencesRepository.getPrivacyRedactionEnabled()
     }
-    
+
     /**
      * Set the privacy redaction enabled status.
      */
     fun setPrivacyRedactionEnabled(enabled: Boolean) {
         userPreferencesRepository.setPrivacyRedactionEnabled(enabled)
     }
-    
+
     /**
      * Get the theme preference.
      */
     fun getThemePreference(): com.nervesparks.iris.data.ThemePreference {
         return userPreferencesRepository.getThemePreference()
     }
-    
+
     /**
      * Set the theme preference.
      */
     fun setThemePreference(theme: com.nervesparks.iris.data.ThemePreference) {
         userPreferencesRepository.setThemePreference(theme)
     }
-    
+
     /**
      * Get the language preference.
      */
     fun getLanguagePreference(): com.nervesparks.iris.data.LanguagePreference {
         return userPreferencesRepository.getLanguagePreference()
     }
-    
+
     /**
      * Set the language preference.
      */
     fun setLanguagePreference(language: com.nervesparks.iris.data.LanguagePreference) {
         userPreferencesRepository.setLanguagePreference(language)
     }
-    
+
     /**
      * Clear the redaction banner state.
      */
@@ -1124,65 +1099,61 @@ class MainViewModel(
         wasLastMessageRedacted = false
         lastRedactionCount = 0
     }
-    
+
     // Model parameter management
-    
+
     /**
      * Get the current temperature parameter.
      */
     fun getTemperature(): Float {
         return userPreferencesRepository.getTemperature()
     }
-    
+
     /**
      * Set the temperature parameter.
      */
     fun setTemperature(temperature: Float) {
         userPreferencesRepository.setTemperature(temperature)
     }
-    
+
     /**
      * Get the current top_p parameter.
      */
-    fun getTopP(): Float {
-        return userPreferencesRepository.getTopP()
-    }
-    
+    /*fun getTopP(): Float = _topP
+
     /**
      * Set the top_p parameter.
      */
-    fun setTopP(topP: Float) {
-        userPreferencesRepository.setTopP(topP)
+    fun setTopP(value: Float) {
+        _topP = value
     }
-    
+
     /**
      * Get the current top_k parameter.
      */
-    fun getTopK(): Int {
-        return userPreferencesRepository.getTopK()
-    }
-    
+    fun getTopK(): Int = _topK
+
     /**
      * Set the top_k parameter.
      */
-    fun setTopK(topK: Int) {
-        userPreferencesRepository.setTopK(topK)
-    }
-    
+    fun setTopK(value: Int) {
+        _topK = value
+    }*/
+
     /**
      * Get the current context length parameter.
      */
     fun getContextLength(): Int {
         return userPreferencesRepository.getContextLength()
     }
-    
+
     /**
      * Set the context length parameter.
      */
     fun setContextLength(contextLength: Int) {
         userPreferencesRepository.setContextLength(contextLength)
     }
-    
+
     /**
      * Apply a parameter preset (Conservative, Balanced, or Creative).
      */
@@ -1190,29 +1161,28 @@ class MainViewModel(
         when (preset) {
             ParameterPreset.CONSERVATIVE -> {
                 setTemperature(0.5f)
-                setTopP(0.7f)
-                setTopK(20)
+                topP = 0.7f
+                topK = 20
             }
             ParameterPreset.BALANCED -> {
                 setTemperature(1.0f)
-                setTopP(0.9f)
-                setTopK(40)
+                topP = 0.9f
+                topK = 40
             }
             ParameterPreset.CREATIVE -> {
                 setTemperature(1.5f)
-                setTopP(0.95f)
-                setTopK(60)
+                topP = 0.95f
+                topK = 60
             }
         }
     }
-    
+
     /**
      * Reset all parameters to their default values.
      */
     fun resetParametersToDefaults() {
         userPreferencesRepository.resetParametersToDefaults()
     }
-
 }
 
 /**
@@ -1221,9 +1191,8 @@ class MainViewModel(
 enum class ParameterPreset {
     CONSERVATIVE,
     BALANCED,
-    CREATIVE
+    CREATIVE,
 }
 
-fun sentThreadsValue(){
-
+fun sentThreadsValue() {
 }

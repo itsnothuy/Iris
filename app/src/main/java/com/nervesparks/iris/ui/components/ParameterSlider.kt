@@ -8,19 +8,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Slider
 import androidx.compose.material.SliderDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nervesparks.iris.R
 
 /**
  * A reusable parameter slider component for model configuration.
@@ -42,33 +37,33 @@ fun ParameterSlider(
     steps: Int = 0,
     helpText: String? = null,
     valueFormatter: (Float) -> String = { "%.2f".format(it) },
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 8.dp),
     ) {
         // Label and current value
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = label,
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             Text(
                 text = valueFormatter(value),
                 color = Color(0xFF6200EE),
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
         }
-        
+
         // Help text if provided
         if (helpText != null) {
             Spacer(modifier = Modifier.height(4.dp))
@@ -76,12 +71,12 @@ fun ParameterSlider(
                 text = helpText,
                 color = Color.Gray,
                 fontSize = 12.sp,
-                lineHeight = 16.sp
+                lineHeight = 16.sp,
             )
         }
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         // Slider
         Slider(
             value = value,
@@ -91,9 +86,9 @@ fun ParameterSlider(
             colors = SliderDefaults.colors(
                 thumbColor = Color(0xFF6200EE),
                 activeTrackColor = Color(0xFF6200EE),
-                inactiveTrackColor = Color.Gray
+                inactiveTrackColor = Color.Gray,
             ),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -108,12 +103,12 @@ fun ParameterSliderInt(
     onValueChange: (Int) -> Unit,
     valueRange: IntRange,
     helpText: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val floatValue = value.toFloat()
     val floatRange = valueRange.first.toFloat()..valueRange.last.toFloat()
     val steps = valueRange.last - valueRange.first - 1
-    
+
     ParameterSlider(
         label = label,
         value = floatValue,
@@ -122,6 +117,6 @@ fun ParameterSliderInt(
         steps = if (steps > 0 && steps < 1000) steps else 0, // Limit steps for performance
         helpText = helpText,
         valueFormatter = { it.toInt().toString() },
-        modifier = modifier
+        modifier = modifier,
     )
 }

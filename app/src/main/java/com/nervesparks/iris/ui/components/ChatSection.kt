@@ -1,15 +1,5 @@
 package com.nervesparks.iris.ui.components
 
-import android.content.ClipboardManager
-import android.content.Context
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetState
-import androidx.compose.material3.TextButton
-import androidx.compose.ui.text.AnnotatedString
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -22,7 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -33,7 +22,6 @@ import com.nervesparks.iris.R
 import com.nervesparks.iris.data.Message
 import com.nervesparks.iris.data.MessageRole
 import java.time.Instant
-
 
 @Composable
 fun ChatMessageList(viewModel: MainViewModel, scrollState: LazyListState) {
@@ -56,12 +44,12 @@ fun ChatMessageList(viewModel: MainViewModel, scrollState: LazyListState) {
                                 Toast.makeText(
                                     context,
                                     "Wait till generation is done!",
-                                    Toast.LENGTH_SHORT
+                                    Toast.LENGTH_SHORT,
                                 ).show()
                             } else {
                                 viewModel.toggler = true
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -77,7 +65,7 @@ private fun UserOrAssistantMessage(role: String, message: String, onLongClick: (
         horizontalArrangement = if (role == "user") Arrangement.End else Arrangement.Start,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(8.dp),
     ) {
         if (role == "assistant") MessageIcon(iconRes = R.drawable.logo, description = "Bot Icon")
 
@@ -86,19 +74,19 @@ private fun UserOrAssistantMessage(role: String, message: String, onLongClick: (
                 .padding(horizontal = 2.dp)
                 .background(
                     color = if (role == "user") Color(0xFF171E2C) else Color.Transparent,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 )
                 .combinedClickable(
                     onLongClick = onLongClick,
-                    onClick = {}
+                    onClick = {},
                 )
-                .padding(8.dp)
+                .padding(8.dp),
         ) {
             Text(
                 text = message.removePrefix("```"),
                 style = MaterialTheme.typography.bodyLarge.copy(color = Color(0xFFA0A0A5)),
                 maxLines = 10,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
 
@@ -112,12 +100,12 @@ private fun CodeBlockMessage(content: String) {
         modifier = Modifier
             .padding(horizontal = 10.dp, vertical = 4.dp)
             .background(Color.Black, shape = RoundedCornerShape(8.dp))
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
         Text(
             text = content.removePrefix("```"),
             style = MaterialTheme.typography.bodyLarge.copy(color = Color(0xFFA0A0A5)),
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         )
     }
 }
@@ -127,14 +115,14 @@ private fun MessageIcon(iconRes: Int, description: String) {
     androidx.compose.foundation.Image(
         painter = androidx.compose.ui.res.painterResource(id = iconRes),
         contentDescription = description,
-        modifier = Modifier.size(20.dp)
+        modifier = Modifier.size(20.dp),
     )
 }
 
 /**
  * Helper function to convert legacy Map-based message format to Message data class.
  * This enables gradual migration to the new Message model.
- * 
+ *
  * Example usage in ChatMessageList:
  * ```
  * itemsIndexed(messages.drop(3)) { index, messageMap ->
@@ -152,19 +140,17 @@ private fun MessageIcon(iconRes: Int, description: String) {
 private fun Map<String, String>.toMessage(): Message? {
     val role = this["role"] ?: return null
     val content = this["content"] ?: return null
-    
+
     val messageRole = when (role) {
         "user" -> MessageRole.USER
         "assistant" -> MessageRole.ASSISTANT
         "system" -> MessageRole.SYSTEM
         else -> return null // Skip codeBlock and other types for now
     }
-    
+
     return Message(
         content = content.trimEnd(),
         role = messageRole,
-        timestamp = Instant.now()
+        timestamp = Instant.now(),
     )
 }
-
-

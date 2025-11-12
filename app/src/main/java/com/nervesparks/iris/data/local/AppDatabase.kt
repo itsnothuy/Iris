@@ -9,39 +9,40 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
  * Room database for the Iris application.
- * 
+ *
  * Manages message and conversation persistence and provides access to DAOs.
  */
 @Database(
     entities = [MessageEntity::class, ConversationEntity::class],
     version = 2,
-    exportSchema = false
+    exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
-    
+
     /**
      * Provides access to message persistence operations.
      */
     abstract fun messageDao(): MessageDao
-    
+
     /**
      * Provides access to conversation persistence operations.
      */
     abstract fun conversationDao(): ConversationDao
-    
+
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
-        
+
         private const val DATABASE_NAME = "iris_database"
-        
+
         /**
          * Migration from version 1 to 2: Add conversations table and conversationId to messages.
          */
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 // Create conversations table
-                database.execSQL("""
+                database.execSQL(
+                    """
                     CREATE TABLE IF NOT EXISTS conversations (
                         id TEXT PRIMARY KEY NOT NULL,
                         title TEXT NOT NULL,
@@ -51,34 +52,43 @@ abstract class AppDatabase : RoomDatabase() {
                         isPinned INTEGER NOT NULL,
                         isArchived INTEGER NOT NULL
                     )
-                """.trimIndent())
-                
+                    """.trimIndent(),
+                )
+
                 // Create a default conversation for existing messages
                 val currentTime = System.currentTimeMillis()
-                database.execSQL("""
+                database.execSQL(
+                    """
                     INSERT INTO conversations (id, title, createdAt, lastModified, messageCount, isPinned, isArchived)
                     VALUES ('default', 'Conversation', $currentTime, $currentTime, 0, 0, 0)
-                """.trimIndent())
-                
+                    """.trimIndent(),
+                )
+
                 // Add conversationId column to messages with default value
-                database.execSQL("""
+                database.execSQL(
+                    """
                     ALTER TABLE messages ADD COLUMN conversationId TEXT NOT NULL DEFAULT 'default'
-                """.trimIndent())
-                
+                    """.trimIndent(),
+                )
+
                 // Create index on conversationId
-                database.execSQL("""
+                database.execSQL(
+                    """
                     CREATE INDEX IF NOT EXISTS index_messages_conversationId ON messages(conversationId)
-                """.trimIndent())
-                
+                    """.trimIndent(),
+                )
+
                 // Update the message count in the default conversation
-                database.execSQL("""
+                database.execSQL(
+                    """
                     UPDATE conversations 
                     SET messageCount = (SELECT COUNT(*) FROM messages WHERE conversationId = 'default')
                     WHERE id = 'default'
-                """.trimIndent())
+                    """.trimIndent(),
+                )
             }
         }
-        
+
         /**
          * Get the singleton database instance.
          * Thread-safe initialization using double-checked locking.
@@ -88,7 +98,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    DATABASE_NAME
+                    DATABASE_NAME,
                 )
                     .addMigrations(MIGRATION_1_2)
                     .fallbackToDestructiveMigration()

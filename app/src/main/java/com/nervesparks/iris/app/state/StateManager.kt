@@ -16,43 +16,43 @@ import javax.inject.Singleton
  */
 @Singleton
 class StateManager @Inject constructor() {
-    
+
     private val _currentModel = MutableStateFlow<ModelHandle?>(null)
     val currentModel: StateFlow<ModelHandle?> = _currentModel.asStateFlow()
-    
+
     private val _deviceProfile = MutableStateFlow<DeviceProfile?>(null)
     val deviceProfile: StateFlow<DeviceProfile?> = _deviceProfile.asStateFlow()
-    
+
     private val _performanceProfile = MutableStateFlow(PerformanceProfile.BALANCED)
     val performanceProfile: StateFlow<PerformanceProfile> = _performanceProfile.asStateFlow()
-    
+
     private val _deviceState = MutableStateFlow(DeviceState.NORMAL)
     val deviceState: StateFlow<DeviceState> = _deviceState.asStateFlow()
-    
+
     private val _memoryState = MutableStateFlow(MemoryState.NORMAL)
     val memoryState: StateFlow<MemoryState> = _memoryState.asStateFlow()
-    
+
     /**
      * Update currently loaded model
      */
     fun updateCurrentModel(model: ModelHandle?) {
         _currentModel.value = model
     }
-    
+
     /**
      * Update device profile
      */
     fun updateDeviceProfile(profile: DeviceProfile) {
         _deviceProfile.value = profile
     }
-    
+
     /**
      * Update performance profile
      */
     fun updatePerformanceProfile(profile: PerformanceProfile) {
         _performanceProfile.value = profile
     }
-    
+
     /**
      * Update thermal state based on temperature
      * @param temperature Current device temperature in Celsius
@@ -63,7 +63,7 @@ class StateManager @Inject constructor() {
             temperature > 40.0f -> DeviceState.HOT
             else -> DeviceState.NORMAL
         }
-        
+
         // Automatically adjust performance profile based on thermal state
         when (_deviceState.value) {
             DeviceState.OVERHEATING -> _performanceProfile.value = PerformanceProfile.EMERGENCY
@@ -71,13 +71,14 @@ class StateManager @Inject constructor() {
             DeviceState.NORMAL -> {
                 // Only restore to BALANCED if we were in a thermal-limited state
                 if (_performanceProfile.value == PerformanceProfile.EMERGENCY ||
-                    _performanceProfile.value == PerformanceProfile.BATTERY_SAVER) {
+                    _performanceProfile.value == PerformanceProfile.BATTERY_SAVER
+                ) {
                     _performanceProfile.value = PerformanceProfile.BALANCED
                 }
             }
         }
     }
-    
+
     /**
      * Update memory state based on available memory
      * @param availableMemory Available memory in bytes
@@ -89,7 +90,7 @@ class StateManager @Inject constructor() {
         } else {
             100.0
         }
-        
+
         _memoryState.value = when {
             memoryPercentage < 10 -> MemoryState.CRITICAL
             memoryPercentage < 25 -> MemoryState.LOW

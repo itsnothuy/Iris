@@ -21,31 +21,30 @@ import androidx.compose.ui.window.Dialog
 import com.nervesparks.iris.MainViewModel
 
 @Composable
-fun LoadingModal(viewModel: MainViewModel){
+fun LoadingModal(viewModel: MainViewModel) {
     Dialog(onDismissRequest = {}) {
         Surface(
             shape = RoundedCornerShape(10.dp),
             color = Color(0xFF01081a),
             modifier = Modifier
                 .padding(10.dp)
-                .alpha(0.9f)
+                .alpha(0.9f),
         ) {
             Column(
                 modifier = Modifier
                     .padding(16.dp)
                     .wrapContentSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-            ){
+            ) {
                 Box(
                     modifier = Modifier
                         .padding(8.dp)
                         .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                )
-                {
+                    contentAlignment = Alignment.Center,
+                ) {
                     Text(
                         text = "Loading Model \n" +
-                                "Please wait...",
+                            "Please wait...",
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -55,13 +54,13 @@ fun LoadingModal(viewModel: MainViewModel){
                     text = viewModel.loadedModelName.value,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
                 )
                 LinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 10.dp),
-                    color = Color(0xFF17246a)
+                    color = Color(0xFF17246a),
                 )
             }
         }

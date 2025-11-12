@@ -22,7 +22,7 @@ class RedactionBannerTest {
         composeTestRule.setContent {
             RedactionBanner(
                 redactionCount = 1,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -35,7 +35,7 @@ class RedactionBannerTest {
         composeTestRule.setContent {
             RedactionBanner(
                 redactionCount = 1,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -48,7 +48,7 @@ class RedactionBannerTest {
         composeTestRule.setContent {
             RedactionBanner(
                 redactionCount = 3,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -61,7 +61,7 @@ class RedactionBannerTest {
         composeTestRule.setContent {
             RedactionBanner(
                 redactionCount = 2,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -76,7 +76,7 @@ class RedactionBannerTest {
         composeTestRule.setContent {
             RedactionBanner(
                 redactionCount = 1,
-                onDismiss = { dismissClicked = true }
+                onDismiss = { dismissClicked = true },
             )
         }
 
@@ -92,7 +92,7 @@ class RedactionBannerTest {
         composeTestRule.setContent {
             RedactionBanner(
                 redactionCount = 1,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -105,7 +105,7 @@ class RedactionBannerTest {
         composeTestRule.setContent {
             RedactionBanner(
                 redactionCount = 2,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -122,7 +122,7 @@ class RedactionBannerTest {
         composeTestRule.setContent {
             RedactionBanner(
                 redactionCount = 1,
-                onDismiss = { dismissCount++ }
+                onDismiss = { dismissCount++ },
             )
         }
 
@@ -139,7 +139,7 @@ class RedactionBannerTest {
         composeTestRule.setContent {
             RedactionBanner(
                 redactionCount = 0,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 
@@ -152,7 +152,7 @@ class RedactionBannerTest {
         composeTestRule.setContent {
             RedactionBanner(
                 redactionCount = 10,
-                onDismiss = {}
+                onDismiss = {},
             )
         }
 

@@ -47,21 +47,21 @@ class ExportServiceTest {
             title = "Test Conversation",
             createdAt = timestamp,
             lastModified = timestamp,
-            messageCount = 2
+            messageCount = 2,
         )
         val messages = listOf(
             Message(
                 id = "msg-1",
                 content = "Hello",
                 role = MessageRole.USER,
-                timestamp = timestamp
+                timestamp = timestamp,
             ),
             Message(
                 id = "msg-2",
                 content = "Hi there!",
                 role = MessageRole.ASSISTANT,
-                timestamp = timestamp.plusSeconds(1)
-            )
+                timestamp = timestamp.plusSeconds(1),
+            ),
         )
 
         whenever(mockConversationRepository.getAllConversationsIncludingArchived())
@@ -86,15 +86,15 @@ class ExportServiceTest {
             title = "Markdown Test",
             createdAt = timestamp,
             lastModified = timestamp,
-            messageCount = 1
+            messageCount = 1,
         )
         val messages = listOf(
             Message(
                 id = "msg-1",
                 content = "Test message",
                 role = MessageRole.USER,
-                timestamp = timestamp
-            )
+                timestamp = timestamp,
+            ),
         )
 
         whenever(mockConversationRepository.getAllConversationsIncludingArchived())
@@ -120,15 +120,15 @@ class ExportServiceTest {
             title = "Plain Text Test",
             createdAt = timestamp,
             lastModified = timestamp,
-            messageCount = 1
+            messageCount = 1,
         )
         val messages = listOf(
             Message(
                 id = "msg-1",
                 content = "Plain text content",
                 role = MessageRole.USER,
-                timestamp = timestamp
-            )
+                timestamp = timestamp,
+            ),
         )
 
         whenever(mockConversationRepository.getAllConversationsIncludingArchived())
@@ -154,7 +154,7 @@ class ExportServiceTest {
             title = "Specific Conversation",
             createdAt = timestamp,
             lastModified = timestamp,
-            messageCount = 0
+            messageCount = 0,
         )
 
         whenever(mockConversationRepository.getConversationById("conv-1"))
@@ -165,7 +165,7 @@ class ExportServiceTest {
         val result = exportService.exportConversations(
             listOf("conv-1"),
             exportDir,
-            ExportFormat.JSON
+            ExportFormat.JSON,
         )
 
         assertTrue(result.success)
@@ -177,7 +177,7 @@ class ExportServiceTest {
         val result = exportService.exportConversations(
             emptyList(),
             exportDir,
-            ExportFormat.JSON
+            ExportFormat.JSON,
         )
 
         assertTrue(result.success)
@@ -190,20 +190,20 @@ class ExportServiceTest {
     fun exportConversationsByDateRange_filtersCorrectly() = runTest {
         val oldDate = Instant.parse("2023-01-01T00:00:00Z")
         val recentDate = Instant.parse("2024-01-01T00:00:00Z")
-        
+
         val oldConversation = Conversation(
             id = "old-id",
             title = "Old",
             createdAt = oldDate,
             lastModified = oldDate,
-            messageCount = 0
+            messageCount = 0,
         )
         val recentConversation = Conversation(
             id = "recent-id",
             title = "Recent",
             createdAt = recentDate,
             lastModified = recentDate,
-            messageCount = 0
+            messageCount = 0,
         )
 
         whenever(mockConversationRepository.getAllConversationsIncludingArchived())
@@ -213,12 +213,12 @@ class ExportServiceTest {
 
         val startDate = Instant.parse("2023-12-01T00:00:00Z")
         val endDate = Instant.parse("2024-02-01T00:00:00Z")
-        
+
         val result = exportService.exportConversationsByDateRange(
             startDate,
             endDate,
             exportDir,
-            ExportFormat.JSON
+            ExportFormat.JSON,
         )
 
         assertTrue(result.success)
@@ -231,32 +231,32 @@ class ExportServiceTest {
     fun exportConversationsByDateRange_inclusiveBoundaries() = runTest {
         val exactStartDate = Instant.parse("2024-01-01T00:00:00Z")
         val exactEndDate = Instant.parse("2024-01-31T23:59:59Z")
-        
+
         val conversationAtStart = Conversation(
             id = "start-id",
             title = "Start",
             createdAt = exactStartDate,
             lastModified = exactStartDate,
-            messageCount = 0
+            messageCount = 0,
         )
         val conversationAtEnd = Conversation(
             id = "end-id",
             title = "End",
             createdAt = exactEndDate,
             lastModified = exactEndDate,
-            messageCount = 0
+            messageCount = 0,
         )
 
         whenever(mockConversationRepository.getAllConversationsIncludingArchived())
             .thenReturn(flowOf(listOf(conversationAtStart, conversationAtEnd)))
         whenever(mockMessageRepository.getMessagesForConversationList(any()))
             .thenReturn(emptyList())
-        
+
         val result = exportService.exportConversationsByDateRange(
             exactStartDate,
             exactEndDate,
             exportDir,
-            ExportFormat.JSON
+            ExportFormat.JSON,
         )
 
         assertTrue(result.success)
@@ -273,7 +273,7 @@ class ExportServiceTest {
             title = "Checksum Test",
             createdAt = Instant.now(),
             lastModified = Instant.now(),
-            messageCount = 0
+            messageCount = 0,
         )
 
         whenever(mockConversationRepository.getAllConversationsIncludingArchived())
@@ -297,7 +297,7 @@ class ExportServiceTest {
             title = "Metadata Test",
             createdAt = timestamp,
             lastModified = timestamp,
-            messageCount = 1
+            messageCount = 1,
         )
         val message = Message(
             id = "msg-1",
@@ -305,7 +305,7 @@ class ExportServiceTest {
             role = MessageRole.ASSISTANT,
             timestamp = timestamp,
             processingTimeMs = 1500L,
-            tokenCount = 100
+            tokenCount = 100,
         )
 
         whenever(mockConversationRepository.getAllConversationsIncludingArchived())
@@ -331,12 +331,12 @@ class ExportServiceTest {
             title = "Roles Test",
             createdAt = timestamp,
             lastModified = timestamp,
-            messageCount = 3
+            messageCount = 3,
         )
         val messages = listOf(
             Message(id = "1", content = "User", role = MessageRole.USER, timestamp = timestamp),
             Message(id = "2", content = "System", role = MessageRole.SYSTEM, timestamp = timestamp),
-            Message(id = "3", content = "Assistant", role = MessageRole.ASSISTANT, timestamp = timestamp)
+            Message(id = "3", content = "Assistant", role = MessageRole.ASSISTANT, timestamp = timestamp),
         )
 
         whenever(mockConversationRepository.getAllConversationsIncludingArchived())

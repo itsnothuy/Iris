@@ -23,7 +23,7 @@ class DeleteConfirmDialogTest {
         composeTestRule.setContent {
             DeleteConfirmDialog(
                 onDismiss = {},
-                onConfirm = {}
+                onConfirm = {},
             )
         }
 
@@ -35,7 +35,7 @@ class DeleteConfirmDialogTest {
         composeTestRule.setContent {
             DeleteConfirmDialog(
                 onDismiss = {},
-                onConfirm = {}
+                onConfirm = {},
             )
         }
 
@@ -47,7 +47,7 @@ class DeleteConfirmDialogTest {
         composeTestRule.setContent {
             DeleteConfirmDialog(
                 onDismiss = {},
-                onConfirm = {}
+                onConfirm = {},
             )
         }
 
@@ -61,13 +61,13 @@ class DeleteConfirmDialogTest {
         composeTestRule.setContent {
             DeleteConfirmDialog(
                 onDismiss = {},
-                onConfirm = {}
+                onConfirm = {},
             )
         }
 
         composeTestRule.onNodeWithText(
             "This action cannot be undone",
-            substring = true
+            substring = true,
         ).assertExists()
     }
 
@@ -76,7 +76,7 @@ class DeleteConfirmDialogTest {
         composeTestRule.setContent {
             DeleteConfirmDialog(
                 onDismiss = {},
-                onConfirm = {}
+                onConfirm = {},
             )
         }
 
@@ -90,7 +90,7 @@ class DeleteConfirmDialogTest {
         composeTestRule.setContent {
             DeleteConfirmDialog(
                 onDismiss = { dismissed = true },
-                onConfirm = {}
+                onConfirm = {},
             )
         }
 
@@ -104,7 +104,7 @@ class DeleteConfirmDialogTest {
         composeTestRule.setContent {
             DeleteConfirmDialog(
                 onDismiss = {},
-                onConfirm = { confirmed = true }
+                onConfirm = { confirmed = true },
             )
         }
 

@@ -2,7 +2,6 @@ package com.nervesparks.iris.ui.components
 
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.ui.test.*
@@ -36,10 +35,10 @@ class MessageActionsTest {
     fun messageBottomSheet_showsCopyButton() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         composeTestRule.setContent {
@@ -50,7 +49,7 @@ class MessageActionsTest {
                 context = context,
                 viewModel = viewModel,
                 onDismiss = {},
-                sheetState = sheetState
+                sheetState = sheetState,
             )
         }
 
@@ -63,10 +62,10 @@ class MessageActionsTest {
     fun messageBottomSheet_showsShareButton() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         composeTestRule.setContent {
@@ -77,7 +76,7 @@ class MessageActionsTest {
                 context = context,
                 viewModel = viewModel,
                 onDismiss = {},
-                sheetState = sheetState
+                sheetState = sheetState,
             )
         }
 
@@ -90,10 +89,10 @@ class MessageActionsTest {
     fun messageBottomSheet_showsDeleteButton_whenMessageIndexProvided() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         composeTestRule.setContent {
@@ -105,7 +104,7 @@ class MessageActionsTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                messageIndex = 5
+                messageIndex = 5,
             )
         }
 
@@ -118,10 +117,10 @@ class MessageActionsTest {
     fun messageBottomSheet_hidesDeleteButton_whenMessageIndexNotProvided() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         composeTestRule.setContent {
@@ -133,7 +132,7 @@ class MessageActionsTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                messageIndex = -1
+                messageIndex = -1,
             )
         }
 
@@ -146,10 +145,10 @@ class MessageActionsTest {
     fun messageBottomSheet_deleteButton_showsConfirmationDialog() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         composeTestRule.setContent {
@@ -161,7 +160,7 @@ class MessageActionsTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                messageIndex = 5
+                messageIndex = 5,
             )
         }
 
@@ -170,7 +169,9 @@ class MessageActionsTest {
 
         // Then: Confirmation dialog should appear
         composeTestRule.onNodeWithText("Delete Message").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Are you sure you want to delete this message? This action cannot be undone.").assertIsDisplayed()
+        composeTestRule.onNodeWithText(
+            "Are you sure you want to delete this message? This action cannot be undone.",
+        ).assertIsDisplayed()
         // Check for dialog buttons
         composeTestRule.onAllNodesWithText("Delete").assertCountEquals(2) // One in sheet, one in dialog
         composeTestRule.onNodeWithText("Cancel").assertIsDisplayed()
@@ -181,10 +182,10 @@ class MessageActionsTest {
     fun messageBottomSheet_deleteConfirmation_cancelButton_closesDialog() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         composeTestRule.setContent {
@@ -196,7 +197,7 @@ class MessageActionsTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                messageIndex = 5
+                messageIndex = 5,
             )
         }
 
@@ -215,17 +216,17 @@ class MessageActionsTest {
     fun messageBottomSheet_deleteConfirmation_deleteButton_deletesMessage() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
-        
+
         // Add test messages to the viewModel
         viewModel.messages = listOf(
             mapOf("role" to "user", "content" to "Message 1"),
             mapOf("role" to "assistant", "content" to "Response 1"),
-            mapOf("role" to "user", "content" to "Message 2")
+            mapOf("role" to "user", "content" to "Message 2"),
         )
 
         var dismissCalled = false
@@ -239,7 +240,7 @@ class MessageActionsTest {
                 viewModel = viewModel,
                 onDismiss = { dismissCalled = true },
                 sheetState = sheetState,
-                messageIndex = 2
+                messageIndex = 2,
             )
         }
 
@@ -261,10 +262,10 @@ class MessageActionsTest {
     fun messageBottomSheet_deleteButton_disabledWhenAIGenerating() {
         // Given: Mock preferences repository and set AI generating state
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
         // Simulate AI generating by setting the isSending state
         viewModel.isSending = true
@@ -278,7 +279,7 @@ class MessageActionsTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                messageIndex = 5
+                messageIndex = 5,
             )
         }
 
@@ -291,10 +292,10 @@ class MessageActionsTest {
     fun messageBottomSheet_copyAndShareAndDeleteButtons_allDisplayed() {
         // Given: Mock preferences repository
         whenever(mockUserPreferencesRepository.getDefaultModelName()).thenReturn("")
-        
+
         val viewModel = MainViewModel(
             userPreferencesRepository = mockUserPreferencesRepository,
-            messageRepository = null
+            messageRepository = null,
         )
 
         composeTestRule.setContent {
@@ -306,7 +307,7 @@ class MessageActionsTest {
                 viewModel = viewModel,
                 onDismiss = {},
                 sheetState = sheetState,
-                messageIndex = 3
+                messageIndex = 3,
             )
         }
 

@@ -26,7 +26,7 @@ class QueueStateTest {
                 Surface {
                     QueueStateIndicator(
                         isQueued = false,
-                        queueSize = 0
+                        queueSize = 0,
                     )
                 }
             }
@@ -44,7 +44,7 @@ class QueueStateTest {
                 Surface {
                     QueueStateIndicator(
                         isQueued = true,
-                        queueSize = 1
+                        queueSize = 1,
                     )
                 }
             }
@@ -58,14 +58,14 @@ class QueueStateTest {
     @Test
     fun queueState_showsCorrectQueueSize() {
         val testCases = listOf(1, 2, 3)
-        
+
         testCases.forEach { size ->
             composeTestRule.setContent {
                 IrisTheme {
                     Surface {
                         QueueStateIndicator(
                             isQueued = true,
-                            queueSize = size
+                            queueSize = size,
                         )
                     }
                 }
@@ -83,7 +83,7 @@ class QueueStateTest {
                 Surface {
                     QueueStateIndicator(
                         isQueued = true,
-                        queueSize = 1
+                        queueSize = 1,
                     )
                 }
             }
@@ -100,7 +100,7 @@ class QueueStateTest {
                 Surface {
                     QueueStateIndicator(
                         isQueued = true,
-                        queueSize = 2
+                        queueSize = 2,
                     )
                 }
             }
@@ -114,13 +114,13 @@ class QueueStateTest {
     fun queueState_transitionsFromNotQueuedToQueued() {
         var isQueued = false
         var queueSize = 0
-        
+
         composeTestRule.setContent {
             IrisTheme {
                 Surface {
                     QueueStateIndicator(
                         isQueued = isQueued,
-                        queueSize = queueSize
+                        queueSize = queueSize,
                     )
                 }
             }
@@ -128,7 +128,7 @@ class QueueStateTest {
 
         // Initially not queued
         composeTestRule.onNodeWithTag("queue-indicator").assertDoesNotExist()
-        
+
         // Transition to queued
         isQueued = true
         queueSize = 1
@@ -137,12 +137,12 @@ class QueueStateTest {
                 Surface {
                     QueueStateIndicator(
                         isQueued = isQueued,
-                        queueSize = queueSize
+                        queueSize = queueSize,
                     )
                 }
             }
         }
-        
+
         // Now shows queue indicator
         composeTestRule.onNodeWithTag("queue-indicator").assertExists()
     }
@@ -154,7 +154,7 @@ class QueueStateTest {
                 Surface {
                     QueueStateIndicator(
                         isQueued = true,
-                        queueSize = 2
+                        queueSize = 2,
                     )
                 }
             }
