@@ -52,6 +52,12 @@ sealed class IrisEvent {
     /** TTS model load failed */
     data class TTSModelLoadFailed(val modelId: String, val reason: String) : IrisEvent()
     
+    /** TTS speech paused */
+    object TTSSpeechPaused : IrisEvent()
+    
+    /** TTS speech resumed */
+    object TTSSpeechResumed : IrisEvent()
+    
     /** Error occurred in a component */
     data class ErrorOccurred(val error: com.nervesparks.iris.common.error.IrisException, val component: String) : IrisEvent()
 }

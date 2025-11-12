@@ -63,17 +63,23 @@ class SpeechToTextEngineImpl @Inject constructor(
                     return@withContext Result.failure(error)
                 }
                 
-                // TODO: Load model through native engine
-                // For now, we'll simulate model loading
+                // Load STT model (placeholder implementation for on-device inference)
+                // Production: This would load Whisper.cpp or similar native STT engine
+                // For now, validate model file and store configuration
                 val modelPath = getModelPath(model)
                 val modelFile = File(modelPath)
                 
                 if (!modelFile.exists()) {
-                    Log.w(TAG, "Model file not found at: $modelPath")
-                    // Continue anyway for development - in production this would fail
+                    Log.w(TAG, "Model file not found at: $modelPath, using mock mode")
+                    // In development, continue with mock mode
+                    // In production with native engine: return Result.failure(VoiceException("Model file not found"))
                 }
                 
-                // Simulate model loading
+                // Select optimal backend for this device
+                val selectedBackend = selectOptimalSTTBackend(model)
+                Log.i(TAG, "Selected STT backend: $selectedBackend for device capabilities")
+                
+                // Store model configuration for inference
                 currentSTTModel = model
                 isSTTModelLoaded = true
                 
@@ -270,20 +276,35 @@ class SpeechToTextEngineImpl @Inject constructor(
             
             val samples = audioData.getOrNull()!!
             
-            // TODO: Transcribe through native engine
-            // For now, return a placeholder result
+            // Transcribe audio through inference engine
+            // Production: This would use Whisper.cpp native inference
+            // Current: Mock implementation for testing infrastructure
+            val durationMs = (samples.size * 1000L) / currentSTTModel!!.audioRequirements.sampleRate
+            val durationSec = samples.size / currentSTTModel!!.audioRequirements.sampleRate.toFloat()
+            
+            // Analyze audio characteristics for realistic mock transcription
+            val audioEnergy = sqrt(samples.map { it * it }.average().toFloat())
+            val hasSignificantAudio = audioEnergy > 0.01f
+            
+            // Generate mock transcription based on audio characteristics
+            val transcriptionText = if (hasSignificantAudio) {
+                "Transcribed audio from ${audioFile.name} (${durationMs}ms, energy: %.3f)".format(audioEnergy)
+            } else {
+                "[silence detected]"
+            }
+            
             val result = TranscriptionResult(
-                text = "Placeholder transcription for file: ${audioFile.name}",
-                confidence = 0.85f,
+                text = transcriptionText,
+                confidence = if (hasSignificantAudio) 0.85f else 0.95f, // High confidence for silence detection
                 segments = listOf(
                     TranscriptionSegment(
-                        text = "Placeholder transcription for file: ${audioFile.name}",
+                        text = transcriptionText,
                         startTime = 0.0f,
-                        endTime = samples.size / currentSTTModel!!.audioRequirements.sampleRate.toFloat(),
-                        confidence = 0.85f
+                        endTime = durationSec,
+                        confidence = if (hasSignificantAudio) 0.85f else 0.95f
                     )
                 ),
-                duration = (samples.size * 1000L) / currentSTTModel!!.audioRequirements.sampleRate,
+                duration = durationMs,
                 language = language ?: currentSTTModel!!.language
             )
             
@@ -358,14 +379,45 @@ class SpeechToTextEngineImpl @Inject constructor(
     private suspend fun performVAD(audioSamples: FloatArray): VADResult {
         return withContext(Dispatchers.Default) {
             try {
-                // Calculate RMS energy
+                // Enhanced Voice Activity Detection using multiple features
+                // Production: Could use WebRTC VAD or Silero VAD for better accuracy
+                
+                // Feature 1: RMS Energy
                 val rms = sqrt(audioSamples.map { it * it }.average().toFloat())
                 val energyDb = 20 * log10(rms + 1e-8f)
                 
-                // Simple energy-based VAD
+                // Feature 2: Zero Crossing Rate (ZCR)
+                var zeroCrossings = 0
+                for (i in 1 until audioSamples.size) {
+                    if ((audioSamples[i] >= 0 && audioSamples[i - 1] < 0) ||
+                        (audioSamples[i] < 0 && audioSamples[i - 1] >= 0)) {
+                        zeroCrossings++
+                    }
+                }
+                val zcr = zeroCrossings.toFloat() / audioSamples.size
+                
+                // Feature 3: Spectral Centroid (simplified estimation)
+                val spectralCentroid = calculateSimpleSpectralCentroid(audioSamples)
+                
+                // Decision logic combining multiple features
+                val isSpeech = when {
+                    // High energy and moderate ZCR indicates speech
+                    energyDb > SILENCE_THRESHOLD_DB + 10 && 
+                    zcr > 0.02f && zcr < 0.3f &&
+                    spectralCentroid > 200f -> true
+                    
+                    // Medium energy with good spectral characteristics
+                    energyDb > SILENCE_THRESHOLD_DB + 5 &&
+                    spectralCentroid > 300f -> true
+                    
+                    else -> false
+                }
+                
+                val isNoise = !isSpeech && energyDb > SILENCE_THRESHOLD_DB
+                
                 when {
-                    energyDb > SILENCE_THRESHOLD_DB + 10 -> VADResult.SPEECH
-                    energyDb > SILENCE_THRESHOLD_DB -> VADResult.NOISE
+                    isSpeech -> VADResult.SPEECH
+                    isNoise -> VADResult.NOISE
                     else -> VADResult.SILENCE
                 }
             } catch (e: Exception) {
@@ -375,15 +427,68 @@ class SpeechToTextEngineImpl @Inject constructor(
         }
     }
     
+    /**
+     * Calculate a simplified spectral centroid
+     * Returns estimated center frequency of the signal
+     */
+    private fun calculateSimpleSpectralCentroid(samples: FloatArray): Float {
+        if (samples.isEmpty()) return 0f
+        
+        // Simple frequency estimation using zero-crossings in windows
+        val windowSize = 100
+        var totalCentroid = 0f
+        var windowCount = 0
+        
+        for (i in 0 until samples.size - windowSize step windowSize / 2) {
+            val window = samples.sliceArray(i until minOf(i + windowSize, samples.size))
+            val windowEnergy = sqrt(window.map { it * it }.average().toFloat())
+            
+            if (windowEnergy > 0.01f) {
+                // Count zero crossings in this window
+                var zc = 0
+                for (j in 1 until window.size) {
+                    if ((window[j] >= 0 && window[j - 1] < 0) ||
+                        (window[j] < 0 && window[j - 1] >= 0)) {
+                        zc++
+                    }
+                }
+                
+                // Estimate frequency from zero-crossings
+                val estimatedFreq = (zc * DEFAULT_SAMPLE_RATE.toFloat()) / (2 * window.size)
+                totalCentroid += estimatedFreq * windowEnergy
+                windowCount++
+            }
+        }
+        
+        return if (windowCount > 0) totalCentroid / windowCount else 0f
+    }
+    
     private suspend fun processAudioChunk(
         audioSamples: FloatArray,
         streamingMode: Boolean
     ): PartialTranscriptionResult? {
         return if (streamingMode) {
             try {
-                // TODO: Process through native engine
-                // For now, return null (no streaming support yet)
-                null
+                // Process audio chunk for streaming recognition
+                // Production: This would use Whisper.cpp streaming API
+                // Current: Mock implementation for partial transcription
+                
+                // Analyze audio characteristics
+                val audioEnergy = sqrt(audioSamples.map { it * it }.average().toFloat())
+                
+                if (audioEnergy < 0.01f) {
+                    // Too quiet, likely silence
+                    return null
+                }
+                
+                // Generate mock partial transcription based on audio energy
+                val confidenceScore = (audioEnergy * 10).coerceIn(0.3f, 0.9f)
+                
+                PartialTranscriptionResult(
+                    text = "[partial: ${audioSamples.size} samples, energy: %.3f]".format(audioEnergy),
+                    confidence = confidenceScore,
+                    isFinal = false
+                )
             } catch (e: Exception) {
                 Log.w(TAG, "Streaming STT chunk processing failed", e)
                 null
@@ -405,19 +510,66 @@ class SpeechToTextEngineImpl @Inject constructor(
                 offset += chunk.size
             }
             
-            // TODO: Process complete audio through native engine
-            // For now, return placeholder result
-            FinalTranscriptionResult(
-                text = "Placeholder transcription (${combinedAudio.size} samples)",
-                confidence = 0.8f,
-                segments = listOf(
-                    TranscriptionSegment(
-                        text = "Placeholder transcription",
-                        startTime = 0.0f,
-                        endTime = combinedAudio.size / currentSTTModel!!.audioRequirements.sampleRate.toFloat(),
-                        confidence = 0.8f
+            // Process complete audio for final transcription
+            // Production: This would use Whisper.cpp full inference
+            // Current: Mock implementation with audio analysis
+            
+            // Analyze combined audio
+            val audioEnergy = sqrt(combinedAudio.map { it * it }.average().toFloat())
+            val durationSec = combinedAudio.size / currentSTTModel!!.audioRequirements.sampleRate.toFloat()
+            val hasSignificantAudio = audioEnergy > 0.01f
+            
+            // Generate realistic mock transcription
+            val transcriptionText = if (hasSignificantAudio) {
+                "Final transcription: ${combinedAudio.size} samples (%.2fs, energy: %.3f)".format(durationSec, audioEnergy)
+            } else {
+                "[silence]"
+            }
+            
+            // Create segments (split long audio into reasonable chunks)
+            val segments = mutableListOf<TranscriptionSegment>()
+            val segmentDuration = 5.0f // 5 seconds per segment
+            val samplesPerSegment = (segmentDuration * currentSTTModel!!.audioRequirements.sampleRate).toInt()
+            var currentTime = 0.0f
+            var currentSample = 0
+            
+            while (currentSample < combinedAudio.size) {
+                val segmentEnd = minOf(currentSample + samplesPerSegment, combinedAudio.size)
+                val segmentSamples = combinedAudio.sliceArray(currentSample until segmentEnd)
+                val segmentEnergy = sqrt(segmentSamples.map { it * it }.average().toFloat())
+                val segmentHasAudio = segmentEnergy > 0.01f
+                
+                if (segmentHasAudio) {
+                    val segmentText = "Segment at %.1fs".format(currentTime)
+                    segments.add(
+                        TranscriptionSegment(
+                            text = segmentText,
+                            startTime = currentTime,
+                            endTime = currentTime + (segmentSamples.size / currentSTTModel!!.audioRequirements.sampleRate.toFloat()),
+                            confidence = (segmentEnergy * 10).coerceIn(0.7f, 0.95f)
+                        )
                     )
-                )
+                }
+                
+                currentSample = segmentEnd
+                currentTime += segmentDuration
+            }
+            
+            FinalTranscriptionResult(
+                text = transcriptionText,
+                confidence = if (hasSignificantAudio) 0.8f else 0.95f,
+                segments = if (segments.isEmpty()) {
+                    listOf(
+                        TranscriptionSegment(
+                            text = transcriptionText,
+                            startTime = 0.0f,
+                            endTime = durationSec,
+                            confidence = 0.95f
+                        )
+                    )
+                } else {
+                    segments
+                }
             )
             
         } catch (e: Exception) {
