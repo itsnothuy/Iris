@@ -42,6 +42,20 @@ class SpeechToTextEngineImpl @Inject constructor(
         private const val SILENCE_THRESHOLD_DB = -30.0f
         private const val MAX_RECORDING_DURATION_MS = 60000 // 60 seconds
         private const val VAD_WINDOW_MS = 100
+        
+        // Native library loading - only loads if library exists
+        private var nativeLibraryLoaded = false
+        
+        init {
+            try {
+                System.loadLibrary("iris_multimodal")
+                nativeLibraryLoaded = true
+                Log.i(TAG, "Native multimodal library loaded successfully")
+            } catch (e: UnsatisfiedLinkError) {
+                Log.w(TAG, "Native multimodal library not available, using mock mode", e)
+                nativeLibraryLoaded = false
+            }
+        }
     }
     
     private var currentSTTModel: STTModelDescriptor? = null
@@ -592,4 +606,36 @@ class SpeechToTextEngineImpl @Inject constructor(
             "${model.id}.bin"
         ).absolutePath
     }
+    
+    // =========================================================================
+    // Native Method Declarations (JNI Bridge)
+    // =========================================================================
+    // These methods are implemented in native C++ code (whisper_android.cpp)
+    // They will only be called if nativeLibraryLoaded is true
+    
+    /**
+     * Load a Whisper STT model into native memory
+     * @param modelPath Path to the Whisper model file (.bin)
+     * @return Native context pointer (0 if failed)
+     */
+    private external fun nativeLoadWhisperModel(modelPath: String): Long
+    
+    /**
+     * Transcribe audio using the loaded Whisper model
+     * @param contextPtr Native context pointer from nativeLoadWhisperModel
+     * @param audioData Audio samples as float array (normalized -1.0 to 1.0)
+     * @param language Language code (e.g., "en", "es", "fr")
+     * @return Transcribed text or null if failed
+     */
+    private external fun nativeTranscribeAudio(
+        contextPtr: Long,
+        audioData: FloatArray,
+        language: String
+    ): String?
+    
+    /**
+     * Unload a Whisper model and free native memory
+     * @param contextPtr Native context pointer from nativeLoadWhisperModel
+     */
+    private external fun nativeUnloadWhisperModel(contextPtr: Long)
 }
